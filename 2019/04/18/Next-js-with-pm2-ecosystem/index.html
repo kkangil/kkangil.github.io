@@ -1,0 +1,541 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="kkangil&#39;s Blog">
+    <title>Next.js with pm2 ecosystem - kkangil&#39;s Blog</title>
+    <meta name="author" content="kkangil">
+    
+    
+    
+        <link rel="alternate" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg"},"articleBody":"Next.js는 Client-Side-Rendering 을 사용하는 react가 아닌 SSR(Server-Side-Rendering) 방식을 사용하는 react framework 이다.해당 글은 Next.js에서 배포시 참고하면 좋을 내용으로 Next.js가 뿐만 아니라 react, Node 에서도 사용 가능하다.\n\npm2 ecosystempm2 ecosystem이란, 실행할 인스턴스의 설정을 JSON 형식으로 관리할 수 있고, pm2 에서 제공해 주는 option 을 보다 쉽게 관리 할수 있도록 도와준다. pm2 명령어로 직접 실행시킬 수 있지만, ecosystem을 사용함으로써 어떤 서버나 환경에서도 같은 설정을 사용해서 서버를 실행할 수 있다는 점이 장점이다.\n\necosystem.config.js 를 최상위 폴더에 생성한다.\n작성방법\n\n123456789101112131415161718module.exports = &#123;  apps: [    &#123;      name: &quot;chungeoram&quot;,      script: &quot;./server.js&quot;,      watch: true,      interpreter: &apos;/home/ubuntu/.nvm/versions/node/v8.11.3/bin/node&apos;,      &quot;env_public-develop&quot;: &#123;        NODE_ENV: &quot;public-develop&quot;,        PORT: 1111,        API_END_POINT: &apos;http://endpoint/api&apos;      &#125;,      env_production: &#123;        NODE_ENV: &quot;production&quot;      &#125;    &#125;  ]&#125;;\n\nname: pm2 에서 관리하는 이름\nscript: 앱을 구동할 경로\nwatch: 파일이 변경되면 자동으로 재시작 유무\nignore_watch: 배열안에 있는 리스트는 watch 대상에서 무시한다.\nexec_mode: 클러스터 모드로 구동instances: 클러스터로 구동될시 몇개까지 구동할것인지 선택(0 : cpu갯수)\nmerge_logs: 클러스터로 구동할시 로그를 한파일에 기록\ninterpreter: 해석기 절대 경로(default: node)\nlog_date_format: 로그에 출력될 날짜와 시간값의 형식\nerror_file: 에러 파일 위치\nout_file: 기본 출력 로그 위치\nenv_{value}\nvalue는 process.env.NODE_ENV 값과 매칭된다. 예를 들어 현재 process.env.NODE_ENV가 public-develop 일때, env_public-develop 내부의 값이 사용된다. 내부의 값들은 process.env 객체 내로 값이 할당되며, process.env.PORT , process.env.API_END_POINT 로 값을 배포 환경의 따라 다르게 사용가능하다.\n\n\n\n\npm2 구동방법package.json script에 명령어를 추가해준다.1234567&quot;scripts&quot;: &#123;    &quot;precommit&quot;: &quot;lint-staged&quot;,    &quot;build&quot;: &quot;next build&quot;,    &quot;start&quot;: &quot;pm2 start ecosystem.config.js --env production&quot;,    &quot;start-public&quot;: &quot;pm2 start ecosystem.config.js --env public-develop&quot;,    &quot;dev&quot;: &quot;nodemon server.js&quot;  &#125;\n\n\n\n$ yarn build → $ yarn start\napp 빌드 후 명령어를 사용해서, pm2를 구동시켜 준다. pm2 start {파일이름} –env {value} 와 같은 형식으로 명령어를 추가한다. 여기서 환경변수는 ecosystem.config.js 의 env_{value}와 매칭 된다.\n\nNext.js 에서 process.env 변수 사용 주의사항Next.config.js 에서 sass, webpack 등의 처리 후 export 하는 과정에서, process.env 객체가 비어있는 문제를 발견했다. 하지만, api.js config.js 등 환경 변수에 따라 값을 변경해줘야 하기 때문에 process.env 객체가 비어있으면 안된다. 해당 문제를 처리하기 위해 Next.js 에서 publicRuntimeConfig 라는 옵션을 제공해준다.\n1234567891011121314151617181920const withSass = require(&apos;@zeit/next-sass&apos;)const withCSS = require(&apos;@zeit/next-css&apos;)const publicRuntimeConfig = &#123;  API_END_POINT: process.env.API_END_POINT,  NODE_ENV: process.env.NODE_ENV,&#125;module.exports = withCSS(withSass(&#123;  publicRuntimeConfig,  webpack: config =&gt; &#123;    // Fixes npm packages that depend on `fs` module    config.node = &#123;      fs: &apos;empty&apos;,      module: &apos;empty&apos;    &#125;    return config  &#125;&#125;))\n\n필요한 process.env 의 값을 publicRuntimeConfig 객체에 담아주고 Next.js 의 옵션 값에 할당해준다.할당해 주게되면, Next.js 의 config 값으로 저장되게 된다.이후 Next.js의 config 값을 불러오는 함수를 추가해준다.\n\n12345678910import getConfig from &apos;next/config&apos;;export const getNodeEnv = () =&gt; &#123;  const &#123; publicRuntimeConfig &#125; = getConfig();  const realNodeEnv = publicRuntimeConfig.NODE_ENV || process.env.NODE_ENV;  const apiEndPoint = publicRuntimeConfig.API_END_POINT;  return &#123; realNodeEnv, apiEndPoint &#125;&#125;;\n\n해당 함수는 Next.js의 config에서 publicRuntimeConfig 를 가져와 return 해준다.이제 process.env 환경변수를 사용하고 싶다면, process.env.API_END_POINT 와 같이 직접적으로 사용하는것이 아닌, 해당 함수를 사용해준다.\n\n123456789101112import config from &apos;./config&apos;import &#123; getNodeEnv &#125; from &apos;@/utils/env&apos;const env = getNodeEnv()const endPoint = env.apiEndPoint || config.apiEndPointexport default &#123;  AUTH_TOKEN: &#123;    method: &apos;POST&apos;,    path: () =&gt; `$&#123;endPoint&#125;/auth/authenticate-token`  &#125;&#125;","dateCreated":"2019-04-18T00:29:19+09:00","dateModified":"2019-04-18T00:47:37+09:00","datePublished":"2019-04-18T00:29:19+09:00","description":"Next.js는 Client-Side-Rendering 을 사용하는 react가 아닌 SSR(Server-Side-Rendering) 방식을 사용하는 react framework 이다.해당 글은 Next.js에서 배포시 참고하면 좋을 내용으로 Next.js가 뿐만 아니라 react, Node 에서도 사용 가능하다.","headline":"Next.js with pm2 ecosystem","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"https://kkangil.github.io/2019/04/18/Next-js-with-pm2-ecosystem/"},"publisher":{"@type":"Organization","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg","logo":{"@type":"ImageObject","url":"profile.jpeg"}},"url":"https://kkangil.github.io/2019/04/18/Next-js-with-pm2-ecosystem/","keywords":"Next.js, deploy Next.js, pm2, pm2-ecosystem"}</script>
+    <meta name="description" content="Next.js는 Client-Side-Rendering 을 사용하는 react가 아닌 SSR(Server-Side-Rendering) 방식을 사용하는 react framework 이다.해당 글은 Next.js에서 배포시 참고하면 좋을 내용으로 Next.js가 뿐만 아니라 react, Node 에서도 사용 가능하다.">
+<meta name="keywords" content="Next.js,deploy Next.js,pm2,pm2-ecosystem">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="Next.js with pm2 ecosystem">
+<meta property="og:url" content="https://kkangil.github.io/2019/04/18/Next-js-with-pm2-ecosystem/index.html">
+<meta property="og:site_name" content="kkangil&#39;s Blog">
+<meta property="og:description" content="Next.js는 Client-Side-Rendering 을 사용하는 react가 아닌 SSR(Server-Side-Rendering) 방식을 사용하는 react framework 이다.해당 글은 Next.js에서 배포시 참고하면 좋을 내용으로 Next.js가 뿐만 아니라 react, Node 에서도 사용 가능하다.">
+<meta property="og:locale" content="ko">
+<meta property="og:updated_time" content="2019-04-17T15:47:37.770Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Next.js with pm2 ecosystem">
+<meta name="twitter:description" content="Next.js는 Client-Side-Rendering 을 사용하는 react가 아닌 SSR(Server-Side-Rendering) 방식을 사용하는 react framework 이다.해당 글은 Next.js에서 배포시 참고하면 좋을 내용으로 Next.js가 뿐만 아니라 react, Node 에서도 사용 가능하다.">
+    
+    
+        
+    
+    
+        <meta property="og:image" content="https://kkangil.github.io/assets/images/profile.jpeg"/>
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/style-c4ozcsklz4kht2pebhp44xorvyverh23toayhn7i6ubrpyedak24hv1v0hyd.min.css">
+    <!--STYLES END-->
+    
+
+    
+</head>
+
+    <body>
+        <div id="blog">
+            <!-- Define author's picture -->
+
+
+    
+        
+            
+        
+    
+
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a class="header-title-link" href="/ ">kkangil&#39;s Blog</a>
+    </div>
+    
+        
+            <a class="header-right-picture " href="#about">
+        
+        
+            <img class="header-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+        
+        </a>
+    
+</header>
+
+            <!-- Define author's picture -->
+
+
+
+        
+    
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
+        
+            <div class="sidebar-profile">
+                <a href="/#about">
+                    <img class="sidebar-profile-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+                </a>
+                <h4 class="sidebar-profile-name">kkangil</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
+</h5>
+                
+            </div>
+        
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/ " title="Home">
+                    
+                        <i class="sidebar-button-icon fa fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Home</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-categories" title="카테고리">
+                    
+                        <i class="sidebar-button-icon fa fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">카테고리</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-tags" title="태그">
+                    
+                        <i class="sidebar-button-icon fa fa-tags" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">태그</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-archives" title="기록">
+                    
+                        <i class="sidebar-button-icon fa fa-archive" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">기록</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link open-algolia-search" href="#search" title="검색">
+                    
+                        <i class="sidebar-button-icon fa fa-search" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">검색</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="#about" title="About">
+                    
+                        <i class="sidebar-button-icon fa fa-question" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">About</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="https://github.com/kkangil" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fab fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="http://stackoverflow.com/users/10870848/kkangil" target="_blank" rel="noopener" title="Stack Overflow">
+                    
+                        <i class="sidebar-button-icon fab fa-stack-overflow" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Stack Overflow</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="https://www.linkedin.com/in/kangil-kim-31093a169/" target="_blank" rel="noopener" title="LinkedIn">
+                    
+                        <i class="sidebar-button-icon fab fa-linkedin" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">LinkedIn</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/fe.kkangil@gmail.com" title="Mail">
+                    
+                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Mail</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/atom.xml" title="RSS">
+                    
+                        <i class="sidebar-button-icon fa fa-rss" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">RSS</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
+</nav>
+
+            
+            <div id="main" data-behavior="4"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title">
+            Next.js with pm2 ecosystem
+        </h1>
+    
+    
+        <div class="post-meta">
+    <time datetime="2019-04-18T00:29:19+09:00">
+	
+		    4월 18, 2019
+    	
+    </time>
+    
+        <span>카테고리 </span>
+        
+    <a class="category-link" href="/categories/Deploy/">Deploy</a>
+
+
+    
+</div>
+
+    
+</div>
+
+    
+    <div class="post-content markdown">
+        <div class="main-content-wrap">
+            <p><code>Next.js</code>는 Client-Side-Rendering 을 사용하는 react가 아닌 <code>SSR(Server-Side-Rendering)</code> 방식을 사용하는 react framework 이다.<br>해당 글은 <code>Next.js</code>에서 배포시 참고하면 좋을 내용으로 <code>Next.js</code>가 뿐만 아니라 react, Node 에서도 사용 가능하다.</p>
+<a id="more"></a>
+<h2 id="pm2-ecosystem"><a href="#pm2-ecosystem" class="headerlink" title="pm2 ecosystem"></a>pm2 ecosystem</h2><p>pm2 ecosystem이란, 실행할 인스턴스의 설정을 JSON 형식으로 관리할 수 있고, pm2 에서 제공해 주는 option 을 보다 쉽게 관리 할수 있도록 도와준다. pm2 명령어로 직접 실행시킬 수 있지만, ecosystem을 사용함으로써 어떤 서버나 환경에서도 같은 설정을 사용해서 서버를 실행할 수 있다는 점이 장점이다.</p>
+<ol>
+<li>ecosystem.config.js 를 최상위 폴더에 생성한다.</li>
+<li>작성방법</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">module.exports = &#123;</span><br><span class="line">  apps: [</span><br><span class="line">    &#123;</span><br><span class="line">      name: &quot;chungeoram&quot;,</span><br><span class="line">      script: &quot;./server.js&quot;,</span><br><span class="line">      watch: true,</span><br><span class="line">      interpreter: &apos;/home/ubuntu/.nvm/versions/node/v8.11.3/bin/node&apos;,</span><br><span class="line">      &quot;env_public-develop&quot;: &#123;</span><br><span class="line">        NODE_ENV: &quot;public-develop&quot;,</span><br><span class="line">        PORT: 1111,</span><br><span class="line">        API_END_POINT: &apos;http://endpoint/api&apos;</span><br><span class="line">      &#125;,</span><br><span class="line">      env_production: &#123;</span><br><span class="line">        NODE_ENV: &quot;production&quot;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>name: pm2 에서 관리하는 이름</li>
+<li>script: 앱을 구동할 경로</li>
+<li>watch: 파일이 변경되면 자동으로 재시작 유무</li>
+<li>ignore_watch: 배열안에 있는 리스트는 watch 대상에서 무시한다.</li>
+<li>exec_mode: 클러스터 모드로 구동instances: 클러스터로 구동될시 몇개까지 구동할것인지 선택(0 : cpu갯수)</li>
+<li>merge_logs: 클러스터로 구동할시 로그를 한파일에 기록</li>
+<li>interpreter: 해석기 절대 경로(default: node)</li>
+<li>log_date_format: 로그에 출력될 날짜와 시간값의 형식</li>
+<li>error_file: 에러 파일 위치</li>
+<li>out_file: 기본 출력 로그 위치</li>
+<li>env_{value}<ul>
+<li>value는 <code>process.env.NODE_ENV</code> 값과 매칭된다. 예를 들어 현재 <code>process.env.NODE_ENV</code>가 <code>public-develop</code> 일때, <code>env_public-develop</code> 내부의 값이 사용된다. 내부의 값들은 <code>process.env</code> 객체 내로 값이 할당되며, <code>process.env.PORT</code> , <code>process.env.API_END_POINT</code> 로 값을 배포 환경의 따라 다르게 사용가능하다.</li>
+</ul>
+</li>
+</ul>
+<ol start="3">
+<li>pm2 구동방법<br>package.json script에 명령어를 추가해준다.<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&quot;scripts&quot;: &#123;</span><br><span class="line">    &quot;precommit&quot;: &quot;lint-staged&quot;,</span><br><span class="line">    &quot;build&quot;: &quot;next build&quot;,</span><br><span class="line">    &quot;start&quot;: &quot;pm2 start ecosystem.config.js --env production&quot;,</span><br><span class="line">    &quot;start-public&quot;: &quot;pm2 start ecosystem.config.js --env public-develop&quot;,</span><br><span class="line">    &quot;dev&quot;: &quot;nodemon server.js&quot;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<ul>
+<li>$ yarn build → $ yarn start</li>
+<li>app 빌드 후 명령어를 사용해서, pm2를 구동시켜 준다. pm2 start {파일이름} –env {value} 와 같은 형식으로 명령어를 추가한다. 여기서 환경변수는 ecosystem.config.js 의 env_{value}와 매칭 된다.</li>
+</ul>
+<h2 id="Next-js-에서-process-env-변수-사용-주의사항"><a href="#Next-js-에서-process-env-변수-사용-주의사항" class="headerlink" title="Next.js 에서 process.env 변수 사용 주의사항"></a>Next.js 에서 process.env 변수 사용 주의사항</h2><p><code>Next.config.js</code> 에서 <code>sass</code>, <code>webpack</code> 등의 처리 후 export 하는 과정에서, process.env 객체가 비어있는 문제를 발견했다. 하지만, api.js config.js 등 환경 변수에 따라 값을 변경해줘야 하기 때문에 process.env 객체가 비어있으면 안된다. 해당 문제를 처리하기 위해 Next.js 에서 <code>publicRuntimeConfig</code> 라는 옵션을 제공해준다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">const withSass = require(&apos;@zeit/next-sass&apos;)</span><br><span class="line">const withCSS = require(&apos;@zeit/next-css&apos;)</span><br><span class="line"></span><br><span class="line">const publicRuntimeConfig = &#123;</span><br><span class="line">  API_END_POINT: process.env.API_END_POINT,</span><br><span class="line">  NODE_ENV: process.env.NODE_ENV,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">module.exports = withCSS(withSass(&#123;</span><br><span class="line">  publicRuntimeConfig,</span><br><span class="line">  webpack: config =&gt; &#123;</span><br><span class="line">    // Fixes npm packages that depend on `fs` module</span><br><span class="line">    config.node = &#123;</span><br><span class="line">      fs: &apos;empty&apos;,</span><br><span class="line">      module: &apos;empty&apos;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    return config</span><br><span class="line">  &#125;</span><br><span class="line">&#125;))</span><br></pre></td></tr></table></figure>
+<ul>
+<li>필요한 process.env 의 값을 <code>publicRuntimeConfig</code> 객체에 담아주고 Next.js 의 옵션 값에 할당해준다.할당해 주게되면, Next.js 의 config 값으로 저장되게 된다.이후 Next.js의 config 값을 불러오는 함수를 추가해준다.</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">import getConfig from &apos;next/config&apos;;</span><br><span class="line"></span><br><span class="line">export const getNodeEnv = () =&gt; &#123;</span><br><span class="line">  const &#123; publicRuntimeConfig &#125; = getConfig();</span><br><span class="line"></span><br><span class="line">  const realNodeEnv = publicRuntimeConfig.NODE_ENV || process.env.NODE_ENV;</span><br><span class="line">  const apiEndPoint = publicRuntimeConfig.API_END_POINT;</span><br><span class="line"></span><br><span class="line">  return &#123; realNodeEnv, apiEndPoint &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>해당 함수는 Next.js의 config에서 publicRuntimeConfig 를 가져와 return 해준다.이제 process.env 환경변수를 사용하고 싶다면, process.env.API_END_POINT 와 같이 직접적으로 사용하는것이 아닌, 해당 함수를 사용해준다.</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">import config from &apos;./config&apos;</span><br><span class="line">import &#123; getNodeEnv &#125; from &apos;@/utils/env&apos;</span><br><span class="line"></span><br><span class="line">const env = getNodeEnv()</span><br><span class="line">const endPoint = env.apiEndPoint || config.apiEndPoint</span><br><span class="line"></span><br><span class="line">export default &#123;</span><br><span class="line">  AUTH_TOKEN: &#123;</span><br><span class="line">    method: &apos;POST&apos;,</span><br><span class="line">    path: () =&gt; `$&#123;endPoint&#125;/auth/authenticate-token`</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+            
+
+        </div>
+    </div>
+    <div id="post-footer" class="post-footer main-content-wrap">
+        
+            <div class="post-footer-tags">
+                <span class="text-color-light text-small">태그</span><br>
+                
+    <a class="tag tag--primary tag--small t-link" href="/tags/Next-js/">Next.js</a> <a class="tag tag--primary tag--small t-link" href="/tags/deploy-Next-js/">deploy Next.js</a> <a class="tag tag--primary tag--small t-link" href="/tags/pm2/">pm2</a> <a class="tag tag--primary tag--small t-link" href="/tags/pm2-ecosystem/">pm2-ecosystem</a>
+
+            </div>
+        
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    <a class="post-action-btn btn btn--disabled">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/04/18/Deep-clone/" data-tooltip="Deep clone" aria-label="다음: Deep clone">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2019/04/18/Next-js-with-pm2-ecosystem/" title="Facebook 공유">
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2019/04/18/Next-js-with-pm2-ecosystem/" title="Twitter 공유">
+                    <i class="fab fa-twitter" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2019/04/18/Next-js-with-pm2-ecosystem/" title="Google+ 공유">
+                    <i class="fab fa-google-plus" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+        
+            
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2019 kkangil. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+                    <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    <a class="post-action-btn btn btn--disabled">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/04/18/Deep-clone/" data-tooltip="Deep clone" aria-label="다음: Deep clone">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2019/04/18/Next-js-with-pm2-ecosystem/" title="Facebook 공유">
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2019/04/18/Next-js-with-pm2-ecosystem/" title="Twitter 공유">
+                    <i class="fab fa-twitter" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2019/04/18/Next-js-with-pm2-ecosystem/" title="Google+ 공유">
+                    <i class="fab fa-google-plus" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                
+    <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+        <i id="btn-close-shareoptions" class="fa fa-times"></i>
+        <ul class="share-options">
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2019/04/18/Next-js-with-pm2-ecosystem/">
+                        <i class="fab fa-facebook" aria-hidden="true"></i><span>Facebook 공유</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2019/04/18/Next-js-with-pm2-ecosystem/">
+                        <i class="fab fa-twitter" aria-hidden="true"></i><span>Twitter 공유</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2019/04/18/Next-js-with-pm2-ecosystem/">
+                        <i class="fab fa-google-plus" aria-hidden="true"></i><span>Google+ 공유</span>
+                    </a>
+                </li>
+            
+        </ul>
+    </div>
+
+
+            
+        </div>
+        
+
+
+    
+        
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-times"></i>
+        </div>
+        
+            <img id="about-card-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+        
+            <h4 id="about-card-name">kkangil</h4>
+        
+            <div id="about-card-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br>
+                <p>web developer</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker-alt"></i>
+                <br>
+                Asia/Seoul
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-dbd16rvloemmuxdzniplmnxxvwoz24eya9wol0b7vvmlokgqsjivmb8dnscy.min.js"></script>
+<!--SCRIPTS END-->
+
+    
+
+
+
+    </body>
+</html>

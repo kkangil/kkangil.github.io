@@ -1,0 +1,526 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="kkangil&#39;s Blog">
+    <title>Deep clone - kkangil&#39;s Blog</title>
+    <meta name="author" content="kkangil">
+    
+    
+    
+        <link rel="alternate" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg"},"articleBody":"이슈\nreact에서 setState를 하지 않았음에도 state가 변경되는 현상\napi 구축중 객체를 변경하지 않았음에도 객체 값이 변경되는 현상\n\nreact 프로젝트 개발중 위의 이슈가 자주 발생하고 있었다.해당 이슈가 왜 발생하는지, 어떻게 해결할 수 있는지 기록해두려고 한다.해당 글은 react 뿐만 아니라 javascript 언어를 사용한다면 꼭 알아둬야 된다고 생각한다.\n\n123456state = &#123; a: 1, b: 2 &#125;handleChange = e =&gt; &#123;  const state = &#123;...this.state&#125;;  state[e.target.name] = e.target.value;  this.setState(state);&#125;\n위 코드는 본인이 input 의 onChange 이벤트 함수로 거의 복붙하면서 변형없이 사용하는 이벤트 함수이다.최근 state 변수 선언 즉, state 객체를 복사하고 사용하는 과정에 있어 동일한 이슈가 많이 발생하고 있어, 해당 함수를 단순히 복사하는것이 아닌 이해가 필요하고 상황에 따라 변형해서 사용해야할 필요있다.\nObject copy1const state = &#123;...this.state&#125;\nstate 변수는 react state 객체를 복사한것이다. 해당 문법은 es9 문법으로 특정 값만 바꿀때 유용하다.해당 문법의 es5 버전은 .assign() 메소드이다.\n1234567891011121314151617181920const object1 = &#123;  a: 1,  b: 2,&#125;;const object2 = Object.assign(&#123;&#125;, object1, &#123;a: 100&#125;);const object3 = Object.assign(&#123; c: 3 &#125;, object1, &#123;a: 100&#125;);const object4 = Object.assign(&#123;&#125;, object1);object4.a = 100const object5 = &#123;...object1&#125;object5.a = 100console.log(object2.a); //100console.log(object2.b); //2console.log(object3.a); //100console.log(object3.b); //2console.log(object3.c); //3console.log(object4.a); //100console.log(object5.a); //100\n\nobject2 : 빈 객체에 object1을 복사한 후 a 의 값을 변경\nobject3: c: 3 값이 담겨있는 객체에 object1을 복사한 후 a 의 값을 변경\nobject4: 현재 우리 회사에서 사용하는 handleChange를 es5로 바꾼 방법\nobject5: Spread syntax(…) es8 문법사용하지만 state 내부에 객체를 변경하려고 할때 문제가 발생한다.\n\n123456789101112131415state = &#123;  a: 1,  b: &#123;    c: 2  &#125;,  d: &#123;    c: 2  &#125;&#125;handleChange = e =&gt; &#123;  const state &#123;...this.state&#125;  state.b.c = 3  this.setState(state)&#125;\n2단계 이상 깊이의 object는 복사가 원활하지 않는것을 확인할 수 있다. 복사본의 값을 변경했는데 원본의 값도 변경되는 알수 없는 현상이 발생한다.MDN: 깊은 클로닝에 대해서, Object.assign() 은 속성의 값을 복사하기때문에 다른 대안을 사용해야합니다. 출처 값이 객체에 대한 참조인 경우, 참조 값만을 복사합니다.\n123456789const org = &#123; a : &#123;b : 2&#125;&#125;;const obj = Object.assign(&#123;&#125;, org);obj.a.b = 100; console.log(obj.a.b);  //expected: 2 but actual: 100const obj2 = &#123;...org&#125;;obj2.a.b = 100; console.log(org.a.b);  //expected: 2 but actual: 100\n해당 현상은 깊은 클로닝(deep cloning) 방식을 사용해야한다.객체 복사 방식 변경 : 객체를 string 으로 변경하고 다시 파싱해주는 방법\n1234567const org = &#123; a : &#123;b : 2&#125;&#125;;const obj = JSON.parse(JSON.stringify(org)); obj.a.b = 100;console.log(org.a.b); // 2lodash 메소드 사용import _ from &apos;lodash&apos;; const org = &#123; a : &#123;b : 2&#125;&#125;;const obj = _.cloneDeep(org); obj.a.b = 100;console.log(org.a.b); // 2\nArray copy2단계 이상 깊이의 배열을 복사할때는 맵을 사용해서 객체 하나하나 복사해준 후 return 해주는 방식을 사용해서 에러발생을 막아야합니다.1234567891011121314151617const org = &#123;  obj: &#123;    a: [&#123;      b: 1      &#125;,&#123;      b: 2    &#125;]  &#125;&#125;const obj1 = &#123;...org&#125;const arr = org.obj.a // xconst arr2 = org.obj.a.map(row =&gt; &#123;\treturn &#123;...row&#125;&#125;)\n참고https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Global_Objects/Object/assign\n","dateCreated":"2019-04-18T00:01:31+09:00","dateModified":"2019-04-18T00:35:10+09:00","datePublished":"2019-04-18T00:01:31+09:00","description":"이슈\nreact에서 setState를 하지 않았음에도 state가 변경되는 현상\napi 구축중 객체를 변경하지 않았음에도 객체 값이 변경되는 현상\n\nreact 프로젝트 개발중 위의 이슈가 자주 발생하고 있었다.해당 이슈가 왜 발생하는지, 어떻게 해결할 수 있는지 기록해두려고 한다.해당 글은 react 뿐만 아니라 javascript 언어를 사용한다면 꼭 알아둬야 된다고 생각한다.","headline":"Deep clone","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"https://kkangil.github.io/2019/04/18/Deep-clone/"},"publisher":{"@type":"Organization","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg","logo":{"@type":"ImageObject","url":"profile.jpeg"}},"url":"https://kkangil.github.io/2019/04/18/Deep-clone/","keywords":"Javascript, syntax, deep-clone"}</script>
+    <meta name="description" content="이슈 react에서 setState를 하지 않았음에도 state가 변경되는 현상 api 구축중 객체를 변경하지 않았음에도 객체 값이 변경되는 현상  react 프로젝트 개발중 위의 이슈가 자주 발생하고 있었다.해당 이슈가 왜 발생하는지, 어떻게 해결할 수 있는지 기록해두려고 한다.해당 글은 react 뿐만 아니라 javascript 언어를 사용한다면 꼭 알">
+<meta name="keywords" content="Javascript,syntax,deep-clone">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="Deep clone">
+<meta property="og:url" content="https://kkangil.github.io/2019/04/18/Deep-clone/index.html">
+<meta property="og:site_name" content="kkangil&#39;s Blog">
+<meta property="og:description" content="이슈 react에서 setState를 하지 않았음에도 state가 변경되는 현상 api 구축중 객체를 변경하지 않았음에도 객체 값이 변경되는 현상  react 프로젝트 개발중 위의 이슈가 자주 발생하고 있었다.해당 이슈가 왜 발생하는지, 어떻게 해결할 수 있는지 기록해두려고 한다.해당 글은 react 뿐만 아니라 javascript 언어를 사용한다면 꼭 알">
+<meta property="og:locale" content="ko">
+<meta property="og:updated_time" content="2019-04-17T15:35:10.433Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Deep clone">
+<meta name="twitter:description" content="이슈 react에서 setState를 하지 않았음에도 state가 변경되는 현상 api 구축중 객체를 변경하지 않았음에도 객체 값이 변경되는 현상  react 프로젝트 개발중 위의 이슈가 자주 발생하고 있었다.해당 이슈가 왜 발생하는지, 어떻게 해결할 수 있는지 기록해두려고 한다.해당 글은 react 뿐만 아니라 javascript 언어를 사용한다면 꼭 알">
+    
+    
+        
+    
+    
+        <meta property="og:image" content="https://kkangil.github.io/assets/images/profile.jpeg"/>
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/style-c4ozcsklz4kht2pebhp44xorvyverh23toayhn7i6ubrpyedak24hv1v0hyd.min.css">
+    <!--STYLES END-->
+    
+
+    
+</head>
+
+    <body>
+        <div id="blog">
+            <!-- Define author's picture -->
+
+
+    
+        
+            
+        
+    
+
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a class="header-title-link" href="/ ">kkangil&#39;s Blog</a>
+    </div>
+    
+        
+            <a class="header-right-picture " href="#about">
+        
+        
+            <img class="header-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+        
+        </a>
+    
+</header>
+
+            <!-- Define author's picture -->
+
+
+
+        
+    
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
+        
+            <div class="sidebar-profile">
+                <a href="/#about">
+                    <img class="sidebar-profile-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+                </a>
+                <h4 class="sidebar-profile-name">kkangil</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
+</h5>
+                
+            </div>
+        
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/ " title="Home">
+                    
+                        <i class="sidebar-button-icon fa fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Home</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-categories" title="카테고리">
+                    
+                        <i class="sidebar-button-icon fa fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">카테고리</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-tags" title="태그">
+                    
+                        <i class="sidebar-button-icon fa fa-tags" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">태그</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-archives" title="기록">
+                    
+                        <i class="sidebar-button-icon fa fa-archive" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">기록</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link open-algolia-search" href="#search" title="검색">
+                    
+                        <i class="sidebar-button-icon fa fa-search" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">검색</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="#about" title="About">
+                    
+                        <i class="sidebar-button-icon fa fa-question" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">About</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="https://github.com/kkangil" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fab fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="http://stackoverflow.com/users/10870848/kkangil" target="_blank" rel="noopener" title="Stack Overflow">
+                    
+                        <i class="sidebar-button-icon fab fa-stack-overflow" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Stack Overflow</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="https://www.linkedin.com/in/kangil-kim-31093a169/" target="_blank" rel="noopener" title="LinkedIn">
+                    
+                        <i class="sidebar-button-icon fab fa-linkedin" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">LinkedIn</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/fe.kkangil@gmail.com" title="Mail">
+                    
+                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Mail</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/atom.xml" title="RSS">
+                    
+                        <i class="sidebar-button-icon fa fa-rss" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">RSS</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
+</nav>
+
+            
+            <div id="main" data-behavior="4"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title">
+            Deep clone
+        </h1>
+    
+    
+        <div class="post-meta">
+    <time datetime="2019-04-18T00:01:31+09:00">
+	
+		    4월 18, 2019
+    	
+    </time>
+    
+        <span>카테고리 </span>
+        
+    <a class="category-link" href="/categories/Javascript/">Javascript</a>
+
+
+    
+</div>
+
+    
+</div>
+
+    
+    <div class="post-content markdown">
+        <div class="main-content-wrap">
+            <h2 id="이슈"><a href="#이슈" class="headerlink" title="이슈"></a>이슈</h2><ol>
+<li>react에서 setState를 하지 않았음에도 state가 변경되는 현상</li>
+<li>api 구축중 객체를 변경하지 않았음에도 객체 값이 변경되는 현상</li>
+</ol>
+<p>react 프로젝트 개발중 위의 이슈가 자주 발생하고 있었다.<br>해당 이슈가 왜 발생하는지, 어떻게 해결할 수 있는지 기록해두려고 한다.<br>해당 글은 react 뿐만 아니라 javascript 언어를 사용한다면 꼭 알아둬야 된다고 생각한다.</p>
+<a id="more"></a>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">state = &#123; a: 1, b: 2 &#125;</span><br><span class="line">handleChange = e =&gt; &#123;</span><br><span class="line">  const state = &#123;...this.state&#125;;</span><br><span class="line">  state[e.target.name] = e.target.value;</span><br><span class="line">  this.setState(state);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>위 코드는 본인이 input 의 onChange 이벤트 함수로 거의 복붙하면서 변형없이 사용하는 이벤트 함수이다.<br>최근 state 변수 선언 즉, state 객체를 복사하고 사용하는 과정에 있어 동일한 이슈가 많이 발생하고 있어, 해당 함수를 단순히 복사하는것이 아닌 이해가 필요하고 상황에 따라 변형해서 사용해야할 필요있다.</p>
+<h2 id="Object-copy"><a href="#Object-copy" class="headerlink" title="Object copy"></a>Object copy</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">const state = &#123;...this.state&#125;</span><br></pre></td></tr></table></figure>
+<p>state 변수는 react state 객체를 복사한것이다. 해당 문법은 es9 문법으로 특정 값만 바꿀때 유용하다.<br>해당 문법의 es5 버전은 .assign() 메소드이다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">const object1 = &#123;</span><br><span class="line">  a: 1,</span><br><span class="line">  b: 2,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">const object2 = Object.assign(&#123;&#125;, object1, &#123;a: 100&#125;);</span><br><span class="line">const object3 = Object.assign(&#123; c: 3 &#125;, object1, &#123;a: 100&#125;);</span><br><span class="line">const object4 = Object.assign(&#123;&#125;, object1);</span><br><span class="line">object4.a = 100</span><br><span class="line"></span><br><span class="line">const object5 = &#123;...object1&#125;</span><br><span class="line">object5.a = 100</span><br><span class="line"></span><br><span class="line">console.log(object2.a); //100</span><br><span class="line">console.log(object2.b); //2</span><br><span class="line">console.log(object3.a); //100</span><br><span class="line">console.log(object3.b); //2</span><br><span class="line">console.log(object3.c); //3</span><br><span class="line">console.log(object4.a); //100</span><br><span class="line">console.log(object5.a); //100</span><br></pre></td></tr></table></figure>
+<ul>
+<li>object2 : 빈 객체에 object1을 복사한 후 a 의 값을 변경</li>
+<li>object3: c: 3 값이 담겨있는 객체에 object1을 복사한 후 a 의 값을 변경</li>
+<li>object4: 현재 우리 회사에서 사용하는 handleChange를 es5로 바꾼 방법</li>
+<li>object5: Spread syntax(…) es8 문법사용<br>하지만 state 내부에 객체를 변경하려고 할때 문제가 발생한다.</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">state = &#123;</span><br><span class="line">  a: 1,</span><br><span class="line">  b: &#123;</span><br><span class="line">    c: 2</span><br><span class="line">  &#125;,</span><br><span class="line">  d: &#123;</span><br><span class="line">    c: 2</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">handleChange = e =&gt; &#123;</span><br><span class="line">  const state &#123;...this.state&#125;</span><br><span class="line">  state.b.c = 3</span><br><span class="line">  this.setState(state)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>2단계 이상 깊이의 object는 복사가 원활하지 않는것을 확인할 수 있다. 복사본의 값을 변경했는데 원본의 값도 변경되는 알수 없는 현상이 발생한다.<br>MDN: 깊은 클로닝에 대해서, Object.assign() 은 속성의 값을 복사하기때문에 다른 대안을 사용해야합니다. 출처 값이 객체에 대한 참조인 경우, 참조 값만을 복사합니다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">const org = &#123; a : &#123;b : 2&#125;&#125;;</span><br><span class="line"></span><br><span class="line">const obj = Object.assign(&#123;&#125;, org);</span><br><span class="line">obj.a.b = 100; </span><br><span class="line">console.log(obj.a.b);  //expected: 2 but actual: 100</span><br><span class="line"></span><br><span class="line">const obj2 = &#123;...org&#125;;</span><br><span class="line">obj2.a.b = 100; </span><br><span class="line">console.log(org.a.b);  //expected: 2 but actual: 100</span><br></pre></td></tr></table></figure>
+<p>해당 현상은 깊은 클로닝(deep cloning) 방식을 사용해야한다.<br>객체 복사 방식 변경 : 객체를 string 으로 변경하고 다시 파싱해주는 방법</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">const org = &#123; a : &#123;b : 2&#125;&#125;;</span><br><span class="line">const obj = JSON.parse(JSON.stringify(org)); obj.a.b = 100;</span><br><span class="line">console.log(org.a.b); // 2</span><br><span class="line">lodash 메소드 사용</span><br><span class="line">import _ from &apos;lodash&apos;; const org = &#123; a : &#123;b : 2&#125;&#125;;</span><br><span class="line">const obj = _.cloneDeep(org); obj.a.b = 100;</span><br><span class="line">console.log(org.a.b); // 2</span><br></pre></td></tr></table></figure>
+<h2 id="Array-copy"><a href="#Array-copy" class="headerlink" title="Array copy"></a>Array copy</h2><p>2단계 이상 깊이의 배열을 복사할때는 맵을 사용해서 객체 하나하나 복사해준 후 return 해주는 방식을 사용해서 에러발생을 막아야합니다.<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">const org = &#123;</span><br><span class="line">  obj: &#123;</span><br><span class="line">    a: [&#123;</span><br><span class="line">      b: 1</span><br><span class="line">      &#125;,&#123;</span><br><span class="line">      b: 2</span><br><span class="line">    &#125;]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">const obj1 = &#123;...org&#125;</span><br><span class="line">const arr = org.obj.a // x</span><br><span class="line"></span><br><span class="line">const arr2 = org.obj.a.map(row =&gt; &#123;</span><br><span class="line">	return &#123;...row&#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure></p>
+<p>참고<br><a href="https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Global_Objects/Object/assign" target="_blank" rel="noopener">https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Global_Objects/Object/assign</a></p>
+
+            
+
+        </div>
+    </div>
+    <div id="post-footer" class="post-footer main-content-wrap">
+        
+            <div class="post-footer-tags">
+                <span class="text-color-light text-small">태그</span><br>
+                
+    <a class="tag tag--primary tag--small t-link" href="/tags/Javascript/">Javascript</a> <a class="tag tag--primary tag--small t-link" href="/tags/deep-clone/">deep-clone</a> <a class="tag tag--primary tag--small t-link" href="/tags/syntax/">syntax</a>
+
+            </div>
+        
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/04/18/Next-js-with-pm2-ecosystem/" data-tooltip="Next.js with pm2 ecosystem" aria-label="이전: Next.js with pm2 ecosystem">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/04/17/리액트-라이프사이클/" data-tooltip="리액트 라이프사이클" aria-label="다음: 리액트 라이프사이클">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2019/04/18/Deep-clone/" title="Facebook 공유">
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2019/04/18/Deep-clone/" title="Twitter 공유">
+                    <i class="fab fa-twitter" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2019/04/18/Deep-clone/" title="Google+ 공유">
+                    <i class="fab fa-google-plus" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+        
+            
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2019 kkangil. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+                    <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/04/18/Next-js-with-pm2-ecosystem/" data-tooltip="Next.js with pm2 ecosystem" aria-label="이전: Next.js with pm2 ecosystem">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/04/17/리액트-라이프사이클/" data-tooltip="리액트 라이프사이클" aria-label="다음: 리액트 라이프사이클">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2019/04/18/Deep-clone/" title="Facebook 공유">
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2019/04/18/Deep-clone/" title="Twitter 공유">
+                    <i class="fab fa-twitter" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2019/04/18/Deep-clone/" title="Google+ 공유">
+                    <i class="fab fa-google-plus" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                
+    <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+        <i id="btn-close-shareoptions" class="fa fa-times"></i>
+        <ul class="share-options">
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2019/04/18/Deep-clone/">
+                        <i class="fab fa-facebook" aria-hidden="true"></i><span>Facebook 공유</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2019/04/18/Deep-clone/">
+                        <i class="fab fa-twitter" aria-hidden="true"></i><span>Twitter 공유</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2019/04/18/Deep-clone/">
+                        <i class="fab fa-google-plus" aria-hidden="true"></i><span>Google+ 공유</span>
+                    </a>
+                </li>
+            
+        </ul>
+    </div>
+
+
+            
+        </div>
+        
+
+
+    
+        
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-times"></i>
+        </div>
+        
+            <img id="about-card-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+        
+            <h4 id="about-card-name">kkangil</h4>
+        
+            <div id="about-card-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br>
+                <p>web developer</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker-alt"></i>
+                <br>
+                Asia/Seoul
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-dbd16rvloemmuxdzniplmnxxvwoz24eya9wol0b7vvmlokgqsjivmb8dnscy.min.js"></script>
+<!--SCRIPTS END-->
+
+    
+
+
+
+    </body>
+</html>
