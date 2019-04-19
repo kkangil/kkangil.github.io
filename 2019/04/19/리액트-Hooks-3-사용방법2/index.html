@@ -1,0 +1,526 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="kkangil&#39;s Blog">
+    <title>리액트 Hooks: 3. 사용방법2 - kkangil&#39;s Blog</title>
+    <meta name="author" content="kkangil">
+    
+    
+    
+        <link rel="alternate" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg"},"articleBody":"useReducerredux와 같이 action을 사용하여 useState보다 다양하게 state 를 조작할수 있게 해준다.\n1234567891011121314151617181920212223242526272829303132333435363738394041import React, &#123; useReducer &#125; from &quot;react&quot;;const reducer = (state, action) =&gt; &#123;  switch (action.type) &#123;    case &quot;INCREMENT&quot;:      return &#123; ...state, count: state.count + 1 &#125;;    case &quot;DECREMENT&quot;:      return &#123; ...state, count: state.count - 1 &#125;;    case &quot;HANDLE_CHANGE&quot;:      return &#123; ...state, [action.target.name]: action.target.value &#125;;    default:      return state;  &#125;&#125;;const CountReducer = () =&gt; &#123;  const [state, dispatch] = useReducer(reducer, &#123;    count: 0,    name: &quot;&quot;,    nickname: &quot;&quot;  &#125;);  const handleChange = e =&gt; &#123;    dispatch(&#123; type: &quot;HANDLE_CHANGE&quot;, target: e.target &#125;);  &#125;;  return (    &lt;div&gt;      &lt;p&gt;current count: &#123;state.count&#125;&lt;/p&gt;      &lt;button onClick=&#123;() =&gt; dispatch(&#123; type: &quot;INCREMENT&quot; &#125;)&#125;&gt;increase&lt;/button&gt;      &lt;button onClick=&#123;() =&gt; dispatch(&#123; type: &quot;DECREMENT&quot; &#125;)&#125;&gt;decrease&lt;/button&gt;      &lt;div&gt;        &lt;input name=&quot;name&quot; value=&#123;state.name&#125; onChange=&#123;handleChange&#125; /&gt;        &lt;input name=&quot;name&quot; value=&#123;state.nickname&#125; onChange=&#123;handleChange&#125; /&gt;      &lt;/div&gt;    &lt;/div&gt;  );&#125;;export default CountReducer;\n\n\n이전에 useState로 구현했었던 count와 input 컴포넌트를 위의 코드와 같이 reducer를 사용해서 구현할 수 있다.\nuseState 또는 useReducer 어떤것이 더 좋다 안좋다는 없지만, 상황에 따라 유연하게 사용할 줄 알아야 할것같다.\n\nuseMemo두번째 파라미터 배열 값을 전달받아 해당 값이 변경 될때만 첫번째 파라미터 함수를 실행한다. 해당 기능을 사용하면 불필요한 함수 호출을 줄일 수 있다.\n1234567891011121314151617181920212223242526272829303132333435import React, &#123; useState, useMemo &#125; from &quot;react&quot;;const Sum = () =&gt; &#123;  const [num, setNum] = useState(&quot;&quot;);  const [numList, setNumList] = useState([]);  const handleClickAdd = () =&gt; &#123;    if (+num) &#123;      const newNumList = [...numList];      newNumList.push(+num);      setNumList(newNumList);      setNum(&quot;&quot;);    &#125;  &#125;;  const sumValue = useMemo(() =&gt; &#123;    if (!numList.length) return 0;    const sum = numList.reduce((a, b) =&gt; a + b);    return sum;  &#125;, [numList]);  return (    &lt;div&gt;      Sum      &lt;div&gt;        &lt;input value=&#123;num&#125; onChange=&#123;e =&gt; setNum(e.target.value)&#125; /&gt;        &lt;button onClick=&#123;handleClickAdd&#125;&gt;add&lt;/button&gt;      &lt;/div&gt;      &lt;div&gt;number list: &#123;numList.join(&quot;, &quot;)&#125;&lt;/div&gt;      &lt;div&gt;number total: &#123;sumValue&#125;&lt;/div&gt;    &lt;/div&gt;  );&#125;;export default Sum;\n\nsumValue 함수에 useMemo를 사용하지 않으면, input 값이 변경될때도 해당 로직이 불필요하게 실행된다.\nuseMemo를 사용해 줌으로써 불필요하게 실행되지 않도록 하고, numList의 값이 변경될때마다 해당 로직이 실행된다.\n\nuseCallbackuseMemo와 거의 비슷한 기능으로 렌더링 성능을 최적화 하기위해 주로 사용된다. 쓰지 않아도 문제되지는 않지만 렌더링 해야할 컴포넌트 개수나 로직이 많아진다면 고려해 봐야한다. 해당 기능은 이벤트 함수를 필요할때만 생성해 주는 기능이다.\n123456789101112const handleChange = useCallback(e =&gt; &#123;    setNum(e.target.value);  &#125;, []);  const handleClickAdd = useCallback(() =&gt; &#123;    if (+num) &#123;      const newNumList = [...numList];      newNumList.push(+num);      setNumList(newNumList);      setNum(&quot;&quot;);    &#125;  &#125;, [numList, num]);\n\n위의 onChange 함수와 handleClickAdd 함수를 useCallback을 사용하는 함수로 변경했다.\n두번째 파라미터 배열은 해당 값이 변경될때만 함수를 생성해 주는것이다. 빈 배열이라면 최초에만 생성해주고 이후 다시 생성되지 않는다.\nhandleChange 는 빈배열, handleClickAdd 은 두개의 값을 판단하고 있는데, 이는 handleChange는 단순히 num 의 값만 변경해 주고 있어 초기에만 생성해 줘도 되는것이다. handleClickAdd 함수는 이벤트가 실행 될때마다 값을 가져와서 사용해 주고 있기때문에 배열에 해당 값들을 명시해줘야한다.\n\nuseRefuseRef는 함수형 컴포넌트에서도 ref 기능을 사용할 수 있게 해준다.\n1234567891011const inputElement = useRef(null);const handleClickAdd = useCallback(() =&gt; &#123;    if (+num) &#123;      const newNumList = [...numList];      newNumList.push(+num);      setNumList(newNumList);      setNum(&quot;&quot;);      inputElement.current.focus();    &#125;  &#125;, [numList, num]);&lt;input value=&#123;num&#125; onChange=&#123;handleChange&#125; ref=&#123;inputElement&#125; /&gt;\n\nuseRef는 다른 Hook과 다르게 최초 선언을 배열 형태로 선언해 주지 않는다.\nref 값이 변경되어도 리렌더링 되지 않는다.\n\n","dateCreated":"2019-04-19T12:54:04+09:00","dateModified":"2019-04-19T12:56:23+09:00","datePublished":"2019-04-19T12:54:04+09:00","description":"useReducerredux와 같이 action을 사용하여 useState보다 다양하게 state 를 조작할수 있게 해준다.\n1234567891011121314151617181920212223242526272829303132333435363738394041import React, &#123; useReducer &#125; from &quot;react&quot;;const reducer = (state, action) =&gt; &#123;  switch (action.type) &#123;    case &quot;INCREMENT&quot;:      return &#123; ...state, count: state.count + 1 &#125;;    case &quot;DECREMENT&quot;:      return &#123; ...state, count: state.count - 1 &#125;;    case &quot;HANDLE_CHANGE&quot;:      return &#123; ...state, [action.target.name]: action.target.value &#125;;    default:      return state;  &#125;&#125;;const CountReducer = () =&gt; &#123;  const [state, dispatch] = useReducer(reducer, &#123;    count: 0,    name: &quot;&quot;,    nickname: &quot;&quot;  &#125;);  const handleChange = e =&gt; &#123;    dispatch(&#123; type: &quot;HANDLE_CHANGE&quot;, target: e.target &#125;);  &#125;;  return (    &lt;div&gt;      &lt;p&gt;current count: &#123;state.count&#125;&lt;/p&gt;      &lt;button onClick=&#123;() =&gt; dispatch(&#123; type: &quot;INCREMENT&quot; &#125;)&#125;&gt;increase&lt;/button&gt;      &lt;button onClick=&#123;() =&gt; dispatch(&#123; type: &quot;DECREMENT&quot; &#125;)&#125;&gt;decrease&lt;/button&gt;      &lt;div&gt;        &lt;input name=&quot;name&quot; value=&#123;state.name&#125; onChange=&#123;handleChange&#125; /&gt;        &lt;input name=&quot;name&quot; value=&#123;state.nickname&#125; onChange=&#123;handleChange&#125; /&gt;      &lt;/div&gt;    &lt;/div&gt;  );&#125;;export default CountReducer;","headline":"리액트 Hooks: 3. 사용방법2","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"https://kkangil.github.io/2019/04/19/리액트-Hooks-3-사용방법2/"},"publisher":{"@type":"Organization","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg","logo":{"@type":"ImageObject","url":"profile.jpeg"}},"url":"https://kkangil.github.io/2019/04/19/리액트-Hooks-3-사용방법2/","keywords":"React-Hooks, Hooks, hooks 사용방법, useReducer, useMemo, useCallback, useRef"}</script>
+    <meta name="description" content="useReducerredux와 같이 action을 사용하여 useState보다 다양하게 state 를 조작할수 있게 해준다. 1234567891011121314151617181920212223242526272829303132333435363738394041import React, &amp;#123; useReducer &amp;#125; from &amp;quot;react&amp;q">
+<meta name="keywords" content="React-Hooks,Hooks,hooks 사용방법,useReducer,useMemo,useCallback,useRef">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="리액트 Hooks: 3. 사용방법2">
+<meta property="og:url" content="https://kkangil.github.io/2019/04/19/리액트-Hooks-3-사용방법2/index.html">
+<meta property="og:site_name" content="kkangil&#39;s Blog">
+<meta property="og:description" content="useReducerredux와 같이 action을 사용하여 useState보다 다양하게 state 를 조작할수 있게 해준다. 1234567891011121314151617181920212223242526272829303132333435363738394041import React, &amp;#123; useReducer &amp;#125; from &amp;quot;react&amp;q">
+<meta property="og:locale" content="ko">
+<meta property="og:updated_time" content="2019-04-19T03:56:23.497Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="리액트 Hooks: 3. 사용방법2">
+<meta name="twitter:description" content="useReducerredux와 같이 action을 사용하여 useState보다 다양하게 state 를 조작할수 있게 해준다. 1234567891011121314151617181920212223242526272829303132333435363738394041import React, &amp;#123; useReducer &amp;#125; from &amp;quot;react&amp;q">
+    
+    
+        
+    
+    
+        <meta property="og:image" content="https://kkangil.github.io/assets/images/profile.jpeg"/>
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/style-c4ozcsklz4kht2pebhp44xorvyverh23toayhn7i6ubrpyedak24hv1v0hyd.min.css">
+    <!--STYLES END-->
+    
+
+    
+</head>
+
+    <body>
+        <div id="blog">
+            <!-- Define author's picture -->
+
+
+    
+        
+            
+        
+    
+
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a class="header-title-link" href="/ ">kkangil&#39;s Blog</a>
+    </div>
+    
+        
+            <a class="header-right-picture " href="#about">
+        
+        
+            <img class="header-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+        
+        </a>
+    
+</header>
+
+            <!-- Define author's picture -->
+
+
+
+        
+    
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
+        
+            <div class="sidebar-profile">
+                <a href="/#about">
+                    <img class="sidebar-profile-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+                </a>
+                <h4 class="sidebar-profile-name">kkangil</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
+</h5>
+                
+            </div>
+        
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/ " title="Home">
+                    
+                        <i class="sidebar-button-icon fa fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Home</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-categories" title="카테고리">
+                    
+                        <i class="sidebar-button-icon fa fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">카테고리</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-tags" title="태그">
+                    
+                        <i class="sidebar-button-icon fa fa-tags" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">태그</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-archives" title="기록">
+                    
+                        <i class="sidebar-button-icon fa fa-archive" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">기록</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link open-algolia-search" href="#search" title="검색">
+                    
+                        <i class="sidebar-button-icon fa fa-search" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">검색</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="#about" title="About">
+                    
+                        <i class="sidebar-button-icon fa fa-question" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">About</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="https://github.com/kkangil" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fab fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="http://stackoverflow.com/users/10870848/kkangil" target="_blank" rel="noopener" title="Stack Overflow">
+                    
+                        <i class="sidebar-button-icon fab fa-stack-overflow" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Stack Overflow</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="https://www.linkedin.com/in/kangil-kim-31093a169/" target="_blank" rel="noopener" title="LinkedIn">
+                    
+                        <i class="sidebar-button-icon fab fa-linkedin" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">LinkedIn</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/fe.kkangil@gmail.com" title="Mail">
+                    
+                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Mail</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/atom.xml" title="RSS">
+                    
+                        <i class="sidebar-button-icon fa fa-rss" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">RSS</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
+</nav>
+
+            
+            <div id="main" data-behavior="4"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title">
+            리액트 Hooks: 3. 사용방법2
+        </h1>
+    
+    
+        <div class="post-meta">
+    <time datetime="2019-04-19T12:54:04+09:00">
+	
+		    4월 19, 2019
+    	
+    </time>
+    
+        <span>카테고리 </span>
+        
+    <a class="category-link" href="/categories/React/">React</a>
+
+
+    
+</div>
+
+    
+</div>
+
+    
+    <div class="post-content markdown">
+        <div class="main-content-wrap">
+            <h2 id="useReducer"><a href="#useReducer" class="headerlink" title="useReducer"></a>useReducer</h2><p>redux와 같이 action을 사용하여 useState보다 다양하게 state 를 조작할수 있게 해준다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">import React, &#123; useReducer &#125; from &quot;react&quot;;</span><br><span class="line"></span><br><span class="line">const reducer = (state, action) =&gt; &#123;</span><br><span class="line">  switch (action.type) &#123;</span><br><span class="line">    case &quot;INCREMENT&quot;:</span><br><span class="line">      return &#123; ...state, count: state.count + 1 &#125;;</span><br><span class="line">    case &quot;DECREMENT&quot;:</span><br><span class="line">      return &#123; ...state, count: state.count - 1 &#125;;</span><br><span class="line">    case &quot;HANDLE_CHANGE&quot;:</span><br><span class="line">      return &#123; ...state, [action.target.name]: action.target.value &#125;;</span><br><span class="line">    default:</span><br><span class="line">      return state;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">const CountReducer = () =&gt; &#123;</span><br><span class="line">  const [state, dispatch] = useReducer(reducer, &#123;</span><br><span class="line">    count: 0,</span><br><span class="line">    name: &quot;&quot;,</span><br><span class="line">    nickname: &quot;&quot;</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  const handleChange = e =&gt; &#123;</span><br><span class="line">    dispatch(&#123; type: &quot;HANDLE_CHANGE&quot;, target: e.target &#125;);</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  return (</span><br><span class="line">    &lt;div&gt;</span><br><span class="line">      &lt;p&gt;current count: &#123;state.count&#125;&lt;/p&gt;</span><br><span class="line">      &lt;button onClick=&#123;() =&gt; dispatch(&#123; type: &quot;INCREMENT&quot; &#125;)&#125;&gt;increase&lt;/button&gt;</span><br><span class="line">      &lt;button onClick=&#123;() =&gt; dispatch(&#123; type: &quot;DECREMENT&quot; &#125;)&#125;&gt;decrease&lt;/button&gt;</span><br><span class="line">      &lt;div&gt;</span><br><span class="line">        &lt;input name=&quot;name&quot; value=&#123;state.name&#125; onChange=&#123;handleChange&#125; /&gt;</span><br><span class="line">        &lt;input name=&quot;name&quot; value=&#123;state.nickname&#125; onChange=&#123;handleChange&#125; /&gt;</span><br><span class="line">      &lt;/div&gt;</span><br><span class="line">    &lt;/div&gt;</span><br><span class="line">  );</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">export default CountReducer;</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<ul>
+<li>이전에 useState로 구현했었던 count와 input 컴포넌트를 위의 코드와 같이 reducer를 사용해서 구현할 수 있다.</li>
+<li>useState 또는 useReducer 어떤것이 더 좋다 안좋다는 없지만, 상황에 따라 유연하게 사용할 줄 알아야 할것같다.</li>
+</ul>
+<h2 id="useMemo"><a href="#useMemo" class="headerlink" title="useMemo"></a>useMemo</h2><p>두번째 파라미터 배열 값을 전달받아 해당 값이 변경 될때만 첫번째 파라미터 함수를 실행한다. 해당 기능을 사용하면 불필요한 함수 호출을 줄일 수 있다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">import React, &#123; useState, useMemo &#125; from &quot;react&quot;;</span><br><span class="line"></span><br><span class="line">const Sum = () =&gt; &#123;</span><br><span class="line">  const [num, setNum] = useState(&quot;&quot;);</span><br><span class="line">  const [numList, setNumList] = useState([]);</span><br><span class="line"></span><br><span class="line">  const handleClickAdd = () =&gt; &#123;</span><br><span class="line">    if (+num) &#123;</span><br><span class="line">      const newNumList = [...numList];</span><br><span class="line">      newNumList.push(+num);</span><br><span class="line">      setNumList(newNumList);</span><br><span class="line">      setNum(&quot;&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  const sumValue = useMemo(() =&gt; &#123;</span><br><span class="line">    if (!numList.length) return 0;</span><br><span class="line">    const sum = numList.reduce((a, b) =&gt; a + b);</span><br><span class="line">    return sum;</span><br><span class="line">  &#125;, [numList]);</span><br><span class="line"></span><br><span class="line">  return (</span><br><span class="line">    &lt;div&gt;</span><br><span class="line">      Sum</span><br><span class="line">      &lt;div&gt;</span><br><span class="line">        &lt;input value=&#123;num&#125; onChange=&#123;e =&gt; setNum(e.target.value)&#125; /&gt;</span><br><span class="line">        &lt;button onClick=&#123;handleClickAdd&#125;&gt;add&lt;/button&gt;</span><br><span class="line">      &lt;/div&gt;</span><br><span class="line">      &lt;div&gt;number list: &#123;numList.join(&quot;, &quot;)&#125;&lt;/div&gt;</span><br><span class="line">      &lt;div&gt;number total: &#123;sumValue&#125;&lt;/div&gt;</span><br><span class="line">    &lt;/div&gt;</span><br><span class="line">  );</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">export default Sum;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>sumValue 함수에 <code>useMemo</code>를 사용하지 않으면, input 값이 변경될때도 해당 로직이 불필요하게 실행된다.</li>
+<li>useMemo를 사용해 줌으로써 불필요하게 실행되지 않도록 하고, <code>numList</code>의 값이 변경될때마다 해당 로직이 실행된다.</li>
+</ul>
+<h2 id="useCallback"><a href="#useCallback" class="headerlink" title="useCallback"></a>useCallback</h2><p>useMemo와 거의 비슷한 기능으로 렌더링 성능을 최적화 하기위해 주로 사용된다. 쓰지 않아도 문제되지는 않지만 렌더링 해야할 컴포넌트 개수나 로직이 많아진다면 고려해 봐야한다. 해당 기능은 이벤트 함수를 필요할때만 생성해 주는 기능이다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">const handleChange = useCallback(e =&gt; &#123;</span><br><span class="line">    setNum(e.target.value);</span><br><span class="line">  &#125;, []);</span><br><span class="line"></span><br><span class="line">  const handleClickAdd = useCallback(() =&gt; &#123;</span><br><span class="line">    if (+num) &#123;</span><br><span class="line">      const newNumList = [...numList];</span><br><span class="line">      newNumList.push(+num);</span><br><span class="line">      setNumList(newNumList);</span><br><span class="line">      setNum(&quot;&quot;);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;, [numList, num]);</span><br></pre></td></tr></table></figure>
+<ul>
+<li>위의 onChange 함수와 handleClickAdd 함수를 useCallback을 사용하는 함수로 변경했다.</li>
+<li>두번째 파라미터 배열은 해당 값이 변경될때만 함수를 생성해 주는것이다. 빈 배열이라면 최초에만 생성해주고 이후 다시 생성되지 않는다.</li>
+<li>handleChange 는 빈배열, handleClickAdd 은 두개의 값을 판단하고 있는데, 이는 handleChange는 단순히 <code>num</code> 의 값만 변경해 주고 있어 초기에만 생성해 줘도 되는것이다. handleClickAdd 함수는 이벤트가 실행 될때마다 값을 가져와서 사용해 주고 있기때문에 배열에 해당 값들을 명시해줘야한다.</li>
+</ul>
+<h2 id="useRef"><a href="#useRef" class="headerlink" title="useRef"></a>useRef</h2><p>useRef는 함수형 컴포넌트에서도 ref 기능을 사용할 수 있게 해준다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">const inputElement = useRef(null);</span><br><span class="line">const handleClickAdd = useCallback(() =&gt; &#123;</span><br><span class="line">    if (+num) &#123;</span><br><span class="line">      const newNumList = [...numList];</span><br><span class="line">      newNumList.push(+num);</span><br><span class="line">      setNumList(newNumList);</span><br><span class="line">      setNum(&quot;&quot;);</span><br><span class="line">      inputElement.current.focus();</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;, [numList, num]);</span><br><span class="line">&lt;input value=&#123;num&#125; onChange=&#123;handleChange&#125; ref=&#123;inputElement&#125; /&gt;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>useRef는 다른 Hook과 다르게 최초 선언을 배열 형태로 선언해 주지 않는다.</li>
+<li>ref 값이 변경되어도 리렌더링 되지 않는다.</li>
+</ul>
+
+            
+
+        </div>
+    </div>
+    <div id="post-footer" class="post-footer main-content-wrap">
+        
+            <div class="post-footer-tags">
+                <span class="text-color-light text-small">태그</span><br>
+                
+    <a class="tag tag--primary tag--small t-link" href="/tags/Hooks/">Hooks</a> <a class="tag tag--primary tag--small t-link" href="/tags/React-Hooks/">React-Hooks</a> <a class="tag tag--primary tag--small t-link" href="/tags/hooks-사용방법/">hooks 사용방법</a> <a class="tag tag--primary tag--small t-link" href="/tags/useCallback/">useCallback</a> <a class="tag tag--primary tag--small t-link" href="/tags/useMemo/">useMemo</a> <a class="tag tag--primary tag--small t-link" href="/tags/useReducer/">useReducer</a> <a class="tag tag--primary tag--small t-link" href="/tags/useRef/">useRef</a>
+
+            </div>
+        
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    <a class="post-action-btn btn btn--disabled">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/04/19/리액트-Hooks-2-사용방법1/" data-tooltip="리액트 Hooks: 2. 사용방법1" aria-label="다음: 리액트 Hooks: 2. 사용방법1">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2019/04/19/리액트-Hooks-3-사용방법2/" title="Facebook 공유">
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2019/04/19/리액트-Hooks-3-사용방법2/" title="Twitter 공유">
+                    <i class="fab fa-twitter" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2019/04/19/리액트-Hooks-3-사용방법2/" title="Google+ 공유">
+                    <i class="fab fa-google-plus" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+        
+            
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2019 kkangil. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+                    <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    <a class="post-action-btn btn btn--disabled">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/04/19/리액트-Hooks-2-사용방법1/" data-tooltip="리액트 Hooks: 2. 사용방법1" aria-label="다음: 리액트 Hooks: 2. 사용방법1">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2019/04/19/리액트-Hooks-3-사용방법2/" title="Facebook 공유">
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2019/04/19/리액트-Hooks-3-사용방법2/" title="Twitter 공유">
+                    <i class="fab fa-twitter" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2019/04/19/리액트-Hooks-3-사용방법2/" title="Google+ 공유">
+                    <i class="fab fa-google-plus" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                
+    <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+        <i id="btn-close-shareoptions" class="fa fa-times"></i>
+        <ul class="share-options">
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2019/04/19/리액트-Hooks-3-사용방법2/">
+                        <i class="fab fa-facebook" aria-hidden="true"></i><span>Facebook 공유</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2019/04/19/리액트-Hooks-3-사용방법2/">
+                        <i class="fab fa-twitter" aria-hidden="true"></i><span>Twitter 공유</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2019/04/19/리액트-Hooks-3-사용방법2/">
+                        <i class="fab fa-google-plus" aria-hidden="true"></i><span>Google+ 공유</span>
+                    </a>
+                </li>
+            
+        </ul>
+    </div>
+
+
+            
+        </div>
+        
+
+
+    
+        
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-times"></i>
+        </div>
+        
+            <img id="about-card-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+        
+            <h4 id="about-card-name">kkangil</h4>
+        
+            <div id="about-card-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br>
+                <p>web developer</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker-alt"></i>
+                <br>
+                Asia/Seoul
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-dbd16rvloemmuxdzniplmnxxvwoz24eya9wol0b7vvmlokgqsjivmb8dnscy.min.js"></script>
+<!--SCRIPTS END-->
+
+    
+
+
+
+    </body>
+</html>

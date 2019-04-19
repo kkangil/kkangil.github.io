@@ -220,21 +220,21 @@
             <div class="postShorten-header">
                 <h1 class="postShorten-title">
                     
-                        <a class="link-unstyled" href="/2019/04/18/Next-js-with-pm2-ecosystem/">
-                            Next.js with pm2 ecosystem
+                        <a class="link-unstyled" href="/2019/04/19/리액트-Hooks-3-사용방법2/">
+                            리액트 Hooks: 3. 사용방법2
                         </a>
                     
                 </h1>
                 <div class="postShorten-meta">
-    <time datetime="2019-04-18T00:29:19+09:00">
+    <time datetime="2019-04-19T12:54:04+09:00">
 	
-		    4월 18, 2019
+		    4월 19, 2019
     	
     </time>
     
         <span>카테고리 </span>
         
-    <a class="category-link" href="/categories/Deploy/">Deploy</a>
+    <a class="category-link" href="/categories/React/">React</a>
 
 
     
@@ -243,9 +243,10 @@
             </div>
             
                 <div class="postShorten-excerpt">
-                    <p><code>Next.js</code>는 Client-Side-Rendering 을 사용하는 react가 아닌 <code>SSR(Server-Side-Rendering)</code> 방식을 사용하는 react framework 이다.<br>해당 글은 <code>Next.js</code>에서 배포시 참고하면 좋을 내용으로 <code>Next.js</code>가 뿐만 아니라 react, Node 에서도 사용 가능하다.</p>
+                    <h2 id="useReducer"><a href="#useReducer" class="headerlink" title="useReducer"></a>useReducer</h2><p>redux와 같이 action을 사용하여 useState보다 다양하게 state 를 조작할수 있게 해준다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">import React, &#123; useReducer &#125; from &quot;react&quot;;</span><br><span class="line"></span><br><span class="line">const reducer = (state, action) =&gt; &#123;</span><br><span class="line">  switch (action.type) &#123;</span><br><span class="line">    case &quot;INCREMENT&quot;:</span><br><span class="line">      return &#123; ...state, count: state.count + 1 &#125;;</span><br><span class="line">    case &quot;DECREMENT&quot;:</span><br><span class="line">      return &#123; ...state, count: state.count - 1 &#125;;</span><br><span class="line">    case &quot;HANDLE_CHANGE&quot;:</span><br><span class="line">      return &#123; ...state, [action.target.name]: action.target.value &#125;;</span><br><span class="line">    default:</span><br><span class="line">      return state;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">const CountReducer = () =&gt; &#123;</span><br><span class="line">  const [state, dispatch] = useReducer(reducer, &#123;</span><br><span class="line">    count: 0,</span><br><span class="line">    name: &quot;&quot;,</span><br><span class="line">    nickname: &quot;&quot;</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  const handleChange = e =&gt; &#123;</span><br><span class="line">    dispatch(&#123; type: &quot;HANDLE_CHANGE&quot;, target: e.target &#125;);</span><br><span class="line">  &#125;;</span><br><span class="line"></span><br><span class="line">  return (</span><br><span class="line">    &lt;div&gt;</span><br><span class="line">      &lt;p&gt;current count: &#123;state.count&#125;&lt;/p&gt;</span><br><span class="line">      &lt;button onClick=&#123;() =&gt; dispatch(&#123; type: &quot;INCREMENT&quot; &#125;)&#125;&gt;increase&lt;/button&gt;</span><br><span class="line">      &lt;button onClick=&#123;() =&gt; dispatch(&#123; type: &quot;DECREMENT&quot; &#125;)&#125;&gt;decrease&lt;/button&gt;</span><br><span class="line">      &lt;div&gt;</span><br><span class="line">        &lt;input name=&quot;name&quot; value=&#123;state.name&#125; onChange=&#123;handleChange&#125; /&gt;</span><br><span class="line">        &lt;input name=&quot;name&quot; value=&#123;state.nickname&#125; onChange=&#123;handleChange&#125; /&gt;</span><br><span class="line">      &lt;/div&gt;</span><br><span class="line">    &lt;/div&gt;</span><br><span class="line">  );</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">export default CountReducer;</span><br></pre></td></tr></table></figure>
                     
-                        <a href="/2019/04/18/Next-js-with-pm2-ecosystem/" class="postShorten-excerpt_link link">
+                        <a href="/2019/04/19/리액트-Hooks-3-사용방법2/" class="postShorten-excerpt_link link">
                             계속 읽기
                         </a>
                         
@@ -263,21 +264,21 @@
             <div class="postShorten-header">
                 <h1 class="postShorten-title">
                     
-                        <a class="link-unstyled" href="/2019/04/18/Deep-clone/">
-                            Deep clone
+                        <a class="link-unstyled" href="/2019/04/19/리액트-Hooks-2-사용방법1/">
+                            리액트 Hooks: 2. 사용방법1
                         </a>
                     
                 </h1>
                 <div class="postShorten-meta">
-    <time datetime="2019-04-18T00:01:31+09:00">
+    <time datetime="2019-04-19T12:52:51+09:00">
 	
-		    4월 18, 2019
+		    4월 19, 2019
     	
     </time>
     
         <span>카테고리 </span>
         
-    <a class="category-link" href="/categories/Javascript/">Javascript</a>
+    <a class="category-link" href="/categories/React/">React</a>
 
 
     
@@ -286,13 +287,10 @@
             </div>
             
                 <div class="postShorten-excerpt">
-                    <h2 id="이슈"><a href="#이슈" class="headerlink" title="이슈"></a>이슈</h2><ol>
-<li>react에서 setState를 하지 않았음에도 state가 변경되는 현상</li>
-<li>api 구축중 객체를 변경하지 않았음에도 객체 값이 변경되는 현상</li>
-</ol>
-<p>react 프로젝트 개발중 위의 이슈가 자주 발생하고 있었다.<br>해당 이슈가 왜 발생하는지, 어떻게 해결할 수 있는지 기록해두려고 한다.<br>해당 글은 react 뿐만 아니라 javascript 언어를 사용한다면 꼭 알아둬야 된다고 생각한다.</p>
+                    <h2 id="useState"><a href="#useState" class="headerlink" title="useState"></a>useState</h2><h3 id="사용방법"><a href="#사용방법" class="headerlink" title="사용방법"></a>사용방법</h3><p>useState 는 이름에서 유추하는것과 같이 함수형 컴포넌트에서도 state를 사용할 수 있게 해준다.</p>
+<p>사용방법은 해당 기능을 import 한 후 [state 이름, state이름을 변경시켜줄 setState와 같은 이름] = useState(초기값) 이다.</p>
                     
-                        <a href="/2019/04/18/Deep-clone/" class="postShorten-excerpt_link link">
+                        <a href="/2019/04/19/리액트-Hooks-2-사용방법1/" class="postShorten-excerpt_link link">
                             계속 읽기
                         </a>
                         
@@ -314,7 +312,7 @@
             </a>
           </li>
         
-        <li class="pagination-number">현재 1 전체 2</li>
+        <li class="pagination-number">현재 1 전체 4</li>
     </ul>
 </div>
 
