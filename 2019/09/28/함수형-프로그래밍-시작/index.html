@@ -1,0 +1,546 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="kkangil&#39;s Blog">
+    <title>함수형 프로그래밍 - 시작 - kkangil&#39;s Blog</title>
+    <meta name="author" content="kkangil">
+    
+    
+    
+        <link rel="alternate" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg"},"articleBody":"최근 사내에서 함수형 프로그래밍을 사용하여 기존 코드의 리팩토링을 시작했다.함수형 프로그래밍 해야지 해야지 하고 항상 미뤄왔던 스터디인데 실무에서 사용하기에터무니없이 실력이 부족함을 느껴 스터디를 시작하고자 한다.\n기본적으로 함수형 자바스크립트 프로그래밍 책을 기반으로 진행하며, 필요한 내용이나 궁금한 내용은 구글링을 통해 진행한다.\n도서 링크: 함수형 자바스크립트 프로그래밍\n함수형 자바스크립트 소개\n함수형 프로그래밍은 성공적인 프로그래밍을 위해 부수 효과를 최대한 멀리하고 조합성을 강조하는 프로그래밍 패러다임이다.\n함수형 프로그래밍이 부수 효과를 최대한 멀리하는 이유\n오류를 줄이기 위함.\n조합성 혹은 모듈화 수준을 높이기 위함.\n\n\n\n함수형 프로그래밍을 검색하면 나오는 예제1234567function addMaker(a) &#123;  return function(b) &#123;    return a + b;  &#125;&#125;addMaker(10)(5);\n함수형 자바스크립트에 관심을 가져 본 적이 있다면 아마 위 예제와 같은 코드를 봤을 것 이다. 커링 혹은 부분 적용과 관련된 코드들이다.함수를 리턴한다거나 괄호가 많은 코드들을 처음 보면 난해하고 생소하게 느껴진다.\naddMaker는 함수를 값으로 다루는 함수다. addMaker에서는 단 하나의 값이 선언되며 그 값은 함수다.addMaker(10)의 결과는 function(b) { return 10 + b }; 와 같다.이후 리턴된 함수를 바로 실행해줬기 때문에 결과값은 15가 된다.\n\n123var add5 = addMaker(5);add5(3) // 8add5(4) // 9\n위와 같이 변수에 값을 할당해서 사용할 수 도 있다.\n값으로써의 함수와 클로저위의 예제들을 보면 함수는 값을 리턴할 수 있고 함수는 값이 될 수 있다. addMaker는 내부에서 함수를 정의하고 리턴했다. addMaker가 리턴한 익명 함수는 클로저가 되었다.리턴된 익명 함수 내부에서 a가 정의된 적은 없지만 a를 참조하고 있고 a는 부모 스코프에 있다.\naddMaker가 실행된 후, 어디서도 addMaker의 인자인 a 값을 변경시키지 않고 있기 때문에 항상 동일한 값을 갖는다. 때문에 위 상황에서 a는 불변하며 상수로 쓰이게 된다. 이 상황에서의 a는 불변하지만, 모든 경우의 클로저가 그렇지는 않다. 클로저가 기억하는 변수의 값은 변할 수 있다.\n\n함수형 자바스크립트의 실용성절차지향적으로 작성된 코드를 함수형으로 변경하면서 함수형 자바스크립트의 실용성을 알아보고자 한다.\n회원 목록 중 여러명 찾기회원 목록 중 특정 나이의 회원들만 뽑거나 특정 조건의 회원 한 명을 찾는 코드들을 함수형 자바스크립트로 리팩토링 한다.\n123456789101112131415161718192021222324252627282930313233343536var users = [  &#123; id: 1, name: &apos;ID&apos;, age: 32 &#125;,  &#123; id: 2, name: &apos;HA&apos;, age: 25 &#125;,  &#123; id: 3, name: &apos;BJ&apos;, age: 32 &#125;,  &#123; id: 4, name: &apos;PJ&apos;, age: 28 &#125;,  &#123; id: 5, name: &apos;JE&apos;, age: 27 &#125;,  &#123; id: 6, name: &apos;JM&apos;, age: 32 &#125;,  &#123; id: 7, name: &apos;HI&apos;, age: 24 &#125;,];// 1var temp_users = [];for (var i = 0, len = users.length; i &lt; len; i++) &#123;  if (users[i].age &lt; 30) temp_users.push(users[i]);&#125;console.log(temp_users.length);// 2var ages = [];for (var i = 0, len = temp_users.length; i &lt; len; i++) &#123;  ages.push(temp_users[i].age);&#125;console.log(ages)// 3var temp_users = [];for (var i = 0, len = users.length; i &lt; len; i++) &#123;  if (users[i].age &gt;= 30) temp_users.push(users[i])&#125;console.log(temp_users.length);var names = [];for (var i = 0, len = temp_users.length; i &lt; len; i++) &#123;  names.push(temp_users[i].name);&#125;console.log(names);\n1에서는 users 중에 age가 30 미만인 users[i]만 모아서 몇 명인지를 출력하고 2에서는 그들의 나이만 다시 모아 출력한다. 3에서는 나이가 30 이상인 temp_users가 몇 명인지를 출력하고 4에서는 그들의 이름만 다시 모아 출력한다.\n위 코드를 함수형으로 리팩토링 하기 위해 먼저 중복되는 부분을 찾아본다. 1과 3의 for문에서 users를 돌며 특정 조건의 users[i]를 새로운 배열에 담고 있는데, if 문의 조건절 부분을 제외하고는 모두 동일한 코드이다. 30 부분은 변수로 바꿀 수 있겠지만 .age, &lt;, &gt;= 등은 쉽지 않아 보인다. 이때 함수를 활용하면 이런 부분까지도 쉽게 추상화 할 수 있다.\nfor에서 filter로, if에서 predicate로12345678910111213141516// 기존코드var temp_users = [];for (var i = 0, len = users.length; i &lt; len; i++) &#123;  if (users[i].age &lt; 30) temp_users.push(users[i]);&#125;console.log(temp_users.length);// refactoringfunction filter(list, predicate) &#123;  var new_list = [];  for (var i = 0, len = list.length; i &lt; len; i++) &#123;    if (predicate(list[i])) new_list.push(list[i]);  &#125;  return new_list;&#125;\nfilter 함수는 인자로 list와 predicate 함수를 받는다. 루프를 도며 list의 i번째의 값을 predicate에 넘겨준다. predicate 함수는 list.length 만큼 실행되며, predicate 함수의 결과가 참일 때만 new_list.push를 실행한다.filter 함수는 predicate 함수 내부에서 어떤 일을 하는지 모른다. id를 조회할지 age를 조회할지 어떤 조건을 만들지를 filter는 전혀 모른다. 오직 predicate 결과에만 의존한다.\n123456789101112131415161718// filter 사용var users_under_30 = filter(users, function (user) &#123; return user.age &lt; 30 &#125;);console.log(users_under_30)var ages = [];for (var i = 0, len = users_under_30.length; i &lt; len; i++) &#123;  ages.push(users_under_30[i].age);&#125;console.log(ages);var users_over_30 = filter(users, function (user) &#123; return user.age &gt; 30 &#125;);console.log(users_over_30);var names = [];for (var i = 0, len = users_over_30.length; i &lt; len; i++) &#123;  names.push(users_over_30[i].name)&#125;console.log(names);\nfilter 함수를 실행하면서 predicate 자리에 익명 함수를 정의해서 넘겼다. predicate 익명 함수의 리턴값(boolean)에 따라서 push를 해줄지 안해줄지가 결정된다. 기존 코드와 비교해 코드가 짧아졌고 재사용성 높은 함수 filter를 얻게됐다.\n함수형 프로그래밍 관점으로 filter 보기함수형 프로그래밍 관점에서 filter와 predicate 사이에는 많은 이야기가 담겨있다. filter 함수에는 for도 있고 if도 있지만, filter 함수는 항상 동일하게 동작하는 함수다. 동일한 인자가 들어오면 항상 동일하게 동작한다. filter 함수의 로직은 외부나 내부의 어떤 상태 변화에도 의존하지 않는다. new_list의 값을 바꾸고 있지만 그 변화에 의존하는 다른 로직이 없다. new_list가 완성될 떄까지는 외부에서 어떠한 접근도 할 수 없기 때문에 filter의 결과도 달라질 수 없다. new_list가 완성되고 나면 new_list를 리턴해버리고 filter는 완전히 종료된다.\nfilter의 if는 predicate의 결과에만 의존한다. filter를 사용하는 부분을 다시 보면 filter와 users, filter가 사용할 predicate 함수만 있다.1filter(users, function(user) &#123; return user.age &lt; 30 &#125;)\n절차지향 프로그래밍과 달리 함수형 프로그래밍 에서는 항상 동일하게 동작하는 함수 를 만들고 보조 함수를 조합하는 식으로 로직을 완성한다. 내부에서 관리하고 있는 상태를 따로 두지않고 넘겨진 인자에만 의존한다. 동일한 인자가 들어오면 항상 동일한 값을 리턴 하도록 한다.\nmap 함수리팩토링의 핵심은 중복을 제거하고 의도를 드러내는 것이다. 기존 코드를 보면 회원 목록을 통해 나이와 이름들을 추출하는데 두 코드에도 중복이 있다. 둘 다 for문에서 사용하는 회원 목록을 활용해 같은 크기의 새로운 배열을 만들고 원재료와 1:1로 매핑되는 다른 값을 만들어 담고 있다.\n123456789101112131415161718192021// map 사용function map(list, iteratee) &#123;  var new_list = [];  for (var i = 0, len = list.length; i &lt; len; i++) &#123;    new_list.push(iteratee(list[i]));  &#125;  return new_list;&#125;var users_under_30 = filter(users, function (user) &#123; return user.age &lt; 30 &#125;);console.log(users_under_30.length)var ages = map(users_under_30, function (user) &#123; return user.age &#125;);console.log(ages);var users_over_30 = filter(users, function (user) &#123; return user.age &gt; 30 &#125;);console.log(users_over_30.length)var names = map(users_over_30, function (user) &#123; return user.name &#125;);console.log(names);\n코드가 매우 단순해 진것을 확인할 수 있다. for도 없고 if도 없다. new_list에 무엇을 push 할지에 대해 iteratee 함수에게 위임했다.\n실행 결과로 바로 실행하기함수의 리턴값을 바로 다른 함수의 인자로 사용하면 변수 할당을 줄일 수 있다.filter 함수의 결과가 배열이므로 map의 첫 번째 인자로 바로 사용 가능하다.\n123456789101112131415161718192021222324252627282930313233343536// 함수 중첩var ages = map(  filter(users, function (user) &#123; return user.age &lt; 30 &#125;),  function (user) &#123; return user.age &#125;)console.log(ages);var names = map(  filter(users, function (user) &#123; return user.age &gt;= 30 &#125;),  function (user) &#123; return user.name &#125;)console.log(names);// 함수 중첩 2function log_length(value) &#123;  console.log(value.length)  return value;&#125;console.log(  log_length(    map(      filter(users, function (user) &#123; return user.age &lt; 30 &#125;),      function (user) &#123; return user.age &#125;    )  ))console.log(  log_length(    map(      filter(users, function (user) &#123; return user.age &gt;= 30 &#125;),      function (user) &#123; return user.name &#125;    )  ))\nfilter 함수는 predicate를 통해 값을 필터링하여 map에게 전달하고 map은 받은 iteratee를 통해 새로운 값들을 만들어 log_length에게 전달한다. log_length는 length를 출력한 후 받은 인자를 그대로 console.log에게 전달하고 console.log는 받은 값을 출력한다.\n함수를 값으로 다룬 예제의 실용성위에 만들었던 addMaker 와 비슷한 패턴의 함수가 실제로도 많이 사용된다.addMaker와 비슷한 패턴의 함수인 bvalue 함수를 만들어 보려고한다.\n1234567function bvalue(key) &#123;  return function (obj) &#123;    return obj[key]  &#125;&#125;console.log(bvalue(&apos;a&apos;)(&#123; a: &apos;hi&apos;, b: &apos;hello&apos; &#125;)); // hi\nbvalue를 실행할 때 넘겨준 인자 key를 나중에 obj를 받을 익명 함수가 기억한다.1234567891011121314151617181920/** * bvalue로 map의 iteratee 만들기 */console.log(  log_length(    map(      filter(users, function (user) &#123; return user.age &lt; 30 &#125;),      bvalue(&apos;age&apos;)    )  ))console.log(  log_length(    map(      filter(users, function (user) &#123; return user.age &gt;= 30 &#125;),      bvalue(&apos;name&apos;)    )  ))\nmap이 사용할 iteratee 함수를 bvalue가 리턴한 함수로 대체했다. 익명 함수 선언이 사라져 코드가 더욱 짧아졌다.\n화살표 함수로 사용하기12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152console.log(  log_length(    map(      filter(users, user =&gt; user.age &lt; 30),      user =&gt; user.age    )  ))console.log(  log_length(    map(      filter(users, user =&gt; user.age &gt;= 30),      user =&gt; user.name    )  ))var under_30 = user =&gt; user.age &lt; 30;var over_30 = user =&gt; user.age &gt;= 30;var ages = list =&gt; map(list, user =&gt; user.age);var names = list =&gt; map(list, user =&gt; user.name);console.log(log_length(ages(filter(users, under_30))));console.log(log_length(names(filter(users, over_30))));function bvalues(key) &#123;  return function (list) &#123;    return map(list, function (user) &#123; return user[key] &#125;)  &#125;&#125;var ages = bvalues(&apos;age&apos;);var names = bvalues(&apos;name&apos;);var under_30 = function (user) &#123; return user.age &lt; 30 &#125;;var over_30 = function (user) &#123; return user.age &gt;= 30 &#125;;console.log(log_length(ages(filter(users, under_30))));console.log(log_length(names(filter(users, over_30))));function bvalues(key) &#123;  var value = bvalue(key);  return function (list) &#123;    return map(list, value)  &#125;&#125;// 화살표 함수 사용var bvalues = key =&gt; list =&gt; &#123;  var value = bvalue(key)  return map(list, value);&#125;\n\nConclusion어려운 점이 공부를 하면 할수록 많이 생기겠지만, 새로운 관점에서의 프로그래밍인 것 같아 흥미롭게 느껴진다.본인은 아직 주니어라 절차지향적 사고 방식이 강한데 함수형 프로그래밍 공부하면서 새로운 사고 방식에 대해서도 생각해 봐야할 것 같다. 이번 챕터의 첫 코드(절차지향적 코드)는 쉽다고 느껴졌지만, 함수형으로 리팩토링 해 나가는 과정에서는 이게 정확히 어떤 방식으로 동작하는가, 인자값은 어떻게 넘겨 주는가에 대한 고민이 생기는것을 느끼면서 함수형 프로그래밍에 더 알고 싶어졌다.\n처음에는 함수형 프로그래밍 방식이 “그래서 왜 좋은건데?”에 대한 의문이 있었는데 마지막 코드를 보고 재새용성이 뛰어나다는것을 느꼈다. 프로젝트를 시작할때 잘 구현해 놓은 함수는 계속 재사용하면서 코딩의 속도와 편리함을 제공해 줄 것 같다고 생각했다.\n","dateCreated":"2019-09-28T15:49:18+09:00","dateModified":"2019-09-28T18:07:34+09:00","datePublished":"2019-09-28T15:49:18+09:00","description":"최근 사내에서 함수형 프로그래밍을 사용하여 기존 코드의 리팩토링을 시작했다.함수형 프로그래밍 해야지 해야지 하고 항상 미뤄왔던 스터디인데 실무에서 사용하기에터무니없이 실력이 부족함을 느껴 스터디를 시작하고자 한다.\n기본적으로 함수형 자바스크립트 프로그래밍 책을 기반으로 진행하며, 필요한 내용이나 궁금한 내용은 구글링을 통해 진행한다.\n도서 링크: 함수형 자바스크립트 프로그래밍\n함수형 자바스크립트 소개\n함수형 프로그래밍은 성공적인 프로그래밍을 위해 부수 효과를 최대한 멀리하고 조합성을 강조하는 프로그래밍 패러다임이다.\n함수형 프로그래밍이 부수 효과를 최대한 멀리하는 이유\n오류를 줄이기 위함.\n조합성 혹은 모듈화 수준을 높이기 위함.\n\n\n\n함수형 프로그래밍을 검색하면 나오는 예제1234567function addMaker(a) &#123;  return function(b) &#123;    return a + b;  &#125;&#125;addMaker(10)(5);\n함수형 자바스크립트에 관심을 가져 본 적이 있다면 아마 위 예제와 같은 코드를 봤을 것 이다. 커링 혹은 부분 적용과 관련된 코드들이다.함수를 리턴한다거나 괄호가 많은 코드들을 처음 보면 난해하고 생소하게 느껴진다.\naddMaker는 함수를 값으로 다루는 함수다. addMaker에서는 단 하나의 값이 선언되며 그 값은 함수다.addMaker(10)의 결과는 function(b) { return 10 + b }; 와 같다.이후 리턴된 함수를 바로 실행해줬기 때문에 결과값은 15가 된다.","headline":"함수형 프로그래밍 - 시작","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"https://kkangil.github.io/2019/09/28/함수형-프로그래밍-시작/"},"publisher":{"@type":"Organization","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg","logo":{"@type":"ImageObject","url":"profile.jpeg"}},"url":"https://kkangil.github.io/2019/09/28/함수형-프로그래밍-시작/","keywords":"javascript, 함수형 프로그래밍"}</script>
+    <meta name="description" content="최근 사내에서 함수형 프로그래밍을 사용하여 기존 코드의 리팩토링을 시작했다.함수형 프로그래밍 해야지 해야지 하고 항상 미뤄왔던 스터디인데 실무에서 사용하기에터무니없이 실력이 부족함을 느껴 스터디를 시작하고자 한다. 기본적으로 함수형 자바스크립트 프로그래밍 책을 기반으로 진행하며, 필요한 내용이나 궁금한 내용은 구글링을 통해 진행한다. 도서 링크: 함수형 자">
+<meta name="keywords" content="javascript,함수형 프로그래밍">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="함수형 프로그래밍 - 시작">
+<meta property="og:url" content="https://kkangil.github.io/2019/09/28/함수형-프로그래밍-시작/index.html">
+<meta property="og:site_name" content="kkangil&#39;s Blog">
+<meta property="og:description" content="최근 사내에서 함수형 프로그래밍을 사용하여 기존 코드의 리팩토링을 시작했다.함수형 프로그래밍 해야지 해야지 하고 항상 미뤄왔던 스터디인데 실무에서 사용하기에터무니없이 실력이 부족함을 느껴 스터디를 시작하고자 한다. 기본적으로 함수형 자바스크립트 프로그래밍 책을 기반으로 진행하며, 필요한 내용이나 궁금한 내용은 구글링을 통해 진행한다. 도서 링크: 함수형 자">
+<meta property="og:locale" content="ko">
+<meta property="og:updated_time" content="2019-09-28T09:07:34.419Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="함수형 프로그래밍 - 시작">
+<meta name="twitter:description" content="최근 사내에서 함수형 프로그래밍을 사용하여 기존 코드의 리팩토링을 시작했다.함수형 프로그래밍 해야지 해야지 하고 항상 미뤄왔던 스터디인데 실무에서 사용하기에터무니없이 실력이 부족함을 느껴 스터디를 시작하고자 한다. 기본적으로 함수형 자바스크립트 프로그래밍 책을 기반으로 진행하며, 필요한 내용이나 궁금한 내용은 구글링을 통해 진행한다. 도서 링크: 함수형 자">
+    
+    
+        
+    
+    
+        <meta property="og:image" content="https://kkangil.github.io/assets/images/profile.jpeg"/>
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/style-c4ozcsklz4kht2pebhp44xorvyverh23toayhn7i6ubrpyedak24hv1v0hyd.min.css">
+    <!--STYLES END-->
+    
+
+    
+</head>
+
+    <body>
+        <div id="blog">
+            <!-- Define author's picture -->
+
+
+    
+        
+            
+        
+    
+
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a class="header-title-link" href="/ ">kkangil&#39;s Blog</a>
+    </div>
+    
+        
+            <a class="header-right-picture " href="#about">
+        
+        
+            <img class="header-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+        
+        </a>
+    
+</header>
+
+            <!-- Define author's picture -->
+
+
+
+        
+    
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
+        
+            <div class="sidebar-profile">
+                <a href="/#about">
+                    <img class="sidebar-profile-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+                </a>
+                <h4 class="sidebar-profile-name">kkangil</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
+</h5>
+                
+            </div>
+        
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/ " title="Home">
+                    
+                        <i class="sidebar-button-icon fa fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Home</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-categories" title="카테고리">
+                    
+                        <i class="sidebar-button-icon fa fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">카테고리</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-tags" title="태그">
+                    
+                        <i class="sidebar-button-icon fa fa-tags" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">태그</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-archives" title="기록">
+                    
+                        <i class="sidebar-button-icon fa fa-archive" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">기록</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link open-algolia-search" href="#search" title="검색">
+                    
+                        <i class="sidebar-button-icon fa fa-search" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">검색</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="#about" title="About">
+                    
+                        <i class="sidebar-button-icon fa fa-question" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">About</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="https://github.com/kkangil" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fab fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="http://stackoverflow.com/users/10870848/kkangil" target="_blank" rel="noopener" title="Stack Overflow">
+                    
+                        <i class="sidebar-button-icon fab fa-stack-overflow" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Stack Overflow</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="https://www.linkedin.com/in/kangil-kim-31093a169/" target="_blank" rel="noopener" title="LinkedIn">
+                    
+                        <i class="sidebar-button-icon fab fa-linkedin" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">LinkedIn</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/fe.kkangil@gmail.com" title="Mail">
+                    
+                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Mail</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/atom.xml" title="RSS">
+                    
+                        <i class="sidebar-button-icon fa fa-rss" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">RSS</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
+</nav>
+
+            
+            <div id="main" data-behavior="4"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title">
+            함수형 프로그래밍 - 시작
+        </h1>
+    
+    
+        <div class="post-meta">
+    <time datetime="2019-09-28T15:49:18+09:00">
+	
+		    9월 28, 2019
+    	
+    </time>
+    
+        <span>카테고리 </span>
+        
+    <a class="category-link" href="/categories/함수형-프로그래밍/">함수형 프로그래밍</a>
+
+
+    
+</div>
+
+    
+</div>
+
+    
+    <div class="post-content markdown">
+        <div class="main-content-wrap">
+            <p>최근 사내에서 함수형 프로그래밍을 사용하여 기존 코드의 리팩토링을 시작했다.<br>함수형 프로그래밍 해야지 해야지 하고 항상 미뤄왔던 스터디인데 실무에서 사용하기에<br>터무니없이 실력이 부족함을 느껴 스터디를 시작하고자 한다.</p>
+<p>기본적으로 <code>함수형 자바스크립트 프로그래밍</code> 책을 기반으로 진행하며, 필요한 내용이나 궁금한 내용은 구글링을 통해 진행한다.</p>
+<p>도서 링크: <a href="http://www.yes24.com/Product/Goods/56885507" target="_blank" rel="noopener">함수형 자바스크립트 프로그래밍</a></p>
+<h1 id="함수형-자바스크립트-소개"><a href="#함수형-자바스크립트-소개" class="headerlink" title="함수형 자바스크립트 소개"></a>함수형 자바스크립트 소개</h1><ul>
+<li>함수형 프로그래밍은 성공적인 프로그래밍을 위해 부수 효과를 최대한 멀리하고 조합성을 강조하는 프로그래밍 패러다임이다.</li>
+<li>함수형 프로그래밍이 부수 효과를 최대한 멀리하는 이유<ol>
+<li>오류를 줄이기 위함.</li>
+<li>조합성 혹은 모듈화 수준을 높이기 위함.</li>
+</ol>
+</li>
+</ul>
+<h2 id="함수형-프로그래밍을-검색하면-나오는-예제"><a href="#함수형-프로그래밍을-검색하면-나오는-예제" class="headerlink" title="함수형 프로그래밍을 검색하면 나오는 예제"></a>함수형 프로그래밍을 검색하면 나오는 예제</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">function addMaker(a) &#123;</span><br><span class="line">  return function(b) &#123;</span><br><span class="line">    return a + b;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">addMaker(10)(5);</span><br></pre></td></tr></table></figure>
+<p>함수형 자바스크립트에 관심을 가져 본 적이 있다면 아마 위 예제와 같은 코드를 봤을 것 이다. 커링 혹은 부분 적용과 관련된 코드들이다.<br>함수를 리턴한다거나 괄호가 많은 코드들을 처음 보면 난해하고 생소하게 느껴진다.</p>
+<p><code>addMaker</code>는 함수를 값으로 다루는 함수다. <code>addMaker</code>에서는 단 하나의 값이 선언되며 그 값은 함수다.<br><code>addMaker(10)</code>의 결과는 function(b) { return 10 + b }; 와 같다.<br>이후 리턴된 함수를 바로 실행해줬기 때문에 결과값은 15가 된다.</p>
+<a id="more"></a>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">var add5 = addMaker(5);</span><br><span class="line">add5(3) // 8</span><br><span class="line">add5(4) // 9</span><br></pre></td></tr></table></figure>
+<p>위와 같이 변수에 값을 할당해서 사용할 수 도 있다.</p>
+<h2 id="값으로써의-함수와-클로저"><a href="#값으로써의-함수와-클로저" class="headerlink" title="값으로써의 함수와 클로저"></a>값으로써의 함수와 클로저</h2><p>위의 예제들을 보면 함수는 값을 리턴할 수 있고 함수는 값이 될 수 있다. <code>addMaker</code>는 내부에서 함수를 정의하고 리턴했다. <code>addMaker</code>가 리턴한 익명 함수는 클로저가 되었다.<br>리턴된 익명 함수 내부에서 a가 정의된 적은 없지만 a를 참조하고 있고 a는 부모 스코프에 있다.</p>
+<p><code>addMaker</code>가 실행된 후, 어디서도 <code>addMaker</code>의 인자인 a 값을 변경시키지 않고 있기 때문에 항상 동일한 값을 갖는다. 때문에 위 상황에서 a는 불변하며 상수로 쓰이게 된다. 이 상황에서의 a는 불변하지만, 모든 경우의 클로저가 그렇지는 않다. 클로저가 기억하는 변수의 값은 변할 수 있다.</p>
+<hr>
+<h2 id="함수형-자바스크립트의-실용성"><a href="#함수형-자바스크립트의-실용성" class="headerlink" title="함수형 자바스크립트의 실용성"></a>함수형 자바스크립트의 실용성</h2><p>절차지향적으로 작성된 코드를 함수형으로 변경하면서 함수형 자바스크립트의 실용성을 알아보고자 한다.</p>
+<h3 id="회원-목록-중-여러명-찾기"><a href="#회원-목록-중-여러명-찾기" class="headerlink" title="회원 목록 중 여러명 찾기"></a>회원 목록 중 여러명 찾기</h3><p>회원 목록 중 특정 나이의 회원들만 뽑거나 특정 조건의 회원 한 명을 찾는 코드들을 함수형 자바스크립트로 리팩토링 한다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">var users = [</span><br><span class="line">  &#123; id: 1, name: &apos;ID&apos;, age: 32 &#125;,</span><br><span class="line">  &#123; id: 2, name: &apos;HA&apos;, age: 25 &#125;,</span><br><span class="line">  &#123; id: 3, name: &apos;BJ&apos;, age: 32 &#125;,</span><br><span class="line">  &#123; id: 4, name: &apos;PJ&apos;, age: 28 &#125;,</span><br><span class="line">  &#123; id: 5, name: &apos;JE&apos;, age: 27 &#125;,</span><br><span class="line">  &#123; id: 6, name: &apos;JM&apos;, age: 32 &#125;,</span><br><span class="line">  &#123; id: 7, name: &apos;HI&apos;, age: 24 &#125;,</span><br><span class="line">];</span><br><span class="line"></span><br><span class="line">// 1</span><br><span class="line">var temp_users = [];</span><br><span class="line">for (var i = 0, len = users.length; i &lt; len; i++) &#123;</span><br><span class="line">  if (users[i].age &lt; 30) temp_users.push(users[i]);</span><br><span class="line">&#125;</span><br><span class="line">console.log(temp_users.length);</span><br><span class="line"></span><br><span class="line">// 2</span><br><span class="line">var ages = [];</span><br><span class="line">for (var i = 0, len = temp_users.length; i &lt; len; i++) &#123;</span><br><span class="line">  ages.push(temp_users[i].age);</span><br><span class="line">&#125;</span><br><span class="line">console.log(ages)</span><br><span class="line"></span><br><span class="line">// 3</span><br><span class="line">var temp_users = [];</span><br><span class="line">for (var i = 0, len = users.length; i &lt; len; i++) &#123;</span><br><span class="line">  if (users[i].age &gt;= 30) temp_users.push(users[i])</span><br><span class="line">&#125;</span><br><span class="line">console.log(temp_users.length);</span><br><span class="line"></span><br><span class="line">var names = [];</span><br><span class="line">for (var i = 0, len = temp_users.length; i &lt; len; i++) &#123;</span><br><span class="line">  names.push(temp_users[i].name);</span><br><span class="line">&#125;</span><br><span class="line">console.log(names);</span><br></pre></td></tr></table></figure>
+<p>1에서는 users 중에 age가 30 미만인 users[i]만 모아서 몇 명인지를 출력하고 2에서는 그들의 나이만 다시 모아 출력한다. 3에서는 나이가 30 이상인 temp_users가 몇 명인지를 출력하고 4에서는 그들의 이름만 다시 모아 출력한다.</p>
+<p>위 코드를 함수형으로 리팩토링 하기 위해 먼저 중복되는 부분을 찾아본다. 1과 3의 for문에서 users를 돌며 특정 조건의 users[i]를 새로운 배열에 담고 있는데, if 문의 조건절 부분을 제외하고는 모두 동일한 코드이다. 30 부분은 변수로 바꿀 수 있겠지만 .age, &lt;, &gt;= 등은 쉽지 않아 보인다. 이때 함수를 활용하면 이런 부분까지도 쉽게 추상화 할 수 있다.</p>
+<h3 id="for에서-filter로-if에서-predicate로"><a href="#for에서-filter로-if에서-predicate로" class="headerlink" title="for에서 filter로, if에서 predicate로"></a>for에서 filter로, if에서 predicate로</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">// 기존코드</span><br><span class="line">var temp_users = [];</span><br><span class="line">for (var i = 0, len = users.length; i &lt; len; i++) &#123;</span><br><span class="line">  if (users[i].age &lt; 30) temp_users.push(users[i]);</span><br><span class="line">&#125;</span><br><span class="line">console.log(temp_users.length);</span><br><span class="line"></span><br><span class="line">// refactoring</span><br><span class="line">function filter(list, predicate) &#123;</span><br><span class="line">  var new_list = [];</span><br><span class="line">  for (var i = 0, len = list.length; i &lt; len; i++) &#123;</span><br><span class="line">    if (predicate(list[i])) new_list.push(list[i]);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  return new_list;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>filter 함수는 인자로 list와 predicate 함수를 받는다. 루프를 도며 list의 i번째의 값을 predicate에 넘겨준다. predicate 함수는 list.length 만큼 실행되며, predicate 함수의 결과가 참일 때만 new_list.push를 실행한다.<br>filter 함수는 predicate 함수 내부에서 어떤 일을 하는지 모른다. id를 조회할지 age를 조회할지 어떤 조건을 만들지를 filter는 전혀 모른다. 오직 predicate 결과에만 의존한다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">// filter 사용</span><br><span class="line">var users_under_30 = filter(users, function (user) &#123; return user.age &lt; 30 &#125;);</span><br><span class="line">console.log(users_under_30)</span><br><span class="line"></span><br><span class="line">var ages = [];</span><br><span class="line">for (var i = 0, len = users_under_30.length; i &lt; len; i++) &#123;</span><br><span class="line">  ages.push(users_under_30[i].age);</span><br><span class="line">&#125;</span><br><span class="line">console.log(ages);</span><br><span class="line"></span><br><span class="line">var users_over_30 = filter(users, function (user) &#123; return user.age &gt; 30 &#125;);</span><br><span class="line">console.log(users_over_30);</span><br><span class="line"></span><br><span class="line">var names = [];</span><br><span class="line">for (var i = 0, len = users_over_30.length; i &lt; len; i++) &#123;</span><br><span class="line">  names.push(users_over_30[i].name)</span><br><span class="line">&#125;</span><br><span class="line">console.log(names);</span><br></pre></td></tr></table></figure>
+<p>filter 함수를 실행하면서 predicate 자리에 익명 함수를 정의해서 넘겼다. predicate 익명 함수의 리턴값(<code>boolean</code>)에 따라서 push를 해줄지 안해줄지가 결정된다. 기존 코드와 비교해 코드가 짧아졌고 재사용성 높은 함수 filter를 얻게됐다.</p>
+<h3 id="함수형-프로그래밍-관점으로-filter-보기"><a href="#함수형-프로그래밍-관점으로-filter-보기" class="headerlink" title="함수형 프로그래밍 관점으로 filter 보기"></a>함수형 프로그래밍 관점으로 filter 보기</h3><p>함수형 프로그래밍 관점에서 filter와 predicate 사이에는 많은 이야기가 담겨있다. filter 함수에는 for도 있고 if도 있지만, filter 함수는 항상 동일하게 동작하는 함수다. <strong>동일한 인자가 들어오면 항상 동일하게 동작한다.</strong> filter 함수의 로직은 외부나 내부의 어떤 상태 변화에도 의존하지 않는다. <code>new_list</code>의 값을 바꾸고 있지만 그 변화에 의존하는 다른 로직이 없다. <code>new_list</code>가 완성될 떄까지는 외부에서 어떠한 접근도 할 수 없기 때문에 filter의 결과도 달라질 수 없다. <code>new_list</code>가 완성되고 나면 <code>new_list</code>를 리턴해버리고 filter는 완전히 종료된다.</p>
+<p>filter의 if는 predicate의 결과에만 의존한다. filter를 사용하는 부분을 다시 보면 filter와 users, filter가 사용할 predicate 함수만 있다.<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">filter(users, function(user) &#123; return user.age &lt; 30 &#125;)</span><br></pre></td></tr></table></figure></p>
+<p>절차지향 프로그래밍과 달리 함수형 프로그래밍 에서는 <strong>항상 동일하게 동작하는 함수</strong> 를 만들고 보조 함수를 조합하는 식으로 로직을 완성한다. 내부에서 관리하고 있는 상태를 따로 두지않고 넘겨진 인자에만 의존한다. 동일한 인자가 들어오면 항상 동일한 값을 리턴 하도록 한다.</p>
+<h3 id="map-함수"><a href="#map-함수" class="headerlink" title="map 함수"></a>map 함수</h3><p>리팩토링의 핵심은 중복을 제거하고 의도를 드러내는 것이다. 기존 코드를 보면 회원 목록을 통해 나이와 이름들을 추출하는데 두 코드에도 중복이 있다. 둘 다 for문에서 사용하는 회원 목록을 활용해 같은 크기의 새로운 배열을 만들고 원재료와 1:1로 매핑되는 다른 값을 만들어 담고 있다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">// map 사용</span><br><span class="line">function map(list, iteratee) &#123;</span><br><span class="line">  var new_list = [];</span><br><span class="line">  for (var i = 0, len = list.length; i &lt; len; i++) &#123;</span><br><span class="line">    new_list.push(iteratee(list[i]));</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  return new_list;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">var users_under_30 = filter(users, function (user) &#123; return user.age &lt; 30 &#125;);</span><br><span class="line">console.log(users_under_30.length)</span><br><span class="line"></span><br><span class="line">var ages = map(users_under_30, function (user) &#123; return user.age &#125;);</span><br><span class="line">console.log(ages);</span><br><span class="line"></span><br><span class="line">var users_over_30 = filter(users, function (user) &#123; return user.age &gt; 30 &#125;);</span><br><span class="line">console.log(users_over_30.length)</span><br><span class="line"></span><br><span class="line">var names = map(users_over_30, function (user) &#123; return user.name &#125;);</span><br><span class="line">console.log(names);</span><br></pre></td></tr></table></figure>
+<p>코드가 매우 단순해 진것을 확인할 수 있다. for도 없고 if도 없다. new_list에 무엇을 push 할지에 대해 iteratee 함수에게 위임했다.</p>
+<h3 id="실행-결과로-바로-실행하기"><a href="#실행-결과로-바로-실행하기" class="headerlink" title="실행 결과로 바로 실행하기"></a>실행 결과로 바로 실행하기</h3><p>함수의 리턴값을 바로 다른 함수의 인자로 사용하면 변수 할당을 줄일 수 있다.<br>filter 함수의 결과가 배열이므로 map의 첫 번째 인자로 바로 사용 가능하다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">// 함수 중첩</span><br><span class="line">var ages = map(</span><br><span class="line">  filter(users, function (user) &#123; return user.age &lt; 30 &#125;),</span><br><span class="line">  function (user) &#123; return user.age &#125;</span><br><span class="line">)</span><br><span class="line">console.log(ages);</span><br><span class="line"></span><br><span class="line">var names = map(</span><br><span class="line">  filter(users, function (user) &#123; return user.age &gt;= 30 &#125;),</span><br><span class="line">  function (user) &#123; return user.name &#125;</span><br><span class="line">)</span><br><span class="line">console.log(names);</span><br><span class="line"></span><br><span class="line">// 함수 중첩 2</span><br><span class="line">function log_length(value) &#123;</span><br><span class="line">  console.log(value.length)</span><br><span class="line">  return value;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">console.log(</span><br><span class="line">  log_length(</span><br><span class="line">    map(</span><br><span class="line">      filter(users, function (user) &#123; return user.age &lt; 30 &#125;),</span><br><span class="line">      function (user) &#123; return user.age &#125;</span><br><span class="line">    )</span><br><span class="line">  )</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">console.log(</span><br><span class="line">  log_length(</span><br><span class="line">    map(</span><br><span class="line">      filter(users, function (user) &#123; return user.age &gt;= 30 &#125;),</span><br><span class="line">      function (user) &#123; return user.name &#125;</span><br><span class="line">    )</span><br><span class="line">  )</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>filter 함수는 predicate를 통해 값을 필터링하여 map에게 전달하고 map은 받은 iteratee를 통해 새로운 값들을 만들어 log_length에게 전달한다. log_length는 length를 출력한 후 받은 인자를 그대로 console.log에게 전달하고 console.log는 받은 값을 출력한다.</p>
+<h3 id="함수를-값으로-다룬-예제의-실용성"><a href="#함수를-값으로-다룬-예제의-실용성" class="headerlink" title="함수를 값으로 다룬 예제의 실용성"></a>함수를 값으로 다룬 예제의 실용성</h3><p>위에 만들었던 <code>addMaker</code> 와 비슷한 패턴의 함수가 실제로도 많이 사용된다.<br><code>addMaker</code>와 비슷한 패턴의 함수인 <code>bvalue</code> 함수를 만들어 보려고한다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">function bvalue(key) &#123;</span><br><span class="line">  return function (obj) &#123;</span><br><span class="line">    return obj[key]</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">console.log(bvalue(&apos;a&apos;)(&#123; a: &apos;hi&apos;, b: &apos;hello&apos; &#125;)); // hi</span><br></pre></td></tr></table></figure>
+<p>bvalue를 실행할 때 넘겨준 인자 key를 나중에 obj를 받을 익명 함수가 기억한다.<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> * bvalue로 map의 iteratee 만들기</span><br><span class="line"> */</span><br><span class="line">console.log(</span><br><span class="line">  log_length(</span><br><span class="line">    map(</span><br><span class="line">      filter(users, function (user) &#123; return user.age &lt; 30 &#125;),</span><br><span class="line">      bvalue(&apos;age&apos;)</span><br><span class="line">    )</span><br><span class="line">  )</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">console.log(</span><br><span class="line">  log_length(</span><br><span class="line">    map(</span><br><span class="line">      filter(users, function (user) &#123; return user.age &gt;= 30 &#125;),</span><br><span class="line">      bvalue(&apos;name&apos;)</span><br><span class="line">    )</span><br><span class="line">  )</span><br><span class="line">)</span><br></pre></td></tr></table></figure></p>
+<p>map이 사용할 iteratee 함수를 bvalue가 리턴한 함수로 대체했다. 익명 함수 선언이 사라져 코드가 더욱 짧아졌다.</p>
+<p>화살표 함수로 사용하기<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line">console.log(</span><br><span class="line">  log_length(</span><br><span class="line">    map(</span><br><span class="line">      filter(users, user =&gt; user.age &lt; 30),</span><br><span class="line">      user =&gt; user.age</span><br><span class="line">    )</span><br><span class="line">  )</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">console.log(</span><br><span class="line">  log_length(</span><br><span class="line">    map(</span><br><span class="line">      filter(users, user =&gt; user.age &gt;= 30),</span><br><span class="line">      user =&gt; user.name</span><br><span class="line">    )</span><br><span class="line">  )</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">var under_30 = user =&gt; user.age &lt; 30;</span><br><span class="line">var over_30 = user =&gt; user.age &gt;= 30;</span><br><span class="line">var ages = list =&gt; map(list, user =&gt; user.age);</span><br><span class="line">var names = list =&gt; map(list, user =&gt; user.name);</span><br><span class="line"></span><br><span class="line">console.log(log_length(ages(filter(users, under_30))));</span><br><span class="line">console.log(log_length(names(filter(users, over_30))));</span><br><span class="line"></span><br><span class="line">function bvalues(key) &#123;</span><br><span class="line">  return function (list) &#123;</span><br><span class="line">    return map(list, function (user) &#123; return user[key] &#125;)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">var ages = bvalues(&apos;age&apos;);</span><br><span class="line">var names = bvalues(&apos;name&apos;);</span><br><span class="line">var under_30 = function (user) &#123; return user.age &lt; 30 &#125;;</span><br><span class="line">var over_30 = function (user) &#123; return user.age &gt;= 30 &#125;;</span><br><span class="line"></span><br><span class="line">console.log(log_length(ages(filter(users, under_30))));</span><br><span class="line">console.log(log_length(names(filter(users, over_30))));</span><br><span class="line"></span><br><span class="line">function bvalues(key) &#123;</span><br><span class="line">  var value = bvalue(key);</span><br><span class="line">  return function (list) &#123;</span><br><span class="line">    return map(list, value)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 화살표 함수 사용</span><br><span class="line">var bvalues = key =&gt; list =&gt; &#123;</span><br><span class="line">  var value = bvalue(key)</span><br><span class="line">  return map(list, value);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<hr>
+<p>Conclusion<br>어려운 점이 공부를 하면 할수록 많이 생기겠지만, 새로운 관점에서의 프로그래밍인 것 같아 흥미롭게 느껴진다.<br>본인은 아직 주니어라 절차지향적 사고 방식이 강한데 함수형 프로그래밍 공부하면서 새로운 사고 방식에 대해서도 생각해 봐야할 것 같다. 이번 챕터의 첫 코드(절차지향적 코드)는 쉽다고 느껴졌지만, 함수형으로 리팩토링 해 나가는 과정에서는 이게 정확히 어떤 방식으로 동작하는가, 인자값은 어떻게 넘겨 주는가에 대한 고민이 생기는것을 느끼면서 함수형 프로그래밍에 더 알고 싶어졌다.</p>
+<p>처음에는 함수형 프로그래밍 방식이 “그래서 왜 좋은건데?”에 대한 의문이 있었는데 마지막 코드를 보고 재새용성이 뛰어나다는것을 느꼈다. 프로젝트를 시작할때 잘 구현해 놓은 함수는 계속 재사용하면서 코딩의 속도와 편리함을 제공해 줄 것 같다고 생각했다.</p>
+
+            
+
+        </div>
+    </div>
+    <div id="post-footer" class="post-footer main-content-wrap">
+        
+            <div class="post-footer-tags">
+                <span class="text-color-light text-small">태그</span><br>
+                
+    <a class="tag tag--primary tag--small t-link" href="/tags/javascript/">javascript</a> <a class="tag tag--primary tag--small t-link" href="/tags/함수형-프로그래밍/">함수형 프로그래밍</a>
+
+            </div>
+        
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    <a class="post-action-btn btn btn--disabled">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/04/28/Sequelize-model-정의/" data-tooltip="Sequelize model 정의" aria-label="다음: Sequelize model 정의">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2019/09/28/함수형-프로그래밍-시작/" title="Facebook 공유">
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2019/09/28/함수형-프로그래밍-시작/" title="Twitter 공유">
+                    <i class="fab fa-twitter" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2019/09/28/함수형-프로그래밍-시작/" title="Google+ 공유">
+                    <i class="fab fa-google-plus" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+        
+            
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2019 kkangil. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+                    <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    <a class="post-action-btn btn btn--disabled">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/04/28/Sequelize-model-정의/" data-tooltip="Sequelize model 정의" aria-label="다음: Sequelize model 정의">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2019/09/28/함수형-프로그래밍-시작/" title="Facebook 공유">
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2019/09/28/함수형-프로그래밍-시작/" title="Twitter 공유">
+                    <i class="fab fa-twitter" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2019/09/28/함수형-프로그래밍-시작/" title="Google+ 공유">
+                    <i class="fab fa-google-plus" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                
+    <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+        <i id="btn-close-shareoptions" class="fa fa-times"></i>
+        <ul class="share-options">
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2019/09/28/함수형-프로그래밍-시작/">
+                        <i class="fab fa-facebook" aria-hidden="true"></i><span>Facebook 공유</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2019/09/28/함수형-프로그래밍-시작/">
+                        <i class="fab fa-twitter" aria-hidden="true"></i><span>Twitter 공유</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2019/09/28/함수형-프로그래밍-시작/">
+                        <i class="fab fa-google-plus" aria-hidden="true"></i><span>Google+ 공유</span>
+                    </a>
+                </li>
+            
+        </ul>
+    </div>
+
+
+            
+        </div>
+        
+
+
+    
+        
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-times"></i>
+        </div>
+        
+            <img id="about-card-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+        
+            <h4 id="about-card-name">kkangil</h4>
+        
+            <div id="about-card-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br>
+                <p>web developer</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker-alt"></i>
+                <br>
+                Asia/Seoul
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-dbd16rvloemmuxdzniplmnxxvwoz24eya9wol0b7vvmlokgqsjivmb8dnscy.min.js"></script>
+<!--SCRIPTS END-->
+
+    
+
+
+
+    </body>
+</html>
