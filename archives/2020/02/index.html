@@ -220,21 +220,21 @@
             <div class="postShorten-header">
                 <h1 class="postShorten-title">
                     
-                        <a class="link-unstyled" href="/2020/02/09/jest-메서드-globals/">
-                            jest 메서드 - globals
+                        <a class="link-unstyled" href="/2020/02/16/렌더링/">
+                            렌더링
                         </a>
                     
                 </h1>
                 <div class="postShorten-meta">
-    <time datetime="2020-02-09T17:01:54+09:00">
+    <time datetime="2020-02-16T17:07:24+09:00">
 	
-		    2월 09, 2020
+		    2월 16, 2020
     	
     </time>
     
         <span>카테고리 </span>
         
-    <a class="category-link" href="/categories/Jest/">Jest</a>
+    <a class="category-link" href="/categories/웹-성능-이야기/">웹 성능 이야기</a>
 
 
     
@@ -243,12 +243,14 @@
             </div>
             
                 <div class="postShorten-excerpt">
-                    <p>Jest 제공 메서드들 중 Globals 메서드에 대해서 정리해보려 한다. Jest 공식 문서에 나와 있는 Globals 메서드 정의는 다음과 같다.</p>
-<blockquote>
-<p>Globals 메서드를 사용해서 전역 환경을 설정한다. 이것은 필수로 설정해 줄 필요는 없다.</p>
-</blockquote>
+                    <h2 id="렌더링-과정"><a href="#렌더링-과정" class="headerlink" title="렌더링 과정"></a>렌더링 과정</h2><p>렌더링이란 논리적인 문서(DOM)의 표현식을 그래픽 표현식으로 변형시키는 과정이다. 이 과정은 다음과 같이 크게 2단계를 거쳐 이뤄진다.</p>
+<ol>
+<li>DOM 요소와 스타일에 기반을 둔 레이아웃 계산</li>
+<li>계산된 요소의 화면 표현</li>
+</ol>
+<p>일반적인 전체 흐름은 브라우저에 문서가 로딩됨에 따라 DOM 트리의 구성이 진행되면 레이아웃을 계산한 후 문서에 요소를 그린다.</p>
                     
-                        <a href="/2020/02/09/jest-메서드-globals/" class="postShorten-excerpt_link link">
+                        <a href="/2020/02/16/렌더링/" class="postShorten-excerpt_link link">
                             계속 읽기
                         </a>
                         
@@ -266,21 +268,21 @@
             <div class="postShorten-header">
                 <h1 class="postShorten-title">
                     
-                        <a class="link-unstyled" href="/2020/02/09/성능을-높이는-코드-스타일/">
-                            성능을 높이는 코드 스타일
+                        <a class="link-unstyled" href="/2020/02/16/jest-메서드-expect/">
+                            jest 메서드 - expect
                         </a>
                     
                 </h1>
                 <div class="postShorten-meta">
-    <time datetime="2020-02-09T14:58:17+09:00">
+    <time datetime="2020-02-16T14:59:50+09:00">
 	
-		    2월 09, 2020
+		    2월 16, 2020
     	
     </time>
     
         <span>카테고리 </span>
         
-    <a class="category-link" href="/categories/웹-성능-이야기/">웹 성능 이야기</a>
+    <a class="category-link" href="/categories/Jest/">Jest</a>
 
 
     
@@ -289,11 +291,10 @@
             </div>
             
                 <div class="postShorten-excerpt">
-                    <h2 id="객체의-생성-초기화-성능"><a href="#객체의-생성-초기화-성능" class="headerlink" title="객체의 생성, 초기화 성능"></a>객체의 생성, 초기화 성능</h2><p>많이 사용하지만 성능을 생각하지 않고 작성하는 코드에 객체 선언과 초기화 구문이 있다. 배열(Array) 형식의 객체와 오브젝트(Object) 형식의 객체를 생성하고 초기화하는 방법의 성능을 측정해 보고 두 코드 사이에 어떤 차이점이 있는지 비교해 보고자 한다.</p>
-<h3 id="배열의-생성-초기화-성능-비교"><a href="#배열의-생성-초기화-성능-비교" class="headerlink" title="배열의 생성, 초기화 성능 비교"></a>배열의 생성, 초기화 성능 비교</h3><p>배열을 생성자 혹인 리터럴([]) 형식을 사용해 객체를 생성할 수 있다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">// Array() 생성자 사용</span><br><span class="line">var arr = new Array();</span><br><span class="line"></span><br><span class="line">// 리터럴 형식으로 배열 생성</span><br><span class="line">var arr = [];</span><br></pre></td></tr></table></figure>
+                    <h3 id="expect-value"><a href="#expect-value" class="headerlink" title="expect(value)"></a>expect(value)</h3><p>expect 함수는 값을 테스트 하고 싶을 때 사용한다. 드물게 expect 함수만 사용해서 테스트를 할 수 있지만 값을 테스트하기 위해 <code>matcher</code> 함수를 함께 사용한다.</p>
+<h3 id="expect-extend-matchers"><a href="#expect-extend-matchers" class="headerlink" title="expect.extend(matchers)"></a>expect.extend(matchers)</h3><p>expect.extend 함수를 사용하여 Jest 에서 제공하는 matcher 가 아닌 직접 만들어서 사용할 수 있다.</p>
                     
-                        <a href="/2020/02/09/성능을-높이는-코드-스타일/" class="postShorten-excerpt_link link">
+                        <a href="/2020/02/16/jest-메서드-expect/" class="postShorten-excerpt_link link">
                             계속 읽기
                         </a>
                         
@@ -315,7 +316,7 @@
             </a>
           </li>
         
-        <li class="pagination-number">현재 1 전체 2</li>
+        <li class="pagination-number">현재 1 전체 3</li>
     </ul>
 </div>
 
