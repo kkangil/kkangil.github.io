@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="generator" content="kkangil&#39;s Blog">
-    <title>태그: 성능 테스트 - kkangil&#39;s Blog</title>
+    <title>태그: 렌더링 - kkangil&#39;s Blog</title>
     <meta name="author" content="kkangil">
     
     
@@ -17,7 +17,7 @@
     <meta name="description" content="공부와 유익한 개발 정보들을 기록하기 위한 블로그입니다.">
 <meta property="og:type" content="blog">
 <meta property="og:title" content="kkangil&#39;s Blog">
-<meta property="og:url" content="https://kkangil.github.io/tags/성능-테스트/index.html">
+<meta property="og:url" content="https://kkangil.github.io/tags/렌더링/index.html">
 <meta property="og:site_name" content="kkangil&#39;s Blog">
 <meta property="og:description" content="공부와 유익한 개발 정보들을 기록하기 위한 블로그입니다.">
 <meta property="og:locale" content="ko">
@@ -220,15 +220,15 @@
             <div class="postShorten-header">
                 <h1 class="postShorten-title">
                     
-                        <a class="link-unstyled" href="/2020/02/09/성능을-높이는-코드-스타일/">
-                            성능을 높이는 코드 스타일
+                        <a class="link-unstyled" href="/2020/02/16/렌더링/">
+                            렌더링
                         </a>
                     
                 </h1>
                 <div class="postShorten-meta">
-    <time datetime="2020-02-09T14:58:17+09:00">
+    <time datetime="2020-02-16T17:07:24+09:00">
 	
-		    2월 09, 2020
+		    2월 16, 2020
     	
     </time>
     
@@ -243,11 +243,14 @@
             </div>
             
                 <div class="postShorten-excerpt">
-                    <h2 id="객체의-생성-초기화-성능"><a href="#객체의-생성-초기화-성능" class="headerlink" title="객체의 생성, 초기화 성능"></a>객체의 생성, 초기화 성능</h2><p>많이 사용하지만 성능을 생각하지 않고 작성하는 코드에 객체 선언과 초기화 구문이 있다. 배열(Array) 형식의 객체와 오브젝트(Object) 형식의 객체를 생성하고 초기화하는 방법의 성능을 측정해 보고 두 코드 사이에 어떤 차이점이 있는지 비교해 보고자 한다.</p>
-<h3 id="배열의-생성-초기화-성능-비교"><a href="#배열의-생성-초기화-성능-비교" class="headerlink" title="배열의 생성, 초기화 성능 비교"></a>배열의 생성, 초기화 성능 비교</h3><p>배열을 생성자 혹인 리터럴([]) 형식을 사용해 객체를 생성할 수 있다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">// Array() 생성자 사용</span><br><span class="line">var arr = new Array();</span><br><span class="line"></span><br><span class="line">// 리터럴 형식으로 배열 생성</span><br><span class="line">var arr = [];</span><br></pre></td></tr></table></figure>
+                    <h2 id="렌더링-과정"><a href="#렌더링-과정" class="headerlink" title="렌더링 과정"></a>렌더링 과정</h2><p>렌더링이란 논리적인 문서(DOM)의 표현식을 그래픽 표현식으로 변형시키는 과정이다. 이 과정은 다음과 같이 크게 2단계를 거쳐 이뤄진다.</p>
+<ol>
+<li>DOM 요소와 스타일에 기반을 둔 레이아웃 계산</li>
+<li>계산된 요소의 화면 표현</li>
+</ol>
+<p>일반적인 전체 흐름은 브라우저에 문서가 로딩됨에 따라 DOM 트리의 구성이 진행되면 레이아웃을 계산한 후 문서에 요소를 그린다.</p>
                     
-                        <a href="/2020/02/09/성능을-높이는-코드-스타일/" class="postShorten-excerpt_link link">
+                        <a href="/2020/02/16/렌더링/" class="postShorten-excerpt_link link">
                             계속 읽기
                         </a>
                         
