@@ -37,11 +37,11 @@
     
       <category term="toBe" scheme="https://kkangil.github.io/tags/toBe/"/>
     
+      <category term="toEqual" scheme="https://kkangil.github.io/tags/toEqual/"/>
+    
       <category term="toHaveBeenCalled" scheme="https://kkangil.github.io/tags/toHaveBeenCalled/"/>
     
       <category term="toHaveReturned" scheme="https://kkangil.github.io/tags/toHaveReturned/"/>
-    
-      <category term="toEqual" scheme="https://kkangil.github.io/tags/toEqual/"/>
     
       <category term="toError" scheme="https://kkangil.github.io/tags/toError/"/>
     
