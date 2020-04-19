@@ -1,0 +1,81 @@
+# date format displayed everywhere in the blog
+date_format: "MMM DD, YYYY"
+
+global:
+    home: "Home"
+    categories: "카테고리"
+    category: "카테고리"
+    tags: "태그"
+    tag: "태그"
+    archives: "기록"
+    search: "검색"
+    about: "About"
+    author_picture: "Author's picture"
+    github: "GitHub"
+    stack_overflow: "Stack Overflow"
+    twitter: "Twitter"
+    facebook: "Facebook"
+    google_plus: "Google +"
+    weibo: "Weibo"
+    qq: "QQ"
+    qzone: "Qzone"
+    renren: "Renren"
+    vk: "VK"
+    odnoklassniki: "Odnoklassniki"
+    linkedin: "LinkedIn"
+    mail: "Mail"
+    rss: "RSS"
+    share_on_facebook: "Facebook 공유"
+    share_on_twitter: "Twitter 공유"
+    share_on_google_plus: "Google+ 공유"
+    share_on_weibo: "Share on Weibo"
+    share_on_qq: "Share on QQ"
+    share_on_qzone: "Share on Qzone"
+    share_on_renren: "Share on Renren"
+    share_on_vk: "Share on VK"
+    share_on_odnoklassniki: "Share on Odnoklassniki"
+    search_category: "카테고리 검색"
+    search_tag: "태그 검색"
+    search_date: "날짜 검색 (YYYY/MM/DD)"
+    posts_found:
+        zero: "글이 존재하지 않습니다."
+        one: "1개의 글을 찾았습니다."
+        other: "{n}개의 글을 찾았습니다."
+    categories_found:
+        zero: "카테고리가 존재하지 않습니다."
+        one: "1개의 카테고리를 찾았습니다."
+        other: "{n}개의 카테고리를 찾았습니다."
+    tags_found:
+        zero: "태그가 존재하지 않습니다."
+        one: "1개의 태그를 찾았습니다."
+        other: "{n}개의 태그를 찾았습니다."
+
+pagination:
+    page: "현재 %d"
+    of: "전체 %d"
+    newer_posts: "이전 페이지"
+    older_posts: "다음 페이지"
+    previous: "이전"
+    next: "다음"
+
+post:
+    no_title : "제목 없음"
+    categorized_in: "카테고리"
+    tagged_in: "태그"
+    toc: "목차"
+    back_to_top: "상단 이동"
+    read_more: "계속 읽기"
+    go_to_website: "website로 이동"
+    comment_and_share: "댓글 & 공유"
+    comment: "댓글 남기기"
+    share: "글 공유"
+    gallery: "갤러리"
+    image:
+        one: "사진"
+        other: "%d 사진"
+
+author:
+    # Your biography (Markdown and HTML supported)
+    bio: "React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다."
+    # Your job
+    job: "web developer"

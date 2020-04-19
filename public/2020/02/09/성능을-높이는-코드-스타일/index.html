@@ -1,0 +1,554 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="kkangil&#39;s Blog">
+    <title>성능을 높이는 코드 스타일 - kkangil&#39;s Blog</title>
+    <meta name="author" content="kkangil">
+    
+    
+    
+        <link rel="alternate" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg"},"articleBody":"객체의 생성, 초기화 성능많이 사용하지만 성능을 생각하지 않고 작성하는 코드에 객체 선언과 초기화 구문이 있다. 배열(Array) 형식의 객체와 오브젝트(Object) 형식의 객체를 생성하고 초기화하는 방법의 성능을 측정해 보고 두 코드 사이에 어떤 차이점이 있는지 비교해 보고자 한다.\n배열의 생성, 초기화 성능 비교배열을 생성자 혹인 리터럴([]) 형식을 사용해 객체를 생성할 수 있다.\n12345// Array() 생성자 사용var arr = new Array();// 리터럴 형식으로 배열 생성var arr = [];\n\n\n성능 비교 방법은 http://jindo.dev.naver.com/jsMatch/index.html 사이트를 이용한다. (Chrome 79 버전 기준)\n\n두 방법의 성능을 비교한 결과는 생성자를 사용했을때는 0.111s, 리터럴 형식으로 사용했을 경우 0.100s 의 시간이 걸렸다.\n배열을 사용하려면 배열의 각 요소에 데이터를 할당해 초기화해야한다.배열의 각 요소에 데이터를 할당하는 방법에도 여러가지가 있다. 그 가운데 가장 많이 볼 수 있는 방법인 접근자 []를 사용하는 방법과 push() 메서드를 사용하는 방법의 성능을 비교한다.\n1234567891011// 접근자 사용var arr = [];for (var i = 0; i &lt; 1000; i++) &#123;  arr[i] = i;&#125;// push() 메서드 사용var arr = [];for (var i = 0; i &lt; 1000; i++) &#123;  arr.push(i);&#125;\n결과: 접근자 사용 0.100s / push 사용 0.123s\npush 메서드를 사용하는것 보다 접근자를 사용하는 것이 빠르다는 것을 확인할 수 있다. 배열의 생성과 초기화 방법을 비교한 결과, 배열을 사용할 때는 리터럴 형식으로 객체를 생성하고 Array.push() 메서드보다 접근자 []를 사용해 데이터를 추가하는 코드를 작성하는 것이 좀 더 최적화된 배열 사용법이라는 사실을 확인할 수 있다.\n오브젝트(Object) 객체의 생성, 초기화 성능 비교오브젝트(Object) 객체도 배열처럼 객체를 생성하고 초기화하는 다양한 방법이 있다. 가장 많이 사용하는 방법인 리터럴({})을 사용하는 방법과 생성자를 사용하는 방법의 성능을 테스트해보고 어떤 방법으로 객체를 생성하고 초기화하는 것이 효과적인지 살펴보고자 한다.\n12345// 리터럴 사용var obj = &#123;&#125;;// 생성자 사용var obj = new Object();\n결과: 리터럴 사용 0.104s / 생성자 사용 0.100s\n배열과 다르게 생성자를 사용하는 것이 시간이 적게 걸리지만 차이가 적으므로 어떤 방법이 성능이 월등히 좋다고 판가름하기 어렵다. 리터럴 형식이 코드 크기를 좀 더 줄일 수 있는 방법이기 때문에 코드를 다운로드 하는 시간 관점에서 성능에 더 좋다고 볼 수는 있다.\n객체 초기화 방법에는 연산자를 이용한 데이터 삽입과 []를 이용한 데이터 삽입이 있다.\n12345678910111213141516171819202122232425// 연산자 이용var obj = &#123;&#125;;obj.a = 1;obj.b = 2;obj.c = 3;obj.d = 4;obj.e = 5;obj.f = 6;obj.g = 7;obj.h = 8;obj.i = 9;obj.j = 10;// [] 이용var obj = &#123;&#125;;obj[&quot;a&quot;] = 1;obj[&quot;b&quot;] = 2;obj[&quot;c&quot;] = 3;obj[&quot;d&quot;] = 4;obj[&quot;e&quot;] = 5;obj[&quot;f&quot;] = 6;obj[&quot;g&quot;] = 7;obj[&quot;h&quot;] = 8;obj[&quot;i&quot;] = 9;obj[&quot;j&quot;] = 10;\n결과: 연산자 이용 0.102s / [] 이용 0.100s\nObject 객체에 데이터를 삽입하는 초기화 방법에 대한 성능 테스트 결과도 Object 객체 생성에 대한 테스트 결과와 유사헀다. 객체의 초기화도 생성과 마찬가지로 한 가지 방식이 더 성능이 좋다고 판단할 수 없으며, 작성하는 코드의 크기와 주요 대상 브라우저 및 코드의 가독성과 유지 보수를 감안해 적절한 방식을 택하면 되겠다.\n스코프 체인 탐색과 성능자바스크립트 성능을 다루는 책에서 항상 빠지지 않는 부분이 스코프 체인이다. 개발자가 작성한 코드 자체의 성능이 런타임 성능에도 많은 영향을 준다. 런타임 환경에서 가장 많이 발생하는 브라우저의 작업 가운데 자바스크립트의 실행 성능을 저해하는 요인이 변수, 객체, 함수 등의 메모리상의 위치를 찾는 탐색 작업이다.\n스코프 체인이란?자바스크립트의 함수를 실행하면서 어떤 속성(변수, 객체 등)에 접근해야 할 때 해당 속성을 효율적으로 탐색하도록 속성을 일정한 객체 단위로 분류하고 각 객체에 접근하기 위한 객체의 참조를 특정한 공간에 저장해 둔다. 이 공간이 바로 스코프 체인이다.\n스코프 체인의 구성 요소에는 활성화 객체와 전역 객체가 있다. 함수에서 접근할 수 있는 모든 속성 가운데 함수 내부에서만 접근할 수 있는 함수의 지역변수나 this, arguments 객체 등의 속성은 스코프 체인의 활성화 객체에 포함돼 관리 된다. 함수 외부에서도 접근할 수 있는 window, document, 전역함수, 전역변수와 같은 속성은 스코프 체인의 전역 객체에 포함돼 관리 된다.전역 객체는 자바스크립트 동작시 어디서나 항상 접근 가능한 데이터를 포함하고 있기 때문에 동작하는 모든 시간 동안 존재하지만, 활성화 객체는 실행 중인 함수 내부 데이터를 포함하기 때문에 함수가 실행되는 동안에만 존재한다.\n실행 문맥(Execution Context)은 함수가 동작하는 환경을 나타내며, 브라우저 내부에서 사용되는 객체다. 실행 문맥은 함수가 실행될 때 새로 생성되고  함수가 종료될 때 소멸되며 함수의 스코프 체인에 대한 참조를 가지고 있게 된다. 실행 문맥은 자신과 연관된 함수의 스코프 체인을 참조하고 있으며, 함수에서 접근해야할 어떤 속성의 탐색 경로는 실행 문맥 &gt; 스코프 체인 &gt; 활성화 객체 &gt; 스코프 체인 &gt; 전역 객체 와 같이 구성된다.\n지역변수를 활용한 스코프 체인 탐색 성능 개선스코프 체인의 탐색 방법을 살펴보면 여러 개의 활성화 객체와 전역 객체를 탐색하면서 접근하려는 속성이 있는지 확인하는 과정이 반복된다. 그렇다면 첫 번째로 탐색하는 활성화 객체에 찾고자 하는 속성이 있는 경우 추가로 발생할 수 있는 다른 활성화 객체, 전역 객체를 탐색하는 과정을 줄여 성능을 향상시킬 수 있을 것이다.\n123456789101112131415161718192021222324// 함수 내에서 전역 스코프 변수에 직접 접근하는 방법window.htmlstring = [];function makeList () &#123;  htmlstring.push(&quot;&lt;ul&gt;&quot;);  for (var i =0; i &lt; 100; i++) &#123;    htmlstring.push(`&lt;li&gt;value: $&#123;i&#125;&lt;/li&gt;`);  &#125;  htmlstring.push(&quot;&lt;/ul&gt;&quot;);&#125;makeList();// 지역변수로 참조해 전역 스코프 변수에 접근하는 방법window.htmlstring = [];function makeList () &#123;  var htmlstr = htmlstring;  htmlstr.push(&quot;&lt;ul&gt;&quot;);  for (var i =0; i &lt; 100; i++) &#123;    htmlstr.push(`&lt;li&gt;value: $&#123;i&#125;&lt;/li&gt;`);  &#125;  htmlstr.push(&quot;&lt;/ul&gt;&quot;);&#125;makeList();\n결과: 전역 스코프 변수 접근 0.119s / 지역변수 참조 0.100s\n전역 객체에 존재하는 htmlstring 속성을 makeList() 함수의 지역변수에 저장해 활성화 객체에서 바로 찾을 수 있게 한것이다. 최초 한 번은 활성화 객체와 전역 객체를 모두 탐색해야한다. 하지만 그 이후에는 활성화 객체에 저장된 htmlstr 속성으로 전역변수인 htmlstring 객체에 접근할 수 있으니 활성화 객체를 거쳐 전역 객체까지 탐색할 필요가 없어진다.\n반복문과 성능자바스크립트의 반복문인 for, for-in, while, do-while 구문에도 성능 차이가 있다. \n1234567891011121314151617181920212223242526272829// 성능 테스트 전에 배열 초기화arr = [];for (var i=0; i &lt; 400; i++) &#123;  arr[i] = i;&#125;// forfor (var i = 0, len = arr.length; i &lt; len; i++) &#123;  arr[i]++;&#125;// for-infor (var i in arr) &#123;  arr[i]++;&#125;// whilevar i = 0, len = arr.length;while (i &lt; len) &#123;  arr[i]++;  i++;&#125;// do-whilevar i = 0, len = arr.length;do &#123;  arr[i] = i;  i++;&#125; while (i &lt; len);\n결과: for 0.113s / for-in 0.505s / while 0.108s / do-while 0.100s\nfor-in의 성능이 압도적으로 떨어지는 것을 확인할 수 있다. for-in 이외의 반복문은 주어진 배열 객체를 배열의 특성에 맞게 순차적으로 모든 요소를 탐색한다. 반면 for-in 구문은 인자로 주어진 배열을 배열이 아닌 일반 객체로 취급하며, 반복 시점마자 객체의 모든 속성을 무작위로 탐색한다. 이러한 탐색 방법의 차이로 다른 반복문에 비해 배열 탐색에서 현저하게 느리다.\n조건문과 성능반복문만큼이나 조건문 또한 자바스크립트를 포함한 프로그래밍 전반에서 필수적으로 사용하는 요소다. 자바스크립트에는 if, if-else, switch, 삼항연산자 등의 조건문이 있다.\n조건문의 성능 비교먼저 true와 false만 판단하는 최소한의 조건 분기를 처리하는 코드로 if, switch, 삼항연산자의 성능을 측정했다.\n123456789101112131415161718192021222324252627282930313233343536373839404142434445464748495051525354555657585960616263646566676869707172737475767778798081828384858687888990919293949596979899100// if-elsefunction toEnglish(value) &#123;  var number = &quot;zero&quot;;  if (value === 1) &#123;    number = &quot;one&quot;;  &#125; else if (value === 2) &#123;    number = &quot;two&quot;;  &#125; else if (value === 3) &#123;    number = &quot;three&quot;;  &#125; else if (value === 4) &#123;    number = &quot;four&quot;;  &#125; else if (value === 5) &#123;    number = &quot;five&quot;;  &#125; else if (value === 6) &#123;    number = &quot;six&quot;;  &#125; else if (value === 7) &#123;    number = &quot;seven&quot;  &#125; else if (value === 8) &#123;    number = &quot;eight&quot;;  &#125; else if (value === 9) &#123;    number = &quot;nine&quot;;  &#125; else if (value === 10) &#123;    number = &quot;ten&quot;;  &#125; else &#123;    number = &quot;null&quot;;  &#125;  return number;&#125;for (var i=0; i &lt; 12; i++) &#123;  toEnglish(i);&#125;// switch-casefunction toEnglish(value) &#123;  var number = &quot;zero&quot;;  switch(value) &#123;    case 1:      number = &quot;one&quot;      break;    case 2:      number = &quot;two&quot;;      break;    case 3:      number = &quot;three&quot;;      break;    case 4:       number = &quot;four&quot;;      break;    case 5:      number = &quot;five&quot;;      break;    case 6:      number = &quot;six&quot;;      break;    case 7:      number = &quot;seven&quot;      break;    case 8:      number = &quot;eight&quot;;      break;    case 9:      number = &quot;nine&quot;;      break;    case 10:      number = &quot;ten&quot;;      break;    default:      number = &quot;null&quot;;      break;  &#125;  return number;&#125;for (var i=0; i &lt; 12; i++) &#123;  toEnglish(i);&#125;// 삼항연산자function toEnglish(value) &#123;  var number = false;  number = (value === 1) ?    &quot;one&quot; : (value === 2) ?    &quot;two&quot; : (value === 3) ?    &quot;three&quot; : (value === 4) ?    &quot;four&quot; : (value === 5) ?    &quot;five&quot; : (value === 6) ?    &quot;six&quot; : (value === 7) ?    &quot;seven&quot; : (value === 8) ?    &quot;eight&quot; : (value === 9) ?    &quot;nine&quot; : (value === 10) ?    &quot;ten&quot; : &quot;null&quot;;    return number;&#125;for (var i=0; i &lt; 12; i++) &#123;  toEnglish(i);&#125;\n결과: if-else 0.111s / switch 0.111s / 삼항연산자 0.100s\n조건의 개수가 많지 않으므로 조건문 사이에 별다른 성능 차이가 없다. 단지, 일반적으로 조건 판단 요소가 많아질수록 switch-case 구문의 성능이 좀 더 좋다는 점은 알아두는 것이 좋다.\n문자열 연산과 성능문자열 생성 비교12345// String 객체 이용var str = new String(&quot;test&quot;);// 리터럴 이용var str = &quot;test&quot;;\n결과: String 객체 0.103s / 리터럴 이용 0.100s\n측정한 시간이 지극히 짧지만 String 객체보다는 리터럴을 사용하는 것이 좋다.\n문자열 연산 성능 비교여러가지 데이터를 조합해 긴 문자열을 생성해야 할 때가 많다. 이때 가장 많이 사용하는 방법이 +, += 연산자를 이용하거나 Array.join() 메서드를 이용하는 방법이다.\n123456789101112// += 연신자str = &quot;&quot;;for (var i = 0; i &lt; 100; i++) &#123;  str += &quot;test&quot;;&#125;// Array.joinarr = [];for (var i = 0; i &lt; 100; i++) &#123;  arr[i] = &quot;test&quot;;&#125;arr.join(&quot;&quot;);\n결과: += 연산자 0.398s / Array.join 0.100s\nArray.join() 메서드를 이용하는것이 월등한 성능을 낸다는 것을 확인할 수 있다. += 연산자는 두 문자열을 합친 새로운 문자열을 만들고 새로운 메모리 위치에 저장함과 동시에 기존 문자열에 대한 참조를 변경하는 연산을 반복적으로 실행해야 한다. 하지만 Array.join() 메서드로 연산하면 비교적 메모리에 효율적으로 접근할 수 있는 배열을 사용한다.\n결론\n배열은 리터럴([])방식으로 생성하고 push() 메서드가 아닌 접근자([])로 데이터를 할당하는 코드의 성능이 더 좋다.\n객체는 어떤 방식이든지 비슷한 성능을 낸다. 가독성과 유지보수의 편리성을 고려해 적절한 방식으로 사용하면 된다.\n반복문 가운데 for-in의 성능이 월등히 낮다.\n조건문의 종류에 따른 성능 차이는 거의 없지만 조건이 많아지면 switch-case 성능이 좀 더 좋다.\n문자열을 연산할 때는 += 연산자 보다는 Array.join()을 이용하는 방법이 더 좋다.\n\n참조: 자바스크립트 성능 이야기\n","dateCreated":"2020-02-09T14:58:17+09:00","dateModified":"2020-02-09T16:24:53+09:00","datePublished":"2020-02-09T14:58:17+09:00","description":"객체의 생성, 초기화 성능많이 사용하지만 성능을 생각하지 않고 작성하는 코드에 객체 선언과 초기화 구문이 있다. 배열(Array) 형식의 객체와 오브젝트(Object) 형식의 객체를 생성하고 초기화하는 방법의 성능을 측정해 보고 두 코드 사이에 어떤 차이점이 있는지 비교해 보고자 한다.\n배열의 생성, 초기화 성능 비교배열을 생성자 혹인 리터럴([]) 형식을 사용해 객체를 생성할 수 있다.\n12345// Array() 생성자 사용var arr = new Array();// 리터럴 형식으로 배열 생성var arr = [];","headline":"성능을 높이는 코드 스타일","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"https://kkangil.github.io/2020/02/09/성능을-높이는-코드-스타일/"},"publisher":{"@type":"Organization","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg","logo":{"@type":"ImageObject","url":"profile.jpeg"}},"url":"https://kkangil.github.io/2020/02/09/성능을-높이는-코드-스타일/","keywords":"웹 사이트 최적화, 성능 테스트"}</script>
+    <meta name="description" content="객체의 생성, 초기화 성능많이 사용하지만 성능을 생각하지 않고 작성하는 코드에 객체 선언과 초기화 구문이 있다. 배열(Array) 형식의 객체와 오브젝트(Object) 형식의 객체를 생성하고 초기화하는 방법의 성능을 측정해 보고 두 코드 사이에 어떤 차이점이 있는지 비교해 보고자 한다. 배열의 생성, 초기화 성능 비교배열을 생성자 혹인 리터럴([]) 형식을">
+<meta name="keywords" content="웹 사이트 최적화,성능 테스트">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="성능을 높이는 코드 스타일">
+<meta property="og:url" content="https://kkangil.github.io/2020/02/09/성능을-높이는-코드-스타일/index.html">
+<meta property="og:site_name" content="kkangil&#39;s Blog">
+<meta property="og:description" content="객체의 생성, 초기화 성능많이 사용하지만 성능을 생각하지 않고 작성하는 코드에 객체 선언과 초기화 구문이 있다. 배열(Array) 형식의 객체와 오브젝트(Object) 형식의 객체를 생성하고 초기화하는 방법의 성능을 측정해 보고 두 코드 사이에 어떤 차이점이 있는지 비교해 보고자 한다. 배열의 생성, 초기화 성능 비교배열을 생성자 혹인 리터럴([]) 형식을">
+<meta property="og:locale" content="ko">
+<meta property="og:updated_time" content="2020-02-09T07:24:53.381Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="성능을 높이는 코드 스타일">
+<meta name="twitter:description" content="객체의 생성, 초기화 성능많이 사용하지만 성능을 생각하지 않고 작성하는 코드에 객체 선언과 초기화 구문이 있다. 배열(Array) 형식의 객체와 오브젝트(Object) 형식의 객체를 생성하고 초기화하는 방법의 성능을 측정해 보고 두 코드 사이에 어떤 차이점이 있는지 비교해 보고자 한다. 배열의 생성, 초기화 성능 비교배열을 생성자 혹인 리터럴([]) 형식을">
+    
+    
+        
+    
+    
+        <meta property="og:image" content="https://kkangil.github.io/assets/images/profile.jpeg"/>
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/style-c4ozcsklz4kht2pebhp44xorvyverh23toayhn7i6ubrpyedak24hv1v0hyd.min.css">
+    <!--STYLES END-->
+    
+
+    
+</head>
+
+    <body>
+        <div id="blog">
+            <!-- Define author's picture -->
+
+
+    
+        
+            
+        
+    
+
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a class="header-title-link" href="/ ">kkangil&#39;s Blog</a>
+    </div>
+    
+        
+            <a class="header-right-picture " href="#about">
+        
+        
+            <img class="header-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+        
+        </a>
+    
+</header>
+
+            <!-- Define author's picture -->
+
+
+
+        
+    
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
+        
+            <div class="sidebar-profile">
+                <a href="/#about">
+                    <img class="sidebar-profile-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+                </a>
+                <h4 class="sidebar-profile-name">kkangil</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
+</h5>
+                
+            </div>
+        
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/ " title="Home">
+                    
+                        <i class="sidebar-button-icon fa fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Home</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-categories" title="카테고리">
+                    
+                        <i class="sidebar-button-icon fa fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">카테고리</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-tags" title="태그">
+                    
+                        <i class="sidebar-button-icon fa fa-tags" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">태그</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-archives" title="기록">
+                    
+                        <i class="sidebar-button-icon fa fa-archive" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">기록</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link open-algolia-search" href="#search" title="검색">
+                    
+                        <i class="sidebar-button-icon fa fa-search" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">검색</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="#about" title="About">
+                    
+                        <i class="sidebar-button-icon fa fa-question" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">About</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="https://github.com/kkangil" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fab fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="http://stackoverflow.com/users/10870848/kkangil" target="_blank" rel="noopener" title="Stack Overflow">
+                    
+                        <i class="sidebar-button-icon fab fa-stack-overflow" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Stack Overflow</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="https://www.linkedin.com/in/kangil-kim-31093a169/" target="_blank" rel="noopener" title="LinkedIn">
+                    
+                        <i class="sidebar-button-icon fab fa-linkedin" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">LinkedIn</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/fe.kkangil@gmail.com" title="Mail">
+                    
+                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Mail</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/atom.xml" title="RSS">
+                    
+                        <i class="sidebar-button-icon fa fa-rss" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">RSS</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
+</nav>
+
+            
+            <div id="main" data-behavior="4"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title">
+            성능을 높이는 코드 스타일
+        </h1>
+    
+    
+        <div class="post-meta">
+    <time datetime="2020-02-09T14:58:17+09:00">
+	
+		    2월 09, 2020
+    	
+    </time>
+    
+        <span>카테고리 </span>
+        
+    <a class="category-link" href="/categories/웹-성능-이야기/">웹 성능 이야기</a>
+
+
+    
+</div>
+
+    
+</div>
+
+    
+    <div class="post-content markdown">
+        <div class="main-content-wrap">
+            <h2 id="객체의-생성-초기화-성능"><a href="#객체의-생성-초기화-성능" class="headerlink" title="객체의 생성, 초기화 성능"></a>객체의 생성, 초기화 성능</h2><p>많이 사용하지만 성능을 생각하지 않고 작성하는 코드에 객체 선언과 초기화 구문이 있다. 배열(Array) 형식의 객체와 오브젝트(Object) 형식의 객체를 생성하고 초기화하는 방법의 성능을 측정해 보고 두 코드 사이에 어떤 차이점이 있는지 비교해 보고자 한다.</p>
+<h3 id="배열의-생성-초기화-성능-비교"><a href="#배열의-생성-초기화-성능-비교" class="headerlink" title="배열의 생성, 초기화 성능 비교"></a>배열의 생성, 초기화 성능 비교</h3><p>배열을 생성자 혹인 리터럴([]) 형식을 사용해 객체를 생성할 수 있다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">// Array() 생성자 사용</span><br><span class="line">var arr = new Array();</span><br><span class="line"></span><br><span class="line">// 리터럴 형식으로 배열 생성</span><br><span class="line">var arr = [];</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<blockquote>
+<p>성능 비교 방법은 <a href="http://jindo.dev.naver.com/jsMatch/index.html" target="_blank" rel="noopener">http://jindo.dev.naver.com/jsMatch/index.html</a> 사이트를 이용한다. (Chrome 79 버전 기준)</p>
+</blockquote>
+<p>두 방법의 성능을 비교한 결과는 생성자를 사용했을때는 0.111s, 리터럴 형식으로 사용했을 경우 0.100s 의 시간이 걸렸다.</p>
+<p>배열을 사용하려면 배열의 각 요소에 데이터를 할당해 초기화해야한다.<br>배열의 각 요소에 데이터를 할당하는 방법에도 여러가지가 있다. 그 가운데 가장 많이 볼 수 있는 방법인 접근자 []를 사용하는 방법과 push() 메서드를 사용하는 방법의 성능을 비교한다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">// 접근자 사용</span><br><span class="line">var arr = [];</span><br><span class="line">for (var i = 0; i &lt; 1000; i++) &#123;</span><br><span class="line">  arr[i] = i;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// push() 메서드 사용</span><br><span class="line">var arr = [];</span><br><span class="line">for (var i = 0; i &lt; 1000; i++) &#123;</span><br><span class="line">  arr.push(i);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>결과: 접근자 사용 0.100s / push 사용 0.123s</p>
+<p>push 메서드를 사용하는것 보다 접근자를 사용하는 것이 빠르다는 것을 확인할 수 있다. 배열의 생성과 초기화 방법을 비교한 결과, 배열을 사용할 때는 리터럴 형식으로 객체를 생성하고 Array.push() 메서드보다 접근자 []를 사용해 데이터를 추가하는 코드를 작성하는 것이 좀 더 최적화된 배열 사용법이라는 사실을 확인할 수 있다.</p>
+<h3 id="오브젝트-Object-객체의-생성-초기화-성능-비교"><a href="#오브젝트-Object-객체의-생성-초기화-성능-비교" class="headerlink" title="오브젝트(Object) 객체의 생성, 초기화 성능 비교"></a>오브젝트(Object) 객체의 생성, 초기화 성능 비교</h3><p>오브젝트(Object) 객체도 배열처럼 객체를 생성하고 초기화하는 다양한 방법이 있다. 가장 많이 사용하는 방법인 리터럴({})을 사용하는 방법과 생성자를 사용하는 방법의 성능을 테스트해보고 어떤 방법으로 객체를 생성하고 초기화하는 것이 효과적인지 살펴보고자 한다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">// 리터럴 사용</span><br><span class="line">var obj = &#123;&#125;;</span><br><span class="line"></span><br><span class="line">// 생성자 사용</span><br><span class="line">var obj = new Object();</span><br></pre></td></tr></table></figure>
+<p>결과: 리터럴 사용 0.104s / 생성자 사용 0.100s</p>
+<p>배열과 다르게 생성자를 사용하는 것이 시간이 적게 걸리지만 차이가 적으므로 어떤 방법이 성능이 월등히 좋다고 판가름하기 어렵다. 리터럴 형식이 코드 크기를 좀 더 줄일 수 있는 방법이기 때문에 코드를 다운로드 하는 시간 관점에서 성능에 더 좋다고 볼 수는 있다.</p>
+<p>객체 초기화 방법에는 연산자를 이용한 데이터 삽입과 []를 이용한 데이터 삽입이 있다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">// 연산자 이용</span><br><span class="line">var obj = &#123;&#125;;</span><br><span class="line">obj.a = 1;</span><br><span class="line">obj.b = 2;</span><br><span class="line">obj.c = 3;</span><br><span class="line">obj.d = 4;</span><br><span class="line">obj.e = 5;</span><br><span class="line">obj.f = 6;</span><br><span class="line">obj.g = 7;</span><br><span class="line">obj.h = 8;</span><br><span class="line">obj.i = 9;</span><br><span class="line">obj.j = 10;</span><br><span class="line"></span><br><span class="line">// [] 이용</span><br><span class="line">var obj = &#123;&#125;;</span><br><span class="line">obj[&quot;a&quot;] = 1;</span><br><span class="line">obj[&quot;b&quot;] = 2;</span><br><span class="line">obj[&quot;c&quot;] = 3;</span><br><span class="line">obj[&quot;d&quot;] = 4;</span><br><span class="line">obj[&quot;e&quot;] = 5;</span><br><span class="line">obj[&quot;f&quot;] = 6;</span><br><span class="line">obj[&quot;g&quot;] = 7;</span><br><span class="line">obj[&quot;h&quot;] = 8;</span><br><span class="line">obj[&quot;i&quot;] = 9;</span><br><span class="line">obj[&quot;j&quot;] = 10;</span><br></pre></td></tr></table></figure>
+<p>결과: 연산자 이용 0.102s / [] 이용 0.100s</p>
+<p>Object 객체에 데이터를 삽입하는 초기화 방법에 대한 성능 테스트 결과도 Object 객체 생성에 대한 테스트 결과와 유사헀다. 객체의 초기화도 생성과 마찬가지로 한 가지 방식이 더 성능이 좋다고 판단할 수 없으며, 작성하는 코드의 크기와 주요 대상 브라우저 및 코드의 가독성과 유지 보수를 감안해 적절한 방식을 택하면 되겠다.</p>
+<h2 id="스코프-체인-탐색과-성능"><a href="#스코프-체인-탐색과-성능" class="headerlink" title="스코프 체인 탐색과 성능"></a>스코프 체인 탐색과 성능</h2><p>자바스크립트 성능을 다루는 책에서 항상 빠지지 않는 부분이 스코프 체인이다. 개발자가 작성한 코드 자체의 성능이 런타임 성능에도 많은 영향을 준다. 런타임 환경에서 가장 많이 발생하는 브라우저의 작업 가운데 자바스크립트의 실행 성능을 저해하는 요인이 변수, 객체, 함수 등의 메모리상의 위치를 찾는 <code>탐색 작업</code>이다.</p>
+<h3 id="스코프-체인이란"><a href="#스코프-체인이란" class="headerlink" title="스코프 체인이란?"></a>스코프 체인이란?</h3><p>자바스크립트의 함수를 실행하면서 어떤 속성(변수, 객체 등)에 접근해야 할 때 해당 속성을 효율적으로 탐색하도록 속성을 일정한 객체 단위로 분류하고 각 객체에 접근하기 위한 객체의 참조를 특정한 공간에 저장해 둔다. 이 공간이 바로 스코프 체인이다.</p>
+<p>스코프 체인의 구성 요소에는 활성화 객체와 전역 객체가 있다. 함수에서 접근할 수 있는 모든 속성 가운데 함수 내부에서만 접근할 수 있는 함수의 지역변수나 this, arguments 객체 등의 속성은 스코프 체인의 활성화 객체에 포함돼 관리 된다. 함수 외부에서도 접근할 수 있는 window, document, 전역함수, 전역변수와 같은 속성은 스코프 체인의 전역 객체에 포함돼 관리 된다.<br>전역 객체는 자바스크립트 동작시 어디서나 항상 접근 가능한 데이터를 포함하고 있기 때문에 동작하는 모든 시간 동안 존재하지만, 활성화 객체는 실행 중인 함수 내부 데이터를 포함하기 때문에 함수가 실행되는 동안에만 존재한다.</p>
+<p>실행 문맥(Execution Context)은 <code>함수가 동작하는 환경</code>을 나타내며, 브라우저 내부에서 사용되는 객체다. 실행 문맥은 함수가 실행될 때 새로 생성되고  함수가 종료될 때 소멸되며 함수의 스코프 체인에 대한 참조를 가지고 있게 된다. 실행 문맥은 자신과 연관된 함수의 스코프 체인을 참조하고 있으며, 함수에서 접근해야할 어떤 속성의 탐색 경로는 실행 문맥 &gt; 스코프 체인 &gt; 활성화 객체 &gt; 스코프 체인 &gt; 전역 객체 와 같이 구성된다.</p>
+<h3 id="지역변수를-활용한-스코프-체인-탐색-성능-개선"><a href="#지역변수를-활용한-스코프-체인-탐색-성능-개선" class="headerlink" title="지역변수를 활용한 스코프 체인 탐색 성능 개선"></a>지역변수를 활용한 스코프 체인 탐색 성능 개선</h3><p>스코프 체인의 탐색 방법을 살펴보면 여러 개의 활성화 객체와 전역 객체를 탐색하면서 접근하려는 속성이 있는지 확인하는 과정이 반복된다. 그렇다면 첫 번째로 탐색하는 활성화 객체에 찾고자 하는 속성이 있는 경우 추가로 발생할 수 있는 다른 활성화 객체, 전역 객체를 탐색하는 과정을 줄여 성능을 향상시킬 수 있을 것이다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">// 함수 내에서 전역 스코프 변수에 직접 접근하는 방법</span><br><span class="line">window.htmlstring = [];</span><br><span class="line">function makeList () &#123;</span><br><span class="line">  htmlstring.push(&quot;&lt;ul&gt;&quot;);</span><br><span class="line">  for (var i =0; i &lt; 100; i++) &#123;</span><br><span class="line">    htmlstring.push(`&lt;li&gt;value: $&#123;i&#125;&lt;/li&gt;`);</span><br><span class="line">  &#125;</span><br><span class="line">  htmlstring.push(&quot;&lt;/ul&gt;&quot;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">makeList();</span><br><span class="line"></span><br><span class="line">// 지역변수로 참조해 전역 스코프 변수에 접근하는 방법</span><br><span class="line">window.htmlstring = [];</span><br><span class="line">function makeList () &#123;</span><br><span class="line">  var htmlstr = htmlstring;</span><br><span class="line">  htmlstr.push(&quot;&lt;ul&gt;&quot;);</span><br><span class="line">  for (var i =0; i &lt; 100; i++) &#123;</span><br><span class="line">    htmlstr.push(`&lt;li&gt;value: $&#123;i&#125;&lt;/li&gt;`);</span><br><span class="line">  &#125;</span><br><span class="line">  htmlstr.push(&quot;&lt;/ul&gt;&quot;);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">makeList();</span><br></pre></td></tr></table></figure>
+<p>결과: 전역 스코프 변수 접근 0.119s / 지역변수 참조 0.100s</p>
+<p>전역 객체에 존재하는 htmlstring 속성을 makeList() 함수의 지역변수에 저장해 활성화 객체에서 바로 찾을 수 있게 한것이다. 최초 한 번은 활성화 객체와 전역 객체를 모두 탐색해야한다. 하지만 그 이후에는 활성화 객체에 저장된 htmlstr 속성으로 전역변수인 htmlstring 객체에 접근할 수 있으니 활성화 객체를 거쳐 전역 객체까지 탐색할 필요가 없어진다.</p>
+<h2 id="반복문과-성능"><a href="#반복문과-성능" class="headerlink" title="반복문과 성능"></a>반복문과 성능</h2><p>자바스크립트의 반복문인 for, for-in, while, do-while 구문에도 성능 차이가 있다. </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">// 성능 테스트 전에 배열 초기화</span><br><span class="line">arr = [];</span><br><span class="line">for (var i=0; i &lt; 400; i++) &#123;</span><br><span class="line">  arr[i] = i;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// for</span><br><span class="line">for (var i = 0, len = arr.length; i &lt; len; i++) &#123;</span><br><span class="line">  arr[i]++;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// for-in</span><br><span class="line">for (var i in arr) &#123;</span><br><span class="line">  arr[i]++;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// while</span><br><span class="line">var i = 0, len = arr.length;</span><br><span class="line">while (i &lt; len) &#123;</span><br><span class="line">  arr[i]++;</span><br><span class="line">  i++;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// do-while</span><br><span class="line">var i = 0, len = arr.length;</span><br><span class="line">do &#123;</span><br><span class="line">  arr[i] = i;</span><br><span class="line">  i++;</span><br><span class="line">&#125; while (i &lt; len);</span><br></pre></td></tr></table></figure>
+<p>결과: for 0.113s / for-in 0.505s / while 0.108s / do-while 0.100s</p>
+<p>for-in의 성능이 압도적으로 떨어지는 것을 확인할 수 있다. for-in 이외의 반복문은 주어진 배열 객체를 배열의 특성에 맞게 순차적으로 모든 요소를 탐색한다. 반면 for-in 구문은 인자로 주어진 배열을 배열이 아닌 일반 객체로 취급하며, 반복 시점마자 객체의 모든 속성을 무작위로 탐색한다. 이러한 탐색 방법의 차이로 다른 반복문에 비해 배열 탐색에서 현저하게 느리다.</p>
+<h2 id="조건문과-성능"><a href="#조건문과-성능" class="headerlink" title="조건문과 성능"></a>조건문과 성능</h2><p>반복문만큼이나 조건문 또한 자바스크립트를 포함한 프로그래밍 전반에서 필수적으로 사용하는 요소다. 자바스크립트에는 if, if-else, switch, 삼항연산자 등의 조건문이 있다.</p>
+<h3 id="조건문의-성능-비교"><a href="#조건문의-성능-비교" class="headerlink" title="조건문의 성능 비교"></a>조건문의 성능 비교</h3><p>먼저 true와 false만 판단하는 최소한의 조건 분기를 처리하는 코드로 if, switch, 삼항연산자의 성능을 측정했다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br></pre></td><td class="code"><pre><span class="line">// if-else</span><br><span class="line">function toEnglish(value) &#123;</span><br><span class="line">  var number = &quot;zero&quot;;</span><br><span class="line">  if (value === 1) &#123;</span><br><span class="line">    number = &quot;one&quot;;</span><br><span class="line">  &#125; else if (value === 2) &#123;</span><br><span class="line">    number = &quot;two&quot;;</span><br><span class="line">  &#125; else if (value === 3) &#123;</span><br><span class="line">    number = &quot;three&quot;;</span><br><span class="line">  &#125; else if (value === 4) &#123;</span><br><span class="line">    number = &quot;four&quot;;</span><br><span class="line">  &#125; else if (value === 5) &#123;</span><br><span class="line">    number = &quot;five&quot;;</span><br><span class="line">  &#125; else if (value === 6) &#123;</span><br><span class="line">    number = &quot;six&quot;;</span><br><span class="line">  &#125; else if (value === 7) &#123;</span><br><span class="line">    number = &quot;seven&quot;</span><br><span class="line">  &#125; else if (value === 8) &#123;</span><br><span class="line">    number = &quot;eight&quot;;</span><br><span class="line">  &#125; else if (value === 9) &#123;</span><br><span class="line">    number = &quot;nine&quot;;</span><br><span class="line">  &#125; else if (value === 10) &#123;</span><br><span class="line">    number = &quot;ten&quot;;</span><br><span class="line">  &#125; else &#123;</span><br><span class="line">    number = &quot;null&quot;;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  return number;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">for (var i=0; i &lt; 12; i++) &#123;</span><br><span class="line">  toEnglish(i);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// switch-case</span><br><span class="line">function toEnglish(value) &#123;</span><br><span class="line">  var number = &quot;zero&quot;;</span><br><span class="line">  switch(value) &#123;</span><br><span class="line">    case 1:</span><br><span class="line">      number = &quot;one&quot;</span><br><span class="line">      break;</span><br><span class="line">    case 2:</span><br><span class="line">      number = &quot;two&quot;;</span><br><span class="line">      break;</span><br><span class="line">    case 3:</span><br><span class="line">      number = &quot;three&quot;;</span><br><span class="line">      break;</span><br><span class="line">    case 4: </span><br><span class="line">      number = &quot;four&quot;;</span><br><span class="line">      break;</span><br><span class="line">    case 5:</span><br><span class="line">      number = &quot;five&quot;;</span><br><span class="line">      break;</span><br><span class="line">    case 6:</span><br><span class="line">      number = &quot;six&quot;;</span><br><span class="line">      break;</span><br><span class="line">    case 7:</span><br><span class="line">      number = &quot;seven&quot;</span><br><span class="line">      break;</span><br><span class="line">    case 8:</span><br><span class="line">      number = &quot;eight&quot;;</span><br><span class="line">      break;</span><br><span class="line">    case 9:</span><br><span class="line">      number = &quot;nine&quot;;</span><br><span class="line">      break;</span><br><span class="line">    case 10:</span><br><span class="line">      number = &quot;ten&quot;;</span><br><span class="line">      break;</span><br><span class="line">    default:</span><br><span class="line">      number = &quot;null&quot;;</span><br><span class="line">      break;</span><br><span class="line">  &#125;</span><br><span class="line">  return number;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">for (var i=0; i &lt; 12; i++) &#123;</span><br><span class="line">  toEnglish(i);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 삼항연산자</span><br><span class="line">function toEnglish(value) &#123;</span><br><span class="line">  var number = false;</span><br><span class="line">  number = (value === 1) ?</span><br><span class="line">    &quot;one&quot; : (value === 2) ?</span><br><span class="line">    &quot;two&quot; : (value === 3) ?</span><br><span class="line">    &quot;three&quot; : (value === 4) ?</span><br><span class="line">    &quot;four&quot; : (value === 5) ?</span><br><span class="line">    &quot;five&quot; : (value === 6) ?</span><br><span class="line">    &quot;six&quot; : (value === 7) ?</span><br><span class="line">    &quot;seven&quot; : (value === 8) ?</span><br><span class="line">    &quot;eight&quot; : (value === 9) ?</span><br><span class="line">    &quot;nine&quot; : (value === 10) ?</span><br><span class="line">    &quot;ten&quot; : &quot;null&quot;;</span><br><span class="line">  </span><br><span class="line">  return number;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">for (var i=0; i &lt; 12; i++) &#123;</span><br><span class="line">  toEnglish(i);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>결과: if-else 0.111s / switch 0.111s / 삼항연산자 0.100s</p>
+<p>조건의 개수가 많지 않으므로 조건문 사이에 별다른 성능 차이가 없다. 단지, 일반적으로 조건 판단 요소가 많아질수록 switch-case 구문의 성능이 좀 더 좋다는 점은 알아두는 것이 좋다.</p>
+<h2 id="문자열-연산과-성능"><a href="#문자열-연산과-성능" class="headerlink" title="문자열 연산과 성능"></a>문자열 연산과 성능</h2><h3 id="문자열-생성-비교"><a href="#문자열-생성-비교" class="headerlink" title="문자열 생성 비교"></a>문자열 생성 비교</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">// String 객체 이용</span><br><span class="line">var str = new String(&quot;test&quot;);</span><br><span class="line"></span><br><span class="line">// 리터럴 이용</span><br><span class="line">var str = &quot;test&quot;;</span><br></pre></td></tr></table></figure>
+<p>결과: String 객체 0.103s / 리터럴 이용 0.100s</p>
+<p>측정한 시간이 지극히 짧지만 String 객체보다는 리터럴을 사용하는 것이 좋다.</p>
+<h3 id="문자열-연산-성능-비교"><a href="#문자열-연산-성능-비교" class="headerlink" title="문자열 연산 성능 비교"></a>문자열 연산 성능 비교</h3><p>여러가지 데이터를 조합해 긴 문자열을 생성해야 할 때가 많다. 이때 가장 많이 사용하는 방법이 +, += 연산자를 이용하거나 Array.join() 메서드를 이용하는 방법이다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">// += 연신자</span><br><span class="line">str = &quot;&quot;;</span><br><span class="line">for (var i = 0; i &lt; 100; i++) &#123;</span><br><span class="line">  str += &quot;test&quot;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// Array.join</span><br><span class="line">arr = [];</span><br><span class="line">for (var i = 0; i &lt; 100; i++) &#123;</span><br><span class="line">  arr[i] = &quot;test&quot;;</span><br><span class="line">&#125;</span><br><span class="line">arr.join(&quot;&quot;);</span><br></pre></td></tr></table></figure>
+<p>결과: += 연산자 0.398s / Array.join 0.100s</p>
+<p>Array.join() 메서드를 이용하는것이 월등한 성능을 낸다는 것을 확인할 수 있다. += 연산자는 두 문자열을 합친 새로운 문자열을 만들고 새로운 메모리 위치에 저장함과 동시에 기존 문자열에 대한 참조를 변경하는 연산을 반복적으로 실행해야 한다. 하지만 Array.join() 메서드로 연산하면 비교적 메모리에 효율적으로 접근할 수 있는 배열을 사용한다.</p>
+<h2 id="결론"><a href="#결론" class="headerlink" title="결론"></a>결론</h2><ul>
+<li>배열은 리터럴([])방식으로 생성하고 push() 메서드가 아닌 접근자([])로 데이터를 할당하는 코드의 성능이 더 좋다.</li>
+<li>객체는 어떤 방식이든지 비슷한 성능을 낸다. 가독성과 유지보수의 편리성을 고려해 적절한 방식으로 사용하면 된다.</li>
+<li>반복문 가운데 for-in의 성능이 월등히 낮다.</li>
+<li>조건문의 종류에 따른 성능 차이는 거의 없지만 조건이 많아지면 switch-case 성능이 좀 더 좋다.</li>
+<li>문자열을 연산할 때는 += 연산자 보다는 Array.join()을 이용하는 방법이 더 좋다.</li>
+</ul>
+<p>참조: <a href="http://www.yes24.com/Product/Goods/7516929?scode=032&amp;OzSrank=2" target="_blank" rel="noopener">자바스크립트 성능 이야기</a></p>
+
+            
+
+        </div>
+    </div>
+    <div id="post-footer" class="post-footer main-content-wrap">
+        
+            <div class="post-footer-tags">
+                <span class="text-color-light text-small">태그</span><br>
+                
+    <a class="tag tag--primary tag--small t-link" href="/tags/성능-테스트/">성능 테스트</a> <a class="tag tag--primary tag--small t-link" href="/tags/웹-사이트-최적화/">웹 사이트 최적화</a>
+
+            </div>
+        
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2020/02/09/jest-메서드-globals/" data-tooltip="jest 메서드 - globals" aria-label="이전: jest 메서드 - globals">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2020/02/02/기본적인-웹-사이트-최적화-방법/" data-tooltip="기본적인 웹 사이트 최적화 방법" aria-label="다음: 기본적인 웹 사이트 최적화 방법">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2020/02/09/성능을-높이는-코드-스타일/" title="Facebook 공유">
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2020/02/09/성능을-높이는-코드-스타일/" title="Twitter 공유">
+                    <i class="fab fa-twitter" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2020/02/09/성능을-높이는-코드-스타일/" title="Google+ 공유">
+                    <i class="fab fa-google-plus" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+        
+            
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2020 kkangil. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+                    <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2020/02/09/jest-메서드-globals/" data-tooltip="jest 메서드 - globals" aria-label="이전: jest 메서드 - globals">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2020/02/02/기본적인-웹-사이트-최적화-방법/" data-tooltip="기본적인 웹 사이트 최적화 방법" aria-label="다음: 기본적인 웹 사이트 최적화 방법">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2020/02/09/성능을-높이는-코드-스타일/" title="Facebook 공유">
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2020/02/09/성능을-높이는-코드-스타일/" title="Twitter 공유">
+                    <i class="fab fa-twitter" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2020/02/09/성능을-높이는-코드-스타일/" title="Google+ 공유">
+                    <i class="fab fa-google-plus" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                
+    <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+        <i id="btn-close-shareoptions" class="fa fa-times"></i>
+        <ul class="share-options">
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2020/02/09/성능을-높이는-코드-스타일/">
+                        <i class="fab fa-facebook" aria-hidden="true"></i><span>Facebook 공유</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2020/02/09/성능을-높이는-코드-스타일/">
+                        <i class="fab fa-twitter" aria-hidden="true"></i><span>Twitter 공유</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2020/02/09/성능을-높이는-코드-스타일/">
+                        <i class="fab fa-google-plus" aria-hidden="true"></i><span>Google+ 공유</span>
+                    </a>
+                </li>
+            
+        </ul>
+    </div>
+
+
+            
+        </div>
+        
+
+
+    
+        
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-times"></i>
+        </div>
+        
+            <img id="about-card-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+        
+            <h4 id="about-card-name">kkangil</h4>
+        
+            <div id="about-card-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br>
+                <p>web developer</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker-alt"></i>
+                <br>
+                Asia/Seoul
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-dbd16rvloemmuxdzniplmnxxvwoz24eya9wol0b7vvmlokgqsjivmb8dnscy.min.js"></script>
+<!--SCRIPTS END-->
+
+    
+
+
+
+    </body>
+</html>

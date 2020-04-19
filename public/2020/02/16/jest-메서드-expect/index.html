@@ -1,0 +1,545 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="kkangil&#39;s Blog">
+    <title>jest 메서드 - expect - kkangil&#39;s Blog</title>
+    <meta name="author" content="kkangil">
+    
+    
+    
+        <link rel="alternate" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg"},"articleBody":"expect(value)expect 함수는 값을 테스트 하고 싶을 때 사용한다. 드물게 expect 함수만 사용해서 테스트를 할 수 있지만 값을 테스트하기 위해 matcher 함수를 함께 사용한다.\nexpect.extend(matchers)expect.extend 함수를 사용하여 Jest 에서 제공하는 matcher 가 아닌 직접 만들어서 사용할 수 있다.\n\n123456789101112131415161718192021222324252627expect.extend(&#123;  toBeWithinRange(received, floor, ceiling) &#123;    const pass = received &gt;= floor &amp;&amp; received &lt;= ceiling;    if (pass) &#123;      return &#123;        message: () =&gt;          `expected $&#123;received&#125; not to be within range $&#123;floor&#125; - $&#123;ceiling&#125;`,        pass: true,      &#125;;    &#125; else &#123;      return &#123;        message: () =&gt;          `expected $&#123;received&#125; to be within range $&#123;floor&#125; - $&#123;ceiling&#125;`,        pass: false,      &#125;;    &#125;  &#125;,&#125;);test(&apos;numeric ranges&apos;, () =&gt; &#123;  expect(100).toBeWithinRange(90, 110);  expect(101).not.toBeWithinRange(0, 100);  expect(&#123; apples: 6, bananas: 3 &#125;).toEqual(&#123;    apples: expect.toBeWithinRange(1, 10),    bananas: expect.not.toBeWithinRange(11, 20),  &#125;);&#125;);\ntoBeWithinRange 라는 matcher 를 만드는 방법이다. expect 의 값이 첫번째 인자로 넘어간다. 성공 했을경우 성공 사유 message 와 pass를 true로 return 해준다. 살패 했을경우는 반대로 실패 사유 message 와 pass 를 false 로 return 해준다.\nexpect.extend 는 비동기 함수 호출도 지원한다.\n123456789101112131415161718192021222324expect.extend(&#123;  async toBeDivisibleByExternalValue(received) &#123;    const externalValue = await getExternalValueFromRemoteSource();    const pass = received % externalValue == 0;    if (pass) &#123;      return &#123;        message: () =&gt;          `expected $&#123;received&#125; not to be divisible by $&#123;externalValue&#125;`,        pass: true,      &#125;;    &#125; else &#123;      return &#123;        message: () =&gt;          `expected $&#123;received&#125; to be divisible by $&#123;externalValue&#125;`,        pass: false,      &#125;;    &#125;  &#125;,&#125;);test(&apos;is divisible by external value&apos;, async () =&gt; &#123;  await expect(100).toBeDivisibleByExternalValue();  await expect(101).not.toBeDivisibleByExternalValue();&#125;);\nCustom Matchers APIMacher 들은 항상 두개의 key 를 포함하고 있는 객체를 리턴해야한다. pass 는 성공/실패 여부이고 message 는 테스트가 실패 했을 경우 보여진다. .not() 메서드를 사용하면 실패 했을때 pass: true 의 message 가 보여진다.\nexpect.anythingnull 과 undefined 을 제외한 모든 값들과 일치한다. 즉, null 과 undefined 외의 모든 값들은 동일하다.\n12345test(&apos;map calls its argument with a non-null argument&apos;, () =&gt; &#123;  const mock = jest.fn();  [1].map(x =&gt; mock(x));  expect(mock).toBeCalledWith(1);&#125;);\n위의 테스트 코드는 성공할 것이다. 하지만 expect(mock).toBeCalledWith(2); 로 바꾸게 된다면 배열의 length 가 1 이므로 실패할 것이다. 만약 mock() 함수가 몇번 실행이 되는지 상관없이 테스트 케이스를 성공 처리 하고 싶을때 anything 을 사용하는 것이다.\n1expect(mock).toBeCalledWith(expect.anything());\nexpect.any(constructor)expect.any(constructor) matches anything that was created with the given constructor\nexpect.any 는 주어진 생성자와 값이 해당 생성자에 일치하는 지를 테스트 한다. toEqual 과 toBeCalledWith 함수에 값대신 해당 메서드를 사용할 수 있다.\nrandocall 함수의 return 값이 Number 인지 테스트하는 코드다.\n123456789function randocall(fn) &#123;  return fn(Math.floor(Math.random() * 6 + 1));&#125;test(&apos;randocall calls its callback with a number&apos;, () =&gt; &#123;  const mock = jest.fn();  randocall(mock);  expect(mock).toBeCalledWith(expect.any(Number));&#125;);\nexpect.arrayContaining(array)기대값이 expect.arrayContaining(array) 메서드에 주어지는 배열의 요소를 모두 포함하고 있는지 확인할 때 사용하는 메서드이다. toEqual 과 toBeCalledWith 함수에 사용할 수 있다.\n12345678910describe(&apos;arrayContaining&apos;, () =&gt; &#123;  const expected = [&apos;Alice&apos;, &apos;Bob&apos;];  it(&apos;matches even if received contains additional elements&apos;, () =&gt; &#123;    expect([&apos;Alice&apos;, &apos;Bob&apos;, &apos;Eve&apos;]).toEqual(expect.arrayContaining(expected));  &#125;);  it(&apos;does not match if received does not contain expected elements&apos;, () =&gt; &#123;    expect([&apos;Bob&apos;, &apos;Eve&apos;]).not.toEqual(expect.arrayContaining(expected));  &#125;);  expect([&apos;Alice&apos;, &apos;Alice&apos;, &apos;Bob&apos;, &apos;Eve&apos;]).toEqual(expect.arrayContaining(expected));&#125;);\n첫번째 테스트의 경우 기대값 요소에 ‘Alice’, ‘Bob’ 이 포함되어 있기 때문에 성공한다. 두번째의 경우는 ‘Alice’ 를 포함하고 있지 않기 때문에 실패한다. 세번째 테스트 경우처럼 배열 요소에 중복이 있어도 상관없이 테스트는 성공한다.\nexpect.not.arrayContaining(array) 메서드도 사용 가능하다.\n12345678describe(&apos;not.arrayContaining&apos;, () =&gt; &#123;  const expected = [&apos;Samantha&apos;];  it(&apos;matches if the actual array does not contain the expected elements&apos;, () =&gt; &#123;    expect([&apos;Alice&apos;, &apos;Bob&apos;, &apos;Eve&apos;]).toEqual(      expect.not.arrayContaining(expected),    );  &#125;);&#125;);\nexpect.objectContaining(object)객체의 key 와 value 를 포함하고 있는지 테스트할때 사용한다.\n1234567describe(&apos;objectContaining&apos;, () =&gt; &#123;  const expected = &#123; foo: &apos;bar&apos; &#125;;  it(&apos;matches if the actual object does contain expected key: value pairs&apos;, () =&gt; &#123;    expect(&#123; bar: &apos;baz&apos; &#125;).toEqual(expect.objectContaining(expected));  &#125;);&#125;);\nfoo 라는 key 가 없어서 위 테스트는 실패한다. 만약 { bar: ‘baz’ } 를 { foo: ‘baz’ } 객체로 변경해서 테스트 해보면 실패하는것을 확인할 수 있다. objectContaining 는 key/value 쌍으로 동일해야 성공한다. \n12345678910test(&apos;onPress gets called with the right thing&apos;, () =&gt; &#123;  const onPress = jest.fn();  simulatePresses(onPress);  expect(onPress).toBeCalledWith(    expect.objectContaining(&#123;      x: expect.any(Number),      y: expect.any(Number),    &#125;),  );&#125;);\nobjectContaining 객체의 value 에 특정한 값이 아니라 any, anything 도 사용할 수 있다. expect.not.objectContaining(object) 메서드도 사용 가능하다.\nexpect.stringContaining(string)expect.stringContaining(string) 은 주어지는 문자를 포함하고 있는지 테스트한다.\n1234567describe(&apos;stringContaining&apos;, () =&gt; &#123;  const expected = &apos;Hello world!&apos;;  it(&apos;matches if the received value does contain the expected substring&apos;, () =&gt; &#123;    expect(&apos;Hello world!&apos;).toEqual(expect.stringContaining(expected));  &#125;);&#125;);\nexpect.not.stringContaining(string) 도 사용 가능하다.\nexpect.stringMatching(string | regexp)주어진 string 이나 정규식에 일치하는지 테스트할 때 사용한다. string 이 주어지는 경우 완전하게 일치 해야하며 정규식을 사용하는 경우는 해당 정규식에 일치하면 된다.\n12345678910111213141516describe(&apos;stringMatching in arrayContaining&apos;, () =&gt; &#123;  const expected = [    expect.stringMatching(/^Alic/),    expect.stringMatching(/^[BR]ob/),  ];  it(&apos;matches even if received contains additional elements&apos;, () =&gt; &#123;    expect([&apos;Alicia&apos;, &apos;Roberto&apos;, &apos;Evelina&apos;]).toEqual(      expect.arrayContaining(expected),    );  &#125;);  it(&apos;does not match if received does not contain expected elements&apos;, () =&gt; &#123;    expect([&apos;Roberto&apos;, &apos;Evelina&apos;]).not.toEqual(      expect.arrayContaining(expected),    );  &#125;);&#125;);\nexpect.assertions(number)test 함수의 callback 함수 내부에서 테스트가 몇번이 일어나는지 확인하는 메서드이다.\n12345test(&apos;assertions count&apos;, () =&gt; &#123;  expect.assertions(2);  expect(true).toBeTruthy();  expect(null).toBeFalsy();&#125;);\n위 테스트코드에서 expect.assertions 을 제외하고 두개의 테스트를 하고있다.\nexpect.hasAssertions()expect.hasAssertions() 함수는 test 함수의 callback 함수 내부에서 테스트가 최소 한번 실행되고 있는지 테스트하는 함수다.\n1234test(&apos;has assertions&apos;, () =&gt; &#123;  expect.hasAssertions();  expect(null).toBeFalsy();&#125;);\nresolves성공된 Promise 의 value 를 가져올때 사용한다. resolves 를 사용하지 않으면 received value 는 {} 가 된다.\n123test(&apos;resolves to lemon&apos;, () =&gt; &#123;  expect(Promise.resolve(&apos;lemon&apos;)).resolves.toBe(&apos;lemon&apos;);&#125;);\nasync/await 과도 사용할 수 있다.\n1234test(&apos;async/await resolves to lemon&apos;, async () =&gt; &#123;  await expect(Promise.resolve(&apos;lemon&apos;)).resolves.toBe(&apos;lemon&apos;);  await expect(Promise.resolve(&apos;lemon&apos;)).resolves.not.toBe(&apos;octopus&apos;);&#125;);\nrejectsrejects 는 resolves 와는 반대로 실패된 Promise 의 reason 을 가져올 때 사용한다.\n12345678910test(&apos;rejects to octopus&apos;, () =&gt; &#123;  // make sure to add a return statement  return expect(Promise.reject(new Error(&apos;octopus&apos;))).rejects.toThrow(    &apos;octopus&apos;,  );&#125;);test(&apos;rejects to octopus&apos;, async () =&gt; &#123;  await expect(Promise.reject(new Error(&apos;octopus&apos;))).rejects.toThrow(&apos;octopus&apos;);&#125;);\n참조: Jest 공식 문서\n","dateCreated":"2020-02-16T14:59:50+09:00","dateModified":"2020-02-16T17:08:20+09:00","datePublished":"2020-02-16T14:59:50+09:00","description":"expect(value)expect 함수는 값을 테스트 하고 싶을 때 사용한다. 드물게 expect 함수만 사용해서 테스트를 할 수 있지만 값을 테스트하기 위해 matcher 함수를 함께 사용한다.\nexpect.extend(matchers)expect.extend 함수를 사용하여 Jest 에서 제공하는 matcher 가 아닌 직접 만들어서 사용할 수 있다.","headline":"jest 메서드 - expect","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"https://kkangil.github.io/2020/02/16/jest-메서드-expect/"},"publisher":{"@type":"Organization","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg","logo":{"@type":"ImageObject","url":"profile.jpeg"}},"url":"https://kkangil.github.io/2020/02/16/jest-메서드-expect/","keywords":"test, jest 메서드, expect"}</script>
+    <meta name="description" content="expect(value)expect 함수는 값을 테스트 하고 싶을 때 사용한다. 드물게 expect 함수만 사용해서 테스트를 할 수 있지만 값을 테스트하기 위해 matcher 함수를 함께 사용한다. expect.extend(matchers)expect.extend 함수를 사용하여 Jest 에서 제공하는 matcher 가 아닌 직접 만들어서 사용할 수 있다.">
+<meta name="keywords" content="test,jest 메서드,expect">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="jest 메서드 - expect">
+<meta property="og:url" content="https://kkangil.github.io/2020/02/16/jest-메서드-expect/index.html">
+<meta property="og:site_name" content="kkangil&#39;s Blog">
+<meta property="og:description" content="expect(value)expect 함수는 값을 테스트 하고 싶을 때 사용한다. 드물게 expect 함수만 사용해서 테스트를 할 수 있지만 값을 테스트하기 위해 matcher 함수를 함께 사용한다. expect.extend(matchers)expect.extend 함수를 사용하여 Jest 에서 제공하는 matcher 가 아닌 직접 만들어서 사용할 수 있다.">
+<meta property="og:locale" content="ko">
+<meta property="og:updated_time" content="2020-02-16T08:08:20.423Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="jest 메서드 - expect">
+<meta name="twitter:description" content="expect(value)expect 함수는 값을 테스트 하고 싶을 때 사용한다. 드물게 expect 함수만 사용해서 테스트를 할 수 있지만 값을 테스트하기 위해 matcher 함수를 함께 사용한다. expect.extend(matchers)expect.extend 함수를 사용하여 Jest 에서 제공하는 matcher 가 아닌 직접 만들어서 사용할 수 있다.">
+    
+    
+        
+    
+    
+        <meta property="og:image" content="https://kkangil.github.io/assets/images/profile.jpeg"/>
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/style-c4ozcsklz4kht2pebhp44xorvyverh23toayhn7i6ubrpyedak24hv1v0hyd.min.css">
+    <!--STYLES END-->
+    
+
+    
+</head>
+
+    <body>
+        <div id="blog">
+            <!-- Define author's picture -->
+
+
+    
+        
+            
+        
+    
+
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a class="header-title-link" href="/ ">kkangil&#39;s Blog</a>
+    </div>
+    
+        
+            <a class="header-right-picture " href="#about">
+        
+        
+            <img class="header-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+        
+        </a>
+    
+</header>
+
+            <!-- Define author's picture -->
+
+
+
+        
+    
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
+        
+            <div class="sidebar-profile">
+                <a href="/#about">
+                    <img class="sidebar-profile-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+                </a>
+                <h4 class="sidebar-profile-name">kkangil</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
+</h5>
+                
+            </div>
+        
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/ " title="Home">
+                    
+                        <i class="sidebar-button-icon fa fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Home</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-categories" title="카테고리">
+                    
+                        <i class="sidebar-button-icon fa fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">카테고리</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-tags" title="태그">
+                    
+                        <i class="sidebar-button-icon fa fa-tags" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">태그</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-archives" title="기록">
+                    
+                        <i class="sidebar-button-icon fa fa-archive" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">기록</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link open-algolia-search" href="#search" title="검색">
+                    
+                        <i class="sidebar-button-icon fa fa-search" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">검색</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="#about" title="About">
+                    
+                        <i class="sidebar-button-icon fa fa-question" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">About</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="https://github.com/kkangil" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fab fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="http://stackoverflow.com/users/10870848/kkangil" target="_blank" rel="noopener" title="Stack Overflow">
+                    
+                        <i class="sidebar-button-icon fab fa-stack-overflow" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Stack Overflow</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="https://www.linkedin.com/in/kangil-kim-31093a169/" target="_blank" rel="noopener" title="LinkedIn">
+                    
+                        <i class="sidebar-button-icon fab fa-linkedin" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">LinkedIn</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/fe.kkangil@gmail.com" title="Mail">
+                    
+                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Mail</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/atom.xml" title="RSS">
+                    
+                        <i class="sidebar-button-icon fa fa-rss" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">RSS</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
+</nav>
+
+            
+            <div id="main" data-behavior="4"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title">
+            jest 메서드 - expect
+        </h1>
+    
+    
+        <div class="post-meta">
+    <time datetime="2020-02-16T14:59:50+09:00">
+	
+		    2월 16, 2020
+    	
+    </time>
+    
+        <span>카테고리 </span>
+        
+    <a class="category-link" href="/categories/Jest/">Jest</a>
+
+
+    
+</div>
+
+    
+</div>
+
+    
+    <div class="post-content markdown">
+        <div class="main-content-wrap">
+            <h3 id="expect-value"><a href="#expect-value" class="headerlink" title="expect(value)"></a>expect(value)</h3><p>expect 함수는 값을 테스트 하고 싶을 때 사용한다. 드물게 expect 함수만 사용해서 테스트를 할 수 있지만 값을 테스트하기 위해 <code>matcher</code> 함수를 함께 사용한다.</p>
+<h3 id="expect-extend-matchers"><a href="#expect-extend-matchers" class="headerlink" title="expect.extend(matchers)"></a>expect.extend(matchers)</h3><p>expect.extend 함수를 사용하여 Jest 에서 제공하는 matcher 가 아닌 직접 만들어서 사용할 수 있다.</p>
+<a id="more"></a>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">expect.extend(&#123;</span><br><span class="line">  toBeWithinRange(received, floor, ceiling) &#123;</span><br><span class="line">    const pass = received &gt;= floor &amp;&amp; received &lt;= ceiling;</span><br><span class="line">    if (pass) &#123;</span><br><span class="line">      return &#123;</span><br><span class="line">        message: () =&gt;</span><br><span class="line">          `expected $&#123;received&#125; not to be within range $&#123;floor&#125; - $&#123;ceiling&#125;`,</span><br><span class="line">        pass: true,</span><br><span class="line">      &#125;;</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">      return &#123;</span><br><span class="line">        message: () =&gt;</span><br><span class="line">          `expected $&#123;received&#125; to be within range $&#123;floor&#125; - $&#123;ceiling&#125;`,</span><br><span class="line">        pass: false,</span><br><span class="line">      &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">test(&apos;numeric ranges&apos;, () =&gt; &#123;</span><br><span class="line">  expect(100).toBeWithinRange(90, 110);</span><br><span class="line">  expect(101).not.toBeWithinRange(0, 100);</span><br><span class="line">  expect(&#123; apples: 6, bananas: 3 &#125;).toEqual(&#123;</span><br><span class="line">    apples: expect.toBeWithinRange(1, 10),</span><br><span class="line">    bananas: expect.not.toBeWithinRange(11, 20),</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p><code>toBeWithinRange</code> 라는 matcher 를 만드는 방법이다. expect 의 값이 첫번째 인자로 넘어간다. 성공 했을경우 성공 사유 message 와 pass를 true로 return 해준다. 살패 했을경우는 반대로 실패 사유 message 와 pass 를 false 로 return 해준다.</p>
+<p>expect.extend 는 비동기 함수 호출도 지원한다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">expect.extend(&#123;</span><br><span class="line">  async toBeDivisibleByExternalValue(received) &#123;</span><br><span class="line">    const externalValue = await getExternalValueFromRemoteSource();</span><br><span class="line">    const pass = received % externalValue == 0;</span><br><span class="line">    if (pass) &#123;</span><br><span class="line">      return &#123;</span><br><span class="line">        message: () =&gt;</span><br><span class="line">          `expected $&#123;received&#125; not to be divisible by $&#123;externalValue&#125;`,</span><br><span class="line">        pass: true,</span><br><span class="line">      &#125;;</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">      return &#123;</span><br><span class="line">        message: () =&gt;</span><br><span class="line">          `expected $&#123;received&#125; to be divisible by $&#123;externalValue&#125;`,</span><br><span class="line">        pass: false,</span><br><span class="line">      &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">test(&apos;is divisible by external value&apos;, async () =&gt; &#123;</span><br><span class="line">  await expect(100).toBeDivisibleByExternalValue();</span><br><span class="line">  await expect(101).not.toBeDivisibleByExternalValue();</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h4 id="Custom-Matchers-API"><a href="#Custom-Matchers-API" class="headerlink" title="Custom Matchers API"></a>Custom Matchers API</h4><p>Macher 들은 항상 두개의 key 를 포함하고 있는 객체를 리턴해야한다. pass 는 성공/실패 여부이고 message 는 테스트가 실패 했을 경우 보여진다. .not() 메서드를 사용하면 실패 했을때 pass: true 의 message 가 보여진다.</p>
+<h3 id="expect-anything"><a href="#expect-anything" class="headerlink" title="expect.anything"></a>expect.anything</h3><p>null 과 undefined 을 제외한 모든 값들과 일치한다. 즉, null 과 undefined 외의 모든 값들은 동일하다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">test(&apos;map calls its argument with a non-null argument&apos;, () =&gt; &#123;</span><br><span class="line">  const mock = jest.fn();</span><br><span class="line">  [1].map(x =&gt; mock(x));</span><br><span class="line">  expect(mock).toBeCalledWith(1);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>위의 테스트 코드는 성공할 것이다. 하지만 <code>expect(mock).toBeCalledWith(2);</code> 로 바꾸게 된다면 배열의 length 가 1 이므로 실패할 것이다. 만약 mock() 함수가 몇번 실행이 되는지 상관없이 테스트 케이스를 성공 처리 하고 싶을때 anything 을 사용하는 것이다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">expect(mock).toBeCalledWith(expect.anything());</span><br></pre></td></tr></table></figure>
+<h3 id="expect-any-constructor"><a href="#expect-any-constructor" class="headerlink" title="expect.any(constructor)"></a>expect.any(constructor)</h3><p>expect.any(constructor) matches anything that was created with the given constructor</p>
+<p>expect.any 는 주어진 생성자와 값이 해당 생성자에 일치하는 지를 테스트 한다. <code>toEqual</code> 과 <code>toBeCalledWith</code> 함수에 값대신 해당 메서드를 사용할 수 있다.</p>
+<p>randocall 함수의 return 값이 Number 인지 테스트하는 코드다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">function randocall(fn) &#123;</span><br><span class="line">  return fn(Math.floor(Math.random() * 6 + 1));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">test(&apos;randocall calls its callback with a number&apos;, () =&gt; &#123;</span><br><span class="line">  const mock = jest.fn();</span><br><span class="line">  randocall(mock);</span><br><span class="line">  expect(mock).toBeCalledWith(expect.any(Number));</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h3 id="expect-arrayContaining-array"><a href="#expect-arrayContaining-array" class="headerlink" title="expect.arrayContaining(array)"></a>expect.arrayContaining(array)</h3><p>기대값이 expect.arrayContaining(array) 메서드에 주어지는 배열의 요소를 모두 포함하고 있는지 확인할 때 사용하는 메서드이다. <code>toEqual</code> 과 <code>toBeCalledWith</code> 함수에 사용할 수 있다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">describe(&apos;arrayContaining&apos;, () =&gt; &#123;</span><br><span class="line">  const expected = [&apos;Alice&apos;, &apos;Bob&apos;];</span><br><span class="line">  it(&apos;matches even if received contains additional elements&apos;, () =&gt; &#123;</span><br><span class="line">    expect([&apos;Alice&apos;, &apos;Bob&apos;, &apos;Eve&apos;]).toEqual(expect.arrayContaining(expected));</span><br><span class="line">  &#125;);</span><br><span class="line">  it(&apos;does not match if received does not contain expected elements&apos;, () =&gt; &#123;</span><br><span class="line">    expect([&apos;Bob&apos;, &apos;Eve&apos;]).not.toEqual(expect.arrayContaining(expected));</span><br><span class="line">  &#125;);</span><br><span class="line">  expect([&apos;Alice&apos;, &apos;Alice&apos;, &apos;Bob&apos;, &apos;Eve&apos;]).toEqual(expect.arrayContaining(expected));</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>첫번째 테스트의 경우 기대값 요소에 ‘Alice’, ‘Bob’ 이 포함되어 있기 때문에 성공한다. 두번째의 경우는 ‘Alice’ 를 포함하고 있지 않기 때문에 실패한다. 세번째 테스트 경우처럼 배열 요소에 중복이 있어도 상관없이 테스트는 성공한다.</p>
+<p>expect.not.arrayContaining(array) 메서드도 사용 가능하다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">describe(&apos;not.arrayContaining&apos;, () =&gt; &#123;</span><br><span class="line">  const expected = [&apos;Samantha&apos;];</span><br><span class="line">  it(&apos;matches if the actual array does not contain the expected elements&apos;, () =&gt; &#123;</span><br><span class="line">    expect([&apos;Alice&apos;, &apos;Bob&apos;, &apos;Eve&apos;]).toEqual(</span><br><span class="line">      expect.not.arrayContaining(expected),</span><br><span class="line">    );</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h3 id="expect-objectContaining-object"><a href="#expect-objectContaining-object" class="headerlink" title="expect.objectContaining(object)"></a>expect.objectContaining(object)</h3><p>객체의 key 와 value 를 포함하고 있는지 테스트할때 사용한다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">describe(&apos;objectContaining&apos;, () =&gt; &#123;</span><br><span class="line">  const expected = &#123; foo: &apos;bar&apos; &#125;;</span><br><span class="line"></span><br><span class="line">  it(&apos;matches if the actual object does contain expected key: value pairs&apos;, () =&gt; &#123;</span><br><span class="line">    expect(&#123; bar: &apos;baz&apos; &#125;).toEqual(expect.objectContaining(expected));</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p><code>foo</code> 라는 key 가 없어서 위 테스트는 실패한다. 만약 { bar: ‘baz’ } 를 { foo: ‘baz’ } 객체로 변경해서 테스트 해보면 실패하는것을 확인할 수 있다. objectContaining 는 key/value 쌍으로 동일해야 성공한다. </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">test(&apos;onPress gets called with the right thing&apos;, () =&gt; &#123;</span><br><span class="line">  const onPress = jest.fn();</span><br><span class="line">  simulatePresses(onPress);</span><br><span class="line">  expect(onPress).toBeCalledWith(</span><br><span class="line">    expect.objectContaining(&#123;</span><br><span class="line">      x: expect.any(Number),</span><br><span class="line">      y: expect.any(Number),</span><br><span class="line">    &#125;),</span><br><span class="line">  );</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>objectContaining 객체의 value 에 특정한 값이 아니라 any, anything 도 사용할 수 있다. expect.not.objectContaining(object) 메서드도 사용 가능하다.</p>
+<h3 id="expect-stringContaining-string"><a href="#expect-stringContaining-string" class="headerlink" title="expect.stringContaining(string)"></a>expect.stringContaining(string)</h3><p>expect.stringContaining(string) 은 주어지는 문자를 포함하고 있는지 테스트한다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">describe(&apos;stringContaining&apos;, () =&gt; &#123;</span><br><span class="line">  const expected = &apos;Hello world!&apos;;</span><br><span class="line"></span><br><span class="line">  it(&apos;matches if the received value does contain the expected substring&apos;, () =&gt; &#123;</span><br><span class="line">    expect(&apos;Hello world!&apos;).toEqual(expect.stringContaining(expected));</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>expect.not.stringContaining(string) 도 사용 가능하다.</p>
+<h3 id="expect-stringMatching-string-regexp"><a href="#expect-stringMatching-string-regexp" class="headerlink" title="expect.stringMatching(string | regexp)"></a>expect.stringMatching(string | regexp)</h3><p>주어진 string 이나 정규식에 일치하는지 테스트할 때 사용한다. string 이 주어지는 경우 완전하게 일치 해야하며 정규식을 사용하는 경우는 해당 정규식에 일치하면 된다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">describe(&apos;stringMatching in arrayContaining&apos;, () =&gt; &#123;</span><br><span class="line">  const expected = [</span><br><span class="line">    expect.stringMatching(/^Alic/),</span><br><span class="line">    expect.stringMatching(/^[BR]ob/),</span><br><span class="line">  ];</span><br><span class="line">  it(&apos;matches even if received contains additional elements&apos;, () =&gt; &#123;</span><br><span class="line">    expect([&apos;Alicia&apos;, &apos;Roberto&apos;, &apos;Evelina&apos;]).toEqual(</span><br><span class="line">      expect.arrayContaining(expected),</span><br><span class="line">    );</span><br><span class="line">  &#125;);</span><br><span class="line">  it(&apos;does not match if received does not contain expected elements&apos;, () =&gt; &#123;</span><br><span class="line">    expect([&apos;Roberto&apos;, &apos;Evelina&apos;]).not.toEqual(</span><br><span class="line">      expect.arrayContaining(expected),</span><br><span class="line">    );</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h3 id="expect-assertions-number"><a href="#expect-assertions-number" class="headerlink" title="expect.assertions(number)"></a>expect.assertions(number)</h3><p>test 함수의 callback 함수 내부에서 테스트가 몇번이 일어나는지 확인하는 메서드이다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">test(&apos;assertions count&apos;, () =&gt; &#123;</span><br><span class="line">  expect.assertions(2);</span><br><span class="line">  expect(true).toBeTruthy();</span><br><span class="line">  expect(null).toBeFalsy();</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>위 테스트코드에서 expect.assertions 을 제외하고 두개의 테스트를 하고있다.</p>
+<h3 id="expect-hasAssertions"><a href="#expect-hasAssertions" class="headerlink" title="expect.hasAssertions()"></a>expect.hasAssertions()</h3><p>expect.hasAssertions() 함수는 test 함수의 callback 함수 내부에서 테스트가 최소 한번 실행되고 있는지 테스트하는 함수다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">test(&apos;has assertions&apos;, () =&gt; &#123;</span><br><span class="line">  expect.hasAssertions();</span><br><span class="line">  expect(null).toBeFalsy();</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h3 id="resolves"><a href="#resolves" class="headerlink" title="resolves"></a>resolves</h3><p>성공된 Promise 의 value 를 가져올때 사용한다. resolves 를 사용하지 않으면 received value 는 {} 가 된다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">test(&apos;resolves to lemon&apos;, () =&gt; &#123;</span><br><span class="line">  expect(Promise.resolve(&apos;lemon&apos;)).resolves.toBe(&apos;lemon&apos;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>async/await 과도 사용할 수 있다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">test(&apos;async/await resolves to lemon&apos;, async () =&gt; &#123;</span><br><span class="line">  await expect(Promise.resolve(&apos;lemon&apos;)).resolves.toBe(&apos;lemon&apos;);</span><br><span class="line">  await expect(Promise.resolve(&apos;lemon&apos;)).resolves.not.toBe(&apos;octopus&apos;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h3 id="rejects"><a href="#rejects" class="headerlink" title="rejects"></a>rejects</h3><p>rejects 는 resolves 와는 반대로 실패된 Promise 의 reason 을 가져올 때 사용한다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">test(&apos;rejects to octopus&apos;, () =&gt; &#123;</span><br><span class="line">  // make sure to add a return statement</span><br><span class="line">  return expect(Promise.reject(new Error(&apos;octopus&apos;))).rejects.toThrow(</span><br><span class="line">    &apos;octopus&apos;,</span><br><span class="line">  );</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">test(&apos;rejects to octopus&apos;, async () =&gt; &#123;</span><br><span class="line">  await expect(Promise.reject(new Error(&apos;octopus&apos;))).rejects.toThrow(&apos;octopus&apos;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>참조: <a href="https://jestjs.io/docs/en/expect" target="_blank" rel="noopener">Jest 공식 문서</a></p>
+
+            
+
+        </div>
+    </div>
+    <div id="post-footer" class="post-footer main-content-wrap">
+        
+            <div class="post-footer-tags">
+                <span class="text-color-light text-small">태그</span><br>
+                
+    <a class="tag tag--primary tag--small t-link" href="/tags/expect/">expect</a> <a class="tag tag--primary tag--small t-link" href="/tags/jest-메서드/">jest 메서드</a> <a class="tag tag--primary tag--small t-link" href="/tags/test/">test</a>
+
+            </div>
+        
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2020/02/16/렌더링/" data-tooltip="렌더링" aria-label="이전: 렌더링">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2020/02/09/jest-메서드-globals/" data-tooltip="jest 메서드 - globals" aria-label="다음: jest 메서드 - globals">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2020/02/16/jest-메서드-expect/" title="Facebook 공유">
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2020/02/16/jest-메서드-expect/" title="Twitter 공유">
+                    <i class="fab fa-twitter" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2020/02/16/jest-메서드-expect/" title="Google+ 공유">
+                    <i class="fab fa-google-plus" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+        
+            
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2020 kkangil. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+                    <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2020/02/16/렌더링/" data-tooltip="렌더링" aria-label="이전: 렌더링">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2020/02/09/jest-메서드-globals/" data-tooltip="jest 메서드 - globals" aria-label="다음: jest 메서드 - globals">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2020/02/16/jest-메서드-expect/" title="Facebook 공유">
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2020/02/16/jest-메서드-expect/" title="Twitter 공유">
+                    <i class="fab fa-twitter" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2020/02/16/jest-메서드-expect/" title="Google+ 공유">
+                    <i class="fab fa-google-plus" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                
+    <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+        <i id="btn-close-shareoptions" class="fa fa-times"></i>
+        <ul class="share-options">
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2020/02/16/jest-메서드-expect/">
+                        <i class="fab fa-facebook" aria-hidden="true"></i><span>Facebook 공유</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2020/02/16/jest-메서드-expect/">
+                        <i class="fab fa-twitter" aria-hidden="true"></i><span>Twitter 공유</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2020/02/16/jest-메서드-expect/">
+                        <i class="fab fa-google-plus" aria-hidden="true"></i><span>Google+ 공유</span>
+                    </a>
+                </li>
+            
+        </ul>
+    </div>
+
+
+            
+        </div>
+        
+
+
+    
+        
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-times"></i>
+        </div>
+        
+            <img id="about-card-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+        
+            <h4 id="about-card-name">kkangil</h4>
+        
+            <div id="about-card-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br>
+                <p>web developer</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker-alt"></i>
+                <br>
+                Asia/Seoul
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-dbd16rvloemmuxdzniplmnxxvwoz24eya9wol0b7vvmlokgqsjivmb8dnscy.min.js"></script>
+<!--SCRIPTS END-->
+
+    
+
+
+
+    </body>
+</html>

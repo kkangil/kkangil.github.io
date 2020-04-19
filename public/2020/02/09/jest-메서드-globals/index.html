@@ -1,0 +1,547 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="kkangil&#39;s Blog">
+    <title>jest 메서드 - globals - kkangil&#39;s Blog</title>
+    <meta name="author" content="kkangil">
+    
+    
+    
+        <link rel="alternate" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg"},"articleBody":"Jest 제공 메서드들 중 Globals 메서드에 대해서 정리해보려 한다. Jest 공식 문서에 나와 있는 Globals 메서드 정의는 다음과 같다.\n\nGlobals 메서드를 사용해서 전역 환경을 설정한다. 이것은 필수로 설정해 줄 필요는 없다.\n\n\nafterAll(fn, timeout)이름에서 유추할 수 있듯이 테스트가 진행되는 동안 매번 실행되는 것이 아니라 모든 테스트가 완료 되었을 때 실행된다. 만약 인자의 함수가 Promise 이거나 generator 일 경우, Jest 는 완료를 기다린다.\n다른 테스트와 공유되는 전역 환경 상태를 초기화 할때 주로 사용한다.\n123456789const globalDatabase = makeGlobalDatabase();function cleanUpDatabase(db) &#123;  db.cleanUp();&#125;afterAll(() =&gt; &#123;  cleanUpDatabase(globalDatabase);&#125;);\ndescirbe 함수 내부에서 사용될 경우 describe 내부의 테스트가 모두 완료될 때 실행된다.\nafterEach(fn, timeout)afterAll 메서드와 달리 afterEach는 하나의 테스트가 완료될 때마다 실행된다. 각 테스트에 의해 생성된 임시 상태 또는 변수를 초기화 하는 경우 주로 사용한다.\n123456789const globalDatabase = makeGlobalDatabase();function cleanUpDatabase(db) &#123;  db.cleanUp();&#125;afterEach(() =&gt; &#123;  cleanUpDatabase(globalDatabase);&#125;);\ndescirbe 함수 내부에서 사용될 경우 describe 내부의 각각 테스트가 완료될 때 실행된다.\nbeforeAll(fn, timeout)afterAll과 정반대라고 생각하면 된다. 이 메서드는 테스트가 실행되기전 최초에 한번 실행된다. 각 테스트를 진행하기 위해 데이터를 설정해 줄때 주로 사용된다.\n123456789const globalDatabase = makeGlobalDatabase();beforeAll(() =&gt; &#123;  // Clears the database and adds some testing data.  // Jest will wait for this promise to resolve before running tests.  return globalDatabase.clear().then(() =&gt; &#123;    return globalDatabase.insert(&#123;testData: &apos;foo&apos;&#125;);  &#125;);&#125;);\ndescirbe 함수 내부에서 사용될 경우 describe 내부의 테스트를 하기전에 실행된다.\nbeforeEach(fn, timeout)하나의 테스트가 시작되기 전에 실행된다. descirbe 함수 내부에서 사용될 경우 describe 내부의 각각 테스트가 시작되기 전 실행된다.\n123456789const globalDatabase = makeGlobalDatabase();beforeEach(() =&gt; &#123;  // Clears the database and adds some testing data.  // Jest will wait for this promise to resolve before running tests.  return globalDatabase.clear().then(() =&gt; &#123;    return globalDatabase.insert(&#123;testData: &apos;foo&apos;&#125;);  &#125;);&#125;);\n중복된 코드를 제거할때 유용하게 사용할 수 있다.\ndescribe(name, fn)describe 메서드는 몇몇의 관계가 있는 테스트들을 그룹으로 묶어 생성할 때 사용한다. test 메서드를 최상위에서 바로 실행시킬 수 있지만, describe 메서드로 관련있는 테스트 끼리 묶어서 작성하게 되면 가독성이 높아진다.\n1234567891011121314const myBeverage = &#123;  delicious: true,  sour: false,&#125;;describe(&apos;my beverage&apos;, () =&gt; &#123;  test(&apos;is delicious&apos;, () =&gt; &#123;    expect(myBeverage.delicious).toBeTruthy();  &#125;);  test(&apos;is not sour&apos;, () =&gt; &#123;    expect(myBeverage.sour).toBeFalsy();  &#125;);&#125;);\ndescribe 메서드 함수 내부에서 다시 describe로 그룹화를 할 수 있다.\ndescribe.each(table)(name, fn, timeout)여러가지 다른 데이터로 중복되는 테스트를 수행할때 describe.each를 활용할 수 있다. 하나의 테스트 케이스로  값이 다른 데이터들로 테스를 수행하는 것이다.\n\ntable: 인자로 배열을 넘기면 fn 함수의 인자로 사용 가능하다.\nname: 테스트의 이름 printf formatting 기법을 사용할 수 있다.\n\n1234567891011121314151617describe.each([  [1, 1, 2],  [1, 2, 3],  [2, 1, 3],])(&apos;.add(%i, %i)&apos;, (a, b, expected) =&gt; &#123;  test(`returns $&#123;expected&#125;`, () =&gt; &#123;    expect(a + b).toBe(expected);  &#125;);  test(`returned value not be greater than $&#123;expected&#125;`, () =&gt; &#123;    expect(a + b).not.toBeGreaterThan(expected);  &#125;);  test(`returned value not be less than $&#123;expected&#125;`, () =&gt; &#123;    expect(a + b).not.toBeLessThan(expected);  &#125;);&#125;);\ndescribe.eachtable 형식으로도 사용 가능하다.\n123456describe.each`  a    | b    | expected  $&#123;1&#125; | $&#123;1&#125; | $&#123;2&#125;  $&#123;1&#125; | $&#123;2&#125; | $&#123;3&#125;  $&#123;2&#125; | $&#123;1&#125; | $&#123;3&#125;`\ndescribe.only(name, fn)오직 하나의 describe 그룹의 테스트만 수행하고 싶을 때 사용한다. 다른 describe 테스트들은 skip 된다.describe.only.each 메서드도 사용할 수 있다.\n12345678910111213describe.only(&apos;my beverage&apos;, () =&gt; &#123;  test(&apos;is delicious&apos;, () =&gt; &#123;    expect(myBeverage.delicious).toBeTruthy();  &#125;);  test(&apos;is not sour&apos;, () =&gt; &#123;    expect(myBeverage.sour).toBeFalsy();  &#125;);&#125;);describe(&apos;my other beverage&apos;, () =&gt; &#123;  // ... will be skipped&#125;);\ndescribe.skip(name, fn)특정한 describe 그룹을 테스트 하고 싶지 않을때 사용한다.12345678910111213describe(&apos;my beverage&apos;, () =&gt; &#123;  test(&apos;is delicious&apos;, () =&gt; &#123;    expect(myBeverage.delicious).toBeTruthy();  &#125;);  test(&apos;is not sour&apos;, () =&gt; &#123;    expect(myBeverage.sour).toBeFalsy();  &#125;);&#125;);describe.skip(&apos;my other beverage&apos;, () =&gt; &#123;  // ... will be skipped&#125;);\ndescribe.skip.each(table)(name, fn) 메서드도 사용가능하다.\ntest(name, fn, timeout)test 메서드를 사용하여 테스트를 수행할 수 있다. Promise나 비동기 방법을 지원한다.\n123456789test(&apos;did not rain&apos;, () =&gt; &#123;  expect(inchesOfRain()).toBe(0);&#125;);test(&apos;has lemon in it&apos;, () =&gt; &#123;  return fetchBeverageList().then(list =&gt; &#123;    expect(list).toContain(&apos;lemon&apos;);  &#125;);&#125;);\ntest.each(table)(name, fn, timeout)describe.each(table)(name, fn, timeout)와 개념은 동일하다. 하지만 describe는 그룹화이기 때문에 여러가지 테스트를 동시에 수행할 수 있지만 test.each는 단일 테스트에 대한 each 이다.\ntest.only(name, fn, timeout)describe.only 와 개념은 동일하다.1234567test.only(&apos;it is raining&apos;, () =&gt; &#123;  expect(inchesOfRain()).toBeGreaterThan(0);&#125;);test(&apos;it is not snowing&apos;, () =&gt; &#123;  expect(inchesOfSnow()).toBe(0);&#125;);\n오직 한가지의 test만 수행되며 describe 내부의 test들도 수행되지 않는다.\ntest.only.each(table)(name, fn) 메서드도 사용할 수 있다.\ntest.skip(name, fn)수행하고 싶지 않은 테스트를 건너뛰게 할 수 있다.\n1234567test(&apos;it is raining&apos;, () =&gt; &#123;  expect(inchesOfRain()).toBeGreaterThan(0);&#125;);test.skip(&apos;it is not snowing&apos;, () =&gt; &#123;  expect(inchesOfSnow()).toBe(0);&#125;);\ntest.skip.each(table)(name, fn) 도 사용가능하다.\ntest.todo(name)추가되어야할 테스트 TODO를 남겨놓을 수 있다. 해당 메서드를 사용하면 다른 테스트들과 달리 강조되어 표시된다. 인자로 callback을 넘기면 에러가 발생한다.\n123const add = (a, b) =&gt; a + b;test.todo(&apos;add should be associative&apos;);\n참조: Jest 공식 문서\n","dateCreated":"2020-02-09T17:01:54+09:00","dateModified":"2020-02-09T18:01:38+09:00","datePublished":"2020-02-09T17:01:54+09:00","description":"Jest 제공 메서드들 중 Globals 메서드에 대해서 정리해보려 한다. Jest 공식 문서에 나와 있는 Globals 메서드 정의는 다음과 같다.\n\nGlobals 메서드를 사용해서 전역 환경을 설정한다. 이것은 필수로 설정해 줄 필요는 없다.\n","headline":"jest 메서드 - globals","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"https://kkangil.github.io/2020/02/09/jest-메서드-globals/"},"publisher":{"@type":"Organization","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg","logo":{"@type":"ImageObject","url":"profile.jpeg"}},"url":"https://kkangil.github.io/2020/02/09/jest-메서드-globals/","keywords":"jest globals 메서드, describe, test"}</script>
+    <meta name="description" content="Jest 제공 메서드들 중 Globals 메서드에 대해서 정리해보려 한다. Jest 공식 문서에 나와 있는 Globals 메서드 정의는 다음과 같다.  Globals 메서드를 사용해서 전역 환경을 설정한다. 이것은 필수로 설정해 줄 필요는 없다.">
+<meta name="keywords" content="jest globals 메서드,describe,test">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="jest 메서드 - globals">
+<meta property="og:url" content="https://kkangil.github.io/2020/02/09/jest-메서드-globals/index.html">
+<meta property="og:site_name" content="kkangil&#39;s Blog">
+<meta property="og:description" content="Jest 제공 메서드들 중 Globals 메서드에 대해서 정리해보려 한다. Jest 공식 문서에 나와 있는 Globals 메서드 정의는 다음과 같다.  Globals 메서드를 사용해서 전역 환경을 설정한다. 이것은 필수로 설정해 줄 필요는 없다.">
+<meta property="og:locale" content="ko">
+<meta property="og:updated_time" content="2020-02-09T09:01:38.657Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="jest 메서드 - globals">
+<meta name="twitter:description" content="Jest 제공 메서드들 중 Globals 메서드에 대해서 정리해보려 한다. Jest 공식 문서에 나와 있는 Globals 메서드 정의는 다음과 같다.  Globals 메서드를 사용해서 전역 환경을 설정한다. 이것은 필수로 설정해 줄 필요는 없다.">
+    
+    
+        
+    
+    
+        <meta property="og:image" content="https://kkangil.github.io/assets/images/profile.jpeg"/>
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/style-c4ozcsklz4kht2pebhp44xorvyverh23toayhn7i6ubrpyedak24hv1v0hyd.min.css">
+    <!--STYLES END-->
+    
+
+    
+</head>
+
+    <body>
+        <div id="blog">
+            <!-- Define author's picture -->
+
+
+    
+        
+            
+        
+    
+
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a class="header-title-link" href="/ ">kkangil&#39;s Blog</a>
+    </div>
+    
+        
+            <a class="header-right-picture " href="#about">
+        
+        
+            <img class="header-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+        
+        </a>
+    
+</header>
+
+            <!-- Define author's picture -->
+
+
+
+        
+    
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
+        
+            <div class="sidebar-profile">
+                <a href="/#about">
+                    <img class="sidebar-profile-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+                </a>
+                <h4 class="sidebar-profile-name">kkangil</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
+</h5>
+                
+            </div>
+        
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/ " title="Home">
+                    
+                        <i class="sidebar-button-icon fa fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Home</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-categories" title="카테고리">
+                    
+                        <i class="sidebar-button-icon fa fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">카테고리</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-tags" title="태그">
+                    
+                        <i class="sidebar-button-icon fa fa-tags" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">태그</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-archives" title="기록">
+                    
+                        <i class="sidebar-button-icon fa fa-archive" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">기록</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link open-algolia-search" href="#search" title="검색">
+                    
+                        <i class="sidebar-button-icon fa fa-search" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">검색</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="#about" title="About">
+                    
+                        <i class="sidebar-button-icon fa fa-question" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">About</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="https://github.com/kkangil" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fab fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="http://stackoverflow.com/users/10870848/kkangil" target="_blank" rel="noopener" title="Stack Overflow">
+                    
+                        <i class="sidebar-button-icon fab fa-stack-overflow" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Stack Overflow</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="https://www.linkedin.com/in/kangil-kim-31093a169/" target="_blank" rel="noopener" title="LinkedIn">
+                    
+                        <i class="sidebar-button-icon fab fa-linkedin" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">LinkedIn</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/fe.kkangil@gmail.com" title="Mail">
+                    
+                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Mail</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/atom.xml" title="RSS">
+                    
+                        <i class="sidebar-button-icon fa fa-rss" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">RSS</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
+</nav>
+
+            
+            <div id="main" data-behavior="4"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title">
+            jest 메서드 - globals
+        </h1>
+    
+    
+        <div class="post-meta">
+    <time datetime="2020-02-09T17:01:54+09:00">
+	
+		    2월 09, 2020
+    	
+    </time>
+    
+        <span>카테고리 </span>
+        
+    <a class="category-link" href="/categories/Jest/">Jest</a>
+
+
+    
+</div>
+
+    
+</div>
+
+    
+    <div class="post-content markdown">
+        <div class="main-content-wrap">
+            <p>Jest 제공 메서드들 중 Globals 메서드에 대해서 정리해보려 한다. Jest 공식 문서에 나와 있는 Globals 메서드 정의는 다음과 같다.</p>
+<blockquote>
+<p>Globals 메서드를 사용해서 전역 환경을 설정한다. 이것은 필수로 설정해 줄 필요는 없다.</p>
+</blockquote>
+<a id="more"></a>
+<h3 id="afterAll-fn-timeout"><a href="#afterAll-fn-timeout" class="headerlink" title="afterAll(fn, timeout)"></a>afterAll(fn, timeout)</h3><p>이름에서 유추할 수 있듯이 테스트가 진행되는 동안 매번 실행되는 것이 아니라 모든 테스트가 완료 되었을 때 실행된다. 만약 인자의 함수가 Promise 이거나 generator 일 경우, Jest 는 완료를 기다린다.</p>
+<p>다른 테스트와 공유되는 전역 환경 상태를 초기화 할때 주로 사용한다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">const globalDatabase = makeGlobalDatabase();</span><br><span class="line"></span><br><span class="line">function cleanUpDatabase(db) &#123;</span><br><span class="line">  db.cleanUp();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">afterAll(() =&gt; &#123;</span><br><span class="line">  cleanUpDatabase(globalDatabase);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>descirbe 함수 내부에서 사용될 경우 describe 내부의 테스트가 모두 완료될 때 실행된다.</p>
+<h3 id="afterEach-fn-timeout"><a href="#afterEach-fn-timeout" class="headerlink" title="afterEach(fn, timeout)"></a>afterEach(fn, timeout)</h3><p>afterAll 메서드와 달리 afterEach는 하나의 테스트가 완료될 때마다 실행된다. 각 테스트에 의해 생성된 임시 상태 또는 변수를 초기화 하는 경우 주로 사용한다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">const globalDatabase = makeGlobalDatabase();</span><br><span class="line"></span><br><span class="line">function cleanUpDatabase(db) &#123;</span><br><span class="line">  db.cleanUp();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">afterEach(() =&gt; &#123;</span><br><span class="line">  cleanUpDatabase(globalDatabase);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>descirbe 함수 내부에서 사용될 경우 describe 내부의 각각 테스트가 완료될 때 실행된다.</p>
+<h3 id="beforeAll-fn-timeout"><a href="#beforeAll-fn-timeout" class="headerlink" title="beforeAll(fn, timeout)"></a>beforeAll(fn, timeout)</h3><p>afterAll과 정반대라고 생각하면 된다. 이 메서드는 테스트가 실행되기전 최초에 한번 실행된다. 각 테스트를 진행하기 위해 데이터를 설정해 줄때 주로 사용된다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">const globalDatabase = makeGlobalDatabase();</span><br><span class="line"></span><br><span class="line">beforeAll(() =&gt; &#123;</span><br><span class="line">  // Clears the database and adds some testing data.</span><br><span class="line">  // Jest will wait for this promise to resolve before running tests.</span><br><span class="line">  return globalDatabase.clear().then(() =&gt; &#123;</span><br><span class="line">    return globalDatabase.insert(&#123;testData: &apos;foo&apos;&#125;);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>descirbe 함수 내부에서 사용될 경우 describe 내부의 테스트를 하기전에 실행된다.</p>
+<h3 id="beforeEach-fn-timeout"><a href="#beforeEach-fn-timeout" class="headerlink" title="beforeEach(fn, timeout)"></a>beforeEach(fn, timeout)</h3><p>하나의 테스트가 시작되기 전에 실행된다. descirbe 함수 내부에서 사용될 경우 describe 내부의 각각 테스트가 시작되기 전 실행된다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">const globalDatabase = makeGlobalDatabase();</span><br><span class="line"></span><br><span class="line">beforeEach(() =&gt; &#123;</span><br><span class="line">  // Clears the database and adds some testing data.</span><br><span class="line">  // Jest will wait for this promise to resolve before running tests.</span><br><span class="line">  return globalDatabase.clear().then(() =&gt; &#123;</span><br><span class="line">    return globalDatabase.insert(&#123;testData: &apos;foo&apos;&#125;);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>중복된 코드를 제거할때 유용하게 사용할 수 있다.</p>
+<h3 id="describe-name-fn"><a href="#describe-name-fn" class="headerlink" title="describe(name, fn)"></a>describe(name, fn)</h3><p>describe 메서드는 몇몇의 관계가 있는 테스트들을 그룹으로 묶어 생성할 때 사용한다. test 메서드를 최상위에서 바로 실행시킬 수 있지만, describe 메서드로 관련있는 테스트 끼리 묶어서 작성하게 되면 가독성이 높아진다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">const myBeverage = &#123;</span><br><span class="line">  delicious: true,</span><br><span class="line">  sour: false,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">describe(&apos;my beverage&apos;, () =&gt; &#123;</span><br><span class="line">  test(&apos;is delicious&apos;, () =&gt; &#123;</span><br><span class="line">    expect(myBeverage.delicious).toBeTruthy();</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  test(&apos;is not sour&apos;, () =&gt; &#123;</span><br><span class="line">    expect(myBeverage.sour).toBeFalsy();</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>describe 메서드 함수 내부에서 다시 describe로 그룹화를 할 수 있다.</p>
+<h3 id="describe-each-table-name-fn-timeout"><a href="#describe-each-table-name-fn-timeout" class="headerlink" title="describe.each(table)(name, fn, timeout)"></a>describe.each(table)(name, fn, timeout)</h3><p>여러가지 다른 데이터로 중복되는 테스트를 수행할때 describe.each를 활용할 수 있다. 하나의 테스트 케이스로  값이 다른 데이터들로 테스를 수행하는 것이다.</p>
+<ul>
+<li>table: 인자로 배열을 넘기면 fn 함수의 인자로 사용 가능하다.</li>
+<li>name: 테스트의 이름 printf formatting 기법을 사용할 수 있다.</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">describe.each([</span><br><span class="line">  [1, 1, 2],</span><br><span class="line">  [1, 2, 3],</span><br><span class="line">  [2, 1, 3],</span><br><span class="line">])(&apos;.add(%i, %i)&apos;, (a, b, expected) =&gt; &#123;</span><br><span class="line">  test(`returns $&#123;expected&#125;`, () =&gt; &#123;</span><br><span class="line">    expect(a + b).toBe(expected);</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  test(`returned value not be greater than $&#123;expected&#125;`, () =&gt; &#123;</span><br><span class="line">    expect(a + b).not.toBeGreaterThan(expected);</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  test(`returned value not be less than $&#123;expected&#125;`, () =&gt; &#123;</span><br><span class="line">    expect(a + b).not.toBeLessThan(expected);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>describe.each<code>table</code> 형식으로도 사용 가능하다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">describe.each`</span><br><span class="line">  a    | b    | expected</span><br><span class="line">  $&#123;1&#125; | $&#123;1&#125; | $&#123;2&#125;</span><br><span class="line">  $&#123;1&#125; | $&#123;2&#125; | $&#123;3&#125;</span><br><span class="line">  $&#123;2&#125; | $&#123;1&#125; | $&#123;3&#125;</span><br><span class="line">`</span><br></pre></td></tr></table></figure>
+<h3 id="describe-only-name-fn"><a href="#describe-only-name-fn" class="headerlink" title="describe.only(name, fn)"></a>describe.only(name, fn)</h3><p>오직 하나의 describe 그룹의 테스트만 수행하고 싶을 때 사용한다. 다른 describe 테스트들은 skip 된다.<br><code>describe.only.each</code> 메서드도 사용할 수 있다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">describe.only(&apos;my beverage&apos;, () =&gt; &#123;</span><br><span class="line">  test(&apos;is delicious&apos;, () =&gt; &#123;</span><br><span class="line">    expect(myBeverage.delicious).toBeTruthy();</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  test(&apos;is not sour&apos;, () =&gt; &#123;</span><br><span class="line">    expect(myBeverage.sour).toBeFalsy();</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">describe(&apos;my other beverage&apos;, () =&gt; &#123;</span><br><span class="line">  // ... will be skipped</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h3 id="describe-skip-name-fn"><a href="#describe-skip-name-fn" class="headerlink" title="describe.skip(name, fn)"></a>describe.skip(name, fn)</h3><p>특정한 describe 그룹을 테스트 하고 싶지 않을때 사용한다.<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">describe(&apos;my beverage&apos;, () =&gt; &#123;</span><br><span class="line">  test(&apos;is delicious&apos;, () =&gt; &#123;</span><br><span class="line">    expect(myBeverage.delicious).toBeTruthy();</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  test(&apos;is not sour&apos;, () =&gt; &#123;</span><br><span class="line">    expect(myBeverage.sour).toBeFalsy();</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">describe.skip(&apos;my other beverage&apos;, () =&gt; &#123;</span><br><span class="line">  // ... will be skipped</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></p>
+<p><code>describe.skip.each(table)(name, fn)</code> 메서드도 사용가능하다.</p>
+<h3 id="test-name-fn-timeout"><a href="#test-name-fn-timeout" class="headerlink" title="test(name, fn, timeout)"></a>test(name, fn, timeout)</h3><p>test 메서드를 사용하여 테스트를 수행할 수 있다. Promise나 비동기 방법을 지원한다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">test(&apos;did not rain&apos;, () =&gt; &#123;</span><br><span class="line">  expect(inchesOfRain()).toBe(0);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">test(&apos;has lemon in it&apos;, () =&gt; &#123;</span><br><span class="line">  return fetchBeverageList().then(list =&gt; &#123;</span><br><span class="line">    expect(list).toContain(&apos;lemon&apos;);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h3 id="test-each-table-name-fn-timeout"><a href="#test-each-table-name-fn-timeout" class="headerlink" title="test.each(table)(name, fn, timeout)"></a>test.each(table)(name, fn, timeout)</h3><p>describe.each(table)(name, fn, timeout)와 개념은 동일하다. 하지만 describe는 그룹화이기 때문에 여러가지 테스트를 동시에 수행할 수 있지만 test.each는 단일 테스트에 대한 each 이다.</p>
+<h3 id="test-only-name-fn-timeout"><a href="#test-only-name-fn-timeout" class="headerlink" title="test.only(name, fn, timeout)"></a>test.only(name, fn, timeout)</h3><p>describe.only 와 개념은 동일하다.<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">test.only(&apos;it is raining&apos;, () =&gt; &#123;</span><br><span class="line">  expect(inchesOfRain()).toBeGreaterThan(0);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">test(&apos;it is not snowing&apos;, () =&gt; &#123;</span><br><span class="line">  expect(inchesOfSnow()).toBe(0);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></p>
+<p>오직 한가지의 test만 수행되며 describe 내부의 test들도 수행되지 않는다.</p>
+<p><code>test.only.each(table)(name, fn)</code> 메서드도 사용할 수 있다.</p>
+<h3 id="test-skip-name-fn"><a href="#test-skip-name-fn" class="headerlink" title="test.skip(name, fn)"></a>test.skip(name, fn)</h3><p>수행하고 싶지 않은 테스트를 건너뛰게 할 수 있다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">test(&apos;it is raining&apos;, () =&gt; &#123;</span><br><span class="line">  expect(inchesOfRain()).toBeGreaterThan(0);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">test.skip(&apos;it is not snowing&apos;, () =&gt; &#123;</span><br><span class="line">  expect(inchesOfSnow()).toBe(0);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p><code>test.skip.each(table)(name, fn)</code> 도 사용가능하다.</p>
+<h3 id="test-todo-name"><a href="#test-todo-name" class="headerlink" title="test.todo(name)"></a>test.todo(name)</h3><p>추가되어야할 테스트 TODO를 남겨놓을 수 있다. 해당 메서드를 사용하면 다른 테스트들과 달리 강조되어 표시된다. 인자로 callback을 넘기면 에러가 발생한다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">const add = (a, b) =&gt; a + b;</span><br><span class="line"></span><br><span class="line">test.todo(&apos;add should be associative&apos;);</span><br></pre></td></tr></table></figure>
+<p>참조: <a href="https://jestjs.io/docs/en/api" target="_blank" rel="noopener">Jest 공식 문서</a></p>
+
+            
+
+        </div>
+    </div>
+    <div id="post-footer" class="post-footer main-content-wrap">
+        
+            <div class="post-footer-tags">
+                <span class="text-color-light text-small">태그</span><br>
+                
+    <a class="tag tag--primary tag--small t-link" href="/tags/describe/">describe</a> <a class="tag tag--primary tag--small t-link" href="/tags/jest-globals-메서드/">jest globals 메서드</a> <a class="tag tag--primary tag--small t-link" href="/tags/test/">test</a>
+
+            </div>
+        
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2020/02/16/jest-메서드-expect/" data-tooltip="jest 메서드 - expect" aria-label="이전: jest 메서드 - expect">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2020/02/09/성능을-높이는-코드-스타일/" data-tooltip="성능을 높이는 코드 스타일" aria-label="다음: 성능을 높이는 코드 스타일">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2020/02/09/jest-메서드-globals/" title="Facebook 공유">
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2020/02/09/jest-메서드-globals/" title="Twitter 공유">
+                    <i class="fab fa-twitter" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2020/02/09/jest-메서드-globals/" title="Google+ 공유">
+                    <i class="fab fa-google-plus" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+        
+            
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2020 kkangil. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+                    <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2020/02/16/jest-메서드-expect/" data-tooltip="jest 메서드 - expect" aria-label="이전: jest 메서드 - expect">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2020/02/09/성능을-높이는-코드-스타일/" data-tooltip="성능을 높이는 코드 스타일" aria-label="다음: 성능을 높이는 코드 스타일">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2020/02/09/jest-메서드-globals/" title="Facebook 공유">
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2020/02/09/jest-메서드-globals/" title="Twitter 공유">
+                    <i class="fab fa-twitter" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2020/02/09/jest-메서드-globals/" title="Google+ 공유">
+                    <i class="fab fa-google-plus" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                
+    <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+        <i id="btn-close-shareoptions" class="fa fa-times"></i>
+        <ul class="share-options">
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2020/02/09/jest-메서드-globals/">
+                        <i class="fab fa-facebook" aria-hidden="true"></i><span>Facebook 공유</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2020/02/09/jest-메서드-globals/">
+                        <i class="fab fa-twitter" aria-hidden="true"></i><span>Twitter 공유</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2020/02/09/jest-메서드-globals/">
+                        <i class="fab fa-google-plus" aria-hidden="true"></i><span>Google+ 공유</span>
+                    </a>
+                </li>
+            
+        </ul>
+    </div>
+
+
+            
+        </div>
+        
+
+
+    
+        
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-times"></i>
+        </div>
+        
+            <img id="about-card-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+        
+            <h4 id="about-card-name">kkangil</h4>
+        
+            <div id="about-card-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br>
+                <p>web developer</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker-alt"></i>
+                <br>
+                Asia/Seoul
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-dbd16rvloemmuxdzniplmnxxvwoz24eya9wol0b7vvmlokgqsjivmb8dnscy.min.js"></script>
+<!--SCRIPTS END-->
+
+    
+
+
+
+    </body>
+</html>

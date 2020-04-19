@@ -1,0 +1,520 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="kkangil&#39;s Blog">
+    <title>도구 다루기 - kkangil&#39;s Blog</title>
+    <meta name="author" content="kkangil">
+    
+    
+    
+        <link rel="alternate" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg"},"articleBody":"테스팅 프레임워크한 여행사의 차세대 예약 시스템 구축 프로젝트에 참여하여 항공 예약 데이터 생성 모듈을 맡게 되었는데, 그중에는 작동 명세가 다음과 같은 모듈 함수가 있었다.‘승객(passenger) 객체, 항공편(flight) 객체를 입력받은 createReservation은 passengerInformation 프로퍼티가 승객 객체, flightInformation 프로퍼티가 항공편 객체인 새로운 객체를 반환한다.’\n\n123456function createReservation(passenger, flight) &#123;  return &#123;    passengerInfo: passenger,    flightInfo: flight  &#125;&#125;\n팀 규정상 단위 테스트 없이 제품 코드를 체크인할 수 없으므로 단위 테스트 작성은 반드시 필요하다.참조할 함수는 이미 구현됐으니 어려운 일이 아니다.\n123456789101112131415161718192021222324252627282930313233describe(&apos;createReservation(passenger, flight&apos;, function () &#123;  it(&apos;주어진 passenger를 passengerInfo 프로퍼티에 할당한다.&apos;, function () &#123;    var testPassenger = &#123;      firstName: &apos;길동&apos;,      lastName: &apos;홍&apos;    &#125;;    var testFlight = &#123;      number: &apos;3443&apos;,      carrier: &apos;대한항공&apos;,      destination: &apos;울신&apos;    &#125;;    var reservation = createReservation(testPassenger, testFlight);    expect(reservation.passengerInfo).toBe(testPassenger);  &#125;);  it(&apos;주어진 filght를 flightInfo 프로퍼티에 할당한다.&apos;, function () &#123;    var testPassenger = &#123;      firstName: &apos;길동&apos;,      lastName: &apos;홍&apos;    &#125;;    var testFlight = &#123;      number: &apos;3443&apos;,      carrier: &apos;대한항공&apos;,      destination: &apos;울신&apos;    &#125;;    var reservation = createReservation(testPassenger, testFlight);    expect(reservation.flightInfo).toBe(testFlight);  &#125;);&#125;);\n위의 코드는 재스민 테스팅 프레임워크로 작성한 단위 테스트 코드다.it 함수 각자는 개별 단위 테스트고(위 코드에서는 2개의 단위 테스트), 이들은 함수에서 반환된 객체의 속성이 적절한지 expect 함수로 검사한다.\n1234567891011121314151617181920&lt;!DOCTYPE html&gt;&lt;html lang=&quot;ko&quot;&gt;&lt;head&gt;  &lt;meta charset=&quot;UTF-8&quot;&gt;  &lt;link data-require=&quot;jasmine@*&quot; data-semver=&quot;2.0.0&quot;            rel=&quot;stylesheet&quot;            href=&quot;http://cdn.jsdelivr.net/jasmine/2.0.0/jasmine.css&quot; /&gt;    &lt;script data-require=&quot;jasmine@*&quot; data-semver=&quot;2.0.0&quot;            src=&quot;http://cdn.jsdelivr.net/jasmine/2.0.0/jasmine.js&quot;&gt;            &lt;/script&gt;    &lt;script data-require=&quot;jasmine@*&quot; data-semver=&quot;2.0.0&quot;            src=&quot;http://cdn.jsdelivr.net/jasmine/2.0.0/jasmine-html.js&quot;&gt;            &lt;/script&gt;    &lt;script data-require=&quot;jasmine@*&quot; data-semver=&quot;2.0.0&quot;            src=&quot;http://cdn.jsdelivr.net/jasmine/2.0.0/boot.js&quot;&gt;            &lt;/script&gt;  &lt;script src=&quot;TestFrameworks_01.js&quot;&gt;&lt;/script&gt;  &lt;script src=&quot;TestFrameworks_01_test.js&quot;&gt;&lt;/script&gt;&lt;/head&gt;&lt;/html&gt;\n위와 같이 html 파일을 추가하고 단위 테스트를 실행한다.자세히 들여다 보니 단위테스트에 오류가 보인다. 반환된 예약 객체의 속성명은 passengerInformation과 flightInformation이라고 명세에 나와 있는데, passengerInfo와 flightInfo로 잘못 코딩한 것이다. 명세가 아니라 함수 코드의 개발에 따라 테스트를 작성한 탓에 테스트는 기대하는 함수 작동이 아닌, 구현된 함수의 잘못된 실제 작동을 확인한 꼴이다. 명세 기준으로 테스트 코드를 작성했으면 속성명을 틀릴 일이 없었을 것이다.\n잘못된 코드 발견하기TDD는 코드 결함을 최대한 빨리, 곧 코드 생성 직후 감지하며, 작은 기능 하나라도 테스트를 먼저 작성한 뒤, 취소한의 코드만으로 기능을 구현한다.createReservation 함수로 다시 돌아가 테스트를 먼저 작성하면 어떻게 달라지는지 알아보고자 한다.\n1234567891011121314151617describe(&apos;createReservation(passenger, flight)&apos;, function () &#123;  it(&apos;주어진 passenger를 passengerInformation 프로퍼티에 할당한다.&apos;, function () &#123;    var testPassenger = &#123;      firstName: &apos;길동&apos;,      lastName: &apos;홍&apos;    &#125;;    var testFlight = &#123;      number: &apos;3443&apos;,      carrier: &apos;대한항공&apos;,      destination: &apos;울신&apos;    &#125;;    var reservation = createReservation(testPassenger, testFlight);    expect(reservation.passengerInformation).toBe(testPassenger);  &#125;)&#125;);\n123456function createReservation(passenger, flight) &#123;  return &#123;    passengerInfo: passenger,    flightInfo: flight  &#125;&#125;\n위의 코드로 단위 테스트하면 실패하게 된다.반환 객체의 속성명을 잘못해서 passengerInformation 대신 passengerInfo로 적었다. 속성명을 정정하고 다시 테스트하면 성공한다.\n반환 객체의 속성명을 잘못 쓴 실수가 createReservation 함수를 구현한 코드에 잠복해 있지만, 이번에는 테스트를 먼저 작성한 뒤 명세에 따라 테스트를 했으므로 다른 개발자가 통합 테스트를 진행하다가 에러를 즉시 확인하여 조치할 수 있다.\n테스트성을 감안하여 설계하기테스트를 먼저 작성하란 건 코드의 테스트성을 차후에 두고 볼 문제가 아니라 우선적인 주요 관심사로 생각하는 것이다. 어떤 코드의 테스트 용이성과 그 코드의 테스트가 얼마나 잘 이루어졌는지는 직접적인 상관 관계가 있다.\n꼭 필요한 코드만 작성하기TDD 작업 절차를 정리해보자. 작은 기능 하나를 검증하려면 실패하는 테스트를 먼저 작성한 뒤, 테스트를 성공시킬 만큼만 최소한으로 코딩한다. 그 후 내부적으로 구현 세부를 변경하는 리팩토링 과정을 거쳐 개발 중인 코드에서 중복 코드를 들어낸다. 이런 과정을 거치면서 결국 마지막에는 꼭 필요한 코드만 남게 된다.\n안전한 유지 보수와 리팩토링TDD를 실천하면 프로젝트 제품 코드를 대상으로 확실한 단위 테스트 꾸러미를 구축할 수 있다. 예전에 잘 돌아가던 코드가 지금은 제대로 작동하지 않은 회귀 결함은 코드 품질과 믿음성을 떨어뜨리는 요인이다.여타 보험 정책이 그렇듯, 혜택은 없고 짐만 되는 재발 비용이 발생한다. 단위 테스트의 경우 테스트 꾸러미를 개발/보수하느라 재발 비용이 들어가는데, 보험과 마찬가지로 이 재발 비용을 지불하는 부담에서 벗어나는 시점이 온다.종합적인 단위 테스트 꾸러미가 마련된 제품 코드를 확장 또는 보수할 때도 비슷한 안도감을 느낄 수 있다. 실수로 다른 코드를 건드리지 않았다는 확신을 하고 코드 일부를 변경할 수 있기 때문이다.\n실행 가능한 명세TDD 실천 결과, 탄탄하게 구축된 단위 테스트 꾸러미는 테스트 대상 코드의 실행 가능한 명세 역할도 한다. 단위 테스팅 프레임워크인 재스민은 행위 기반(behavior-based) 으로 테스트를 구성한다. 재스민에서 스펙이라 부르는 개별 테스트는, 테스트하여 검증할 작동 로직을 일상 문장으로 표현하면서 시작한다.createReservation 함수를 예로 들면, 재스민으로 단위 테스트한 결과 메시지를 보고 이 함수가 무슨 일을 하는지 큰 그림을 그려볼 수 있다. createReservation이 하는 일을 굳이 코드를 읽고 분석하지 않아도 단위 테스트가 죄다 알려주는 셈이다.\n참조: 자바스크립트 패턴과 테스트github\n","dateCreated":"2020-01-19T17:05:23+09:00","dateModified":"2020-01-27T15:51:03+09:00","datePublished":"2020-01-19T17:05:23+09:00","description":"테스팅 프레임워크한 여행사의 차세대 예약 시스템 구축 프로젝트에 참여하여 항공 예약 데이터 생성 모듈을 맡게 되었는데, 그중에는 작동 명세가 다음과 같은 모듈 함수가 있었다.‘승객(passenger) 객체, 항공편(flight) 객체를 입력받은 createReservation은 passengerInformation 프로퍼티가 승객 객체, flightInformation 프로퍼티가 항공편 객체인 새로운 객체를 반환한다.’","headline":"도구 다루기","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"https://kkangil.github.io/2020/01/19/도구-다루기/"},"publisher":{"@type":"Organization","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg","logo":{"@type":"ImageObject","url":"profile.jpeg"}},"url":"https://kkangil.github.io/2020/01/19/도구-다루기/","keywords":"javascript, 테스트 코드, jasmine, TDD"}</script>
+    <meta name="description" content="테스팅 프레임워크한 여행사의 차세대 예약 시스템 구축 프로젝트에 참여하여 항공 예약 데이터 생성 모듈을 맡게 되었는데, 그중에는 작동 명세가 다음과 같은 모듈 함수가 있었다.‘승객(passenger) 객체, 항공편(flight) 객체를 입력받은 createReservation은 passengerInformation 프로퍼티가 승객 객체, flightInfo">
+<meta name="keywords" content="javascript,테스트 코드,jasmine,TDD">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="도구 다루기">
+<meta property="og:url" content="https://kkangil.github.io/2020/01/19/도구-다루기/index.html">
+<meta property="og:site_name" content="kkangil&#39;s Blog">
+<meta property="og:description" content="테스팅 프레임워크한 여행사의 차세대 예약 시스템 구축 프로젝트에 참여하여 항공 예약 데이터 생성 모듈을 맡게 되었는데, 그중에는 작동 명세가 다음과 같은 모듈 함수가 있었다.‘승객(passenger) 객체, 항공편(flight) 객체를 입력받은 createReservation은 passengerInformation 프로퍼티가 승객 객체, flightInfo">
+<meta property="og:locale" content="ko">
+<meta property="og:updated_time" content="2020-01-27T06:51:03.247Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="도구 다루기">
+<meta name="twitter:description" content="테스팅 프레임워크한 여행사의 차세대 예약 시스템 구축 프로젝트에 참여하여 항공 예약 데이터 생성 모듈을 맡게 되었는데, 그중에는 작동 명세가 다음과 같은 모듈 함수가 있었다.‘승객(passenger) 객체, 항공편(flight) 객체를 입력받은 createReservation은 passengerInformation 프로퍼티가 승객 객체, flightInfo">
+    
+    
+        
+    
+    
+        <meta property="og:image" content="https://kkangil.github.io/assets/images/profile.jpeg"/>
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/style-c4ozcsklz4kht2pebhp44xorvyverh23toayhn7i6ubrpyedak24hv1v0hyd.min.css">
+    <!--STYLES END-->
+    
+
+    
+</head>
+
+    <body>
+        <div id="blog">
+            <!-- Define author's picture -->
+
+
+    
+        
+            
+        
+    
+
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a class="header-title-link" href="/ ">kkangil&#39;s Blog</a>
+    </div>
+    
+        
+            <a class="header-right-picture " href="#about">
+        
+        
+            <img class="header-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+        
+        </a>
+    
+</header>
+
+            <!-- Define author's picture -->
+
+
+
+        
+    
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
+        
+            <div class="sidebar-profile">
+                <a href="/#about">
+                    <img class="sidebar-profile-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+                </a>
+                <h4 class="sidebar-profile-name">kkangil</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
+</h5>
+                
+            </div>
+        
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/ " title="Home">
+                    
+                        <i class="sidebar-button-icon fa fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Home</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-categories" title="카테고리">
+                    
+                        <i class="sidebar-button-icon fa fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">카테고리</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-tags" title="태그">
+                    
+                        <i class="sidebar-button-icon fa fa-tags" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">태그</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-archives" title="기록">
+                    
+                        <i class="sidebar-button-icon fa fa-archive" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">기록</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link open-algolia-search" href="#search" title="검색">
+                    
+                        <i class="sidebar-button-icon fa fa-search" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">검색</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="#about" title="About">
+                    
+                        <i class="sidebar-button-icon fa fa-question" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">About</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="https://github.com/kkangil" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fab fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="http://stackoverflow.com/users/10870848/kkangil" target="_blank" rel="noopener" title="Stack Overflow">
+                    
+                        <i class="sidebar-button-icon fab fa-stack-overflow" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Stack Overflow</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="https://www.linkedin.com/in/kangil-kim-31093a169/" target="_blank" rel="noopener" title="LinkedIn">
+                    
+                        <i class="sidebar-button-icon fab fa-linkedin" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">LinkedIn</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/fe.kkangil@gmail.com" title="Mail">
+                    
+                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Mail</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/atom.xml" title="RSS">
+                    
+                        <i class="sidebar-button-icon fa fa-rss" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">RSS</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
+</nav>
+
+            
+            <div id="main" data-behavior="4"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title">
+            도구 다루기
+        </h1>
+    
+    
+        <div class="post-meta">
+    <time datetime="2020-01-19T17:05:23+09:00">
+	
+		    1월 19, 2020
+    	
+    </time>
+    
+        <span>카테고리 </span>
+        
+    <a class="category-link" href="/categories/테스트-코드/">테스트 코드</a>
+
+
+    
+</div>
+
+    
+</div>
+
+    
+    <div class="post-content markdown">
+        <div class="main-content-wrap">
+            <h2 id="테스팅-프레임워크"><a href="#테스팅-프레임워크" class="headerlink" title="테스팅 프레임워크"></a>테스팅 프레임워크</h2><p>한 여행사의 차세대 예약 시스템 구축 프로젝트에 참여하여 항공 예약 데이터 생성 모듈을 맡게 되었는데, 그중에는 작동 명세가 다음과 같은 모듈 함수가 있었다.<br>‘승객(passenger) 객체, 항공편(flight) 객체를 입력받은 createReservation은 passengerInformation 프로퍼티가 승객 객체, flightInformation 프로퍼티가 항공편 객체인 새로운 객체를 반환한다.’</p>
+<a id="more"></a>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">function createReservation(passenger, flight) &#123;</span><br><span class="line">  return &#123;</span><br><span class="line">    passengerInfo: passenger,</span><br><span class="line">    flightInfo: flight</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>팀 규정상 단위 테스트 없이 제품 코드를 체크인할 수 없으므로 단위 테스트 작성은 반드시 필요하다.<br>참조할 함수는 이미 구현됐으니 어려운 일이 아니다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">describe(&apos;createReservation(passenger, flight&apos;, function () &#123;</span><br><span class="line">  it(&apos;주어진 passenger를 passengerInfo 프로퍼티에 할당한다.&apos;, function () &#123;</span><br><span class="line">    var testPassenger = &#123;</span><br><span class="line">      firstName: &apos;길동&apos;,</span><br><span class="line">      lastName: &apos;홍&apos;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    var testFlight = &#123;</span><br><span class="line">      number: &apos;3443&apos;,</span><br><span class="line">      carrier: &apos;대한항공&apos;,</span><br><span class="line">      destination: &apos;울신&apos;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    var reservation = createReservation(testPassenger, testFlight);</span><br><span class="line">    expect(reservation.passengerInfo).toBe(testPassenger);</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  it(&apos;주어진 filght를 flightInfo 프로퍼티에 할당한다.&apos;, function () &#123;</span><br><span class="line">    var testPassenger = &#123;</span><br><span class="line">      firstName: &apos;길동&apos;,</span><br><span class="line">      lastName: &apos;홍&apos;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    var testFlight = &#123;</span><br><span class="line">      number: &apos;3443&apos;,</span><br><span class="line">      carrier: &apos;대한항공&apos;,</span><br><span class="line">      destination: &apos;울신&apos;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    var reservation = createReservation(testPassenger, testFlight);</span><br><span class="line">    expect(reservation.flightInfo).toBe(testFlight);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>위의 코드는 재스민 테스팅 프레임워크로 작성한 단위 테스트 코드다.<br>it 함수 각자는 개별 단위 테스트고(위 코드에서는 2개의 단위 테스트), 이들은 함수에서 반환된 객체의 속성이 적절한지 expect 함수로 검사한다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">&lt;!DOCTYPE html&gt;</span><br><span class="line">&lt;html lang=&quot;ko&quot;&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">  &lt;meta charset=&quot;UTF-8&quot;&gt;</span><br><span class="line">  &lt;link data-require=&quot;jasmine@*&quot; data-semver=&quot;2.0.0&quot;</span><br><span class="line">            rel=&quot;stylesheet&quot;</span><br><span class="line">            href=&quot;http://cdn.jsdelivr.net/jasmine/2.0.0/jasmine.css&quot; /&gt;</span><br><span class="line">    &lt;script data-require=&quot;jasmine@*&quot; data-semver=&quot;2.0.0&quot;</span><br><span class="line">            src=&quot;http://cdn.jsdelivr.net/jasmine/2.0.0/jasmine.js&quot;&gt;</span><br><span class="line">            &lt;/script&gt;</span><br><span class="line">    &lt;script data-require=&quot;jasmine@*&quot; data-semver=&quot;2.0.0&quot;</span><br><span class="line">            src=&quot;http://cdn.jsdelivr.net/jasmine/2.0.0/jasmine-html.js&quot;&gt;</span><br><span class="line">            &lt;/script&gt;</span><br><span class="line">    &lt;script data-require=&quot;jasmine@*&quot; data-semver=&quot;2.0.0&quot;</span><br><span class="line">            src=&quot;http://cdn.jsdelivr.net/jasmine/2.0.0/boot.js&quot;&gt;</span><br><span class="line">            &lt;/script&gt;</span><br><span class="line">  &lt;script src=&quot;TestFrameworks_01.js&quot;&gt;&lt;/script&gt;</span><br><span class="line">  &lt;script src=&quot;TestFrameworks_01_test.js&quot;&gt;&lt;/script&gt;</span><br><span class="line">&lt;/head&gt;</span><br><span class="line">&lt;/html&gt;</span><br></pre></td></tr></table></figure>
+<p>위와 같이 html 파일을 추가하고 단위 테스트를 실행한다.<br>자세히 들여다 보니 단위테스트에 오류가 보인다. 반환된 예약 객체의 속성명은 passengerInformation과 flightInformation이라고 명세에 나와 있는데, passengerInfo와 flightInfo로 잘못 코딩한 것이다. 명세가 아니라 함수 코드의 개발에 따라 테스트를 작성한 탓에 테스트는 기대하는 함수 작동이 아닌, 구현된 함수의 잘못된 실제 작동을 확인한 꼴이다. 명세 기준으로 테스트 코드를 작성했으면 속성명을 틀릴 일이 없었을 것이다.</p>
+<h3 id="잘못된-코드-발견하기"><a href="#잘못된-코드-발견하기" class="headerlink" title="잘못된 코드 발견하기"></a>잘못된 코드 발견하기</h3><p>TDD는 코드 결함을 최대한 빨리, 곧 코드 생성 직후 감지하며, 작은 기능 하나라도 테스트를 먼저 작성한 뒤, 취소한의 코드만으로 기능을 구현한다.<br>createReservation 함수로 다시 돌아가 테스트를 먼저 작성하면 어떻게 달라지는지 알아보고자 한다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">describe(&apos;createReservation(passenger, flight)&apos;, function () &#123;</span><br><span class="line">  it(&apos;주어진 passenger를 passengerInformation 프로퍼티에 할당한다.&apos;, function () &#123;</span><br><span class="line">    var testPassenger = &#123;</span><br><span class="line">      firstName: &apos;길동&apos;,</span><br><span class="line">      lastName: &apos;홍&apos;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    var testFlight = &#123;</span><br><span class="line">      number: &apos;3443&apos;,</span><br><span class="line">      carrier: &apos;대한항공&apos;,</span><br><span class="line">      destination: &apos;울신&apos;</span><br><span class="line">    &#125;;</span><br><span class="line"></span><br><span class="line">    var reservation = createReservation(testPassenger, testFlight);</span><br><span class="line">    expect(reservation.passengerInformation).toBe(testPassenger);</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">function createReservation(passenger, flight) &#123;</span><br><span class="line">  return &#123;</span><br><span class="line">    passengerInfo: passenger,</span><br><span class="line">    flightInfo: flight</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>위의 코드로 단위 테스트하면 실패하게 된다.<br>반환 객체의 속성명을 잘못해서 passengerInformation 대신 passengerInfo로 적었다. 속성명을 정정하고 다시 테스트하면 성공한다.</p>
+<p>반환 객체의 속성명을 잘못 쓴 실수가 createReservation 함수를 구현한 코드에 잠복해 있지만, 이번에는 테스트를 먼저 작성한 뒤 명세에 따라 테스트를 했으므로 다른 개발자가 통합 테스트를 진행하다가 에러를 즉시 확인하여 조치할 수 있다.</p>
+<h3 id="테스트성을-감안하여-설계하기"><a href="#테스트성을-감안하여-설계하기" class="headerlink" title="테스트성을 감안하여 설계하기"></a>테스트성을 감안하여 설계하기</h3><p>테스트를 먼저 작성하란 건 코드의 테스트성을 차후에 두고 볼 문제가 아니라 우선적인 주요 관심사로 생각하는 것이다. 어떤 코드의 테스트 용이성과 그 코드의 테스트가 얼마나 잘 이루어졌는지는 직접적인 상관 관계가 있다.</p>
+<h3 id="꼭-필요한-코드만-작성하기"><a href="#꼭-필요한-코드만-작성하기" class="headerlink" title="꼭 필요한 코드만 작성하기"></a>꼭 필요한 코드만 작성하기</h3><p>TDD 작업 절차를 정리해보자. 작은 기능 하나를 검증하려면 실패하는 테스트를 먼저 작성한 뒤, 테스트를 성공시킬 만큼만 최소한으로 코딩한다. 그 후 내부적으로 구현 세부를 변경하는 <code>리팩토링</code> 과정을 거쳐 개발 중인 코드에서 중복 코드를 들어낸다. 이런 과정을 거치면서 결국 마지막에는 꼭 필요한 코드만 남게 된다.</p>
+<h3 id="안전한-유지-보수와-리팩토링"><a href="#안전한-유지-보수와-리팩토링" class="headerlink" title="안전한 유지 보수와 리팩토링"></a>안전한 유지 보수와 리팩토링</h3><p>TDD를 실천하면 프로젝트 제품 코드를 대상으로 확실한 단위 테스트 꾸러미를 구축할 수 있다. 예전에 잘 돌아가던 코드가 지금은 제대로 작동하지 않은 회귀 결함은 코드 품질과 믿음성을 떨어뜨리는 요인이다.<br>여타 보험 정책이 그렇듯, 혜택은 없고 짐만 되는 재발 비용이 발생한다. 단위 테스트의 경우 테스트 꾸러미를 개발/보수하느라 재발 비용이 들어가는데, 보험과 마찬가지로 이 재발 비용을 지불하는 부담에서 벗어나는 시점이 온다.<br>종합적인 단위 테스트 꾸러미가 마련된 제품 코드를 확장 또는 보수할 때도 비슷한 안도감을 느낄 수 있다. 실수로 다른 코드를 건드리지 않았다는 확신을 하고 코드 일부를 변경할 수 있기 때문이다.</p>
+<h3 id="실행-가능한-명세"><a href="#실행-가능한-명세" class="headerlink" title="실행 가능한 명세"></a>실행 가능한 명세</h3><p>TDD 실천 결과, 탄탄하게 구축된 단위 테스트 꾸러미는 테스트 대상 코드의 실행 가능한 명세 역할도 한다. 단위 테스팅 프레임워크인 재스민은 행위 기반(behavior-based) 으로 테스트를 구성한다. 재스민에서 스펙이라 부르는 개별 테스트는, 테스트하여 검증할 작동 로직을 일상 문장으로 표현하면서 시작한다.<br>createReservation 함수를 예로 들면, 재스민으로 단위 테스트한 결과 메시지를 보고 이 함수가 무슨 일을 하는지 큰 그림을 그려볼 수 있다. createReservation이 하는 일을 굳이 코드를 읽고 분석하지 않아도 단위 테스트가 죄다 알려주는 셈이다.</p>
+<p>참조: <a href="http://www.yes24.com/Product/Goods/33211518?Acode=101" target="_blank" rel="noopener">자바스크립트 패턴과 테스트</a><br><a href="https://github.com/kkangil/javascript-pattern-test" target="_blank" rel="noopener">github</a></p>
+
+            
+
+        </div>
+    </div>
+    <div id="post-footer" class="post-footer main-content-wrap">
+        
+            <div class="post-footer-tags">
+                <span class="text-color-light text-small">태그</span><br>
+                
+    <a class="tag tag--primary tag--small t-link" href="/tags/TDD/">TDD</a> <a class="tag tag--primary tag--small t-link" href="/tags/jasmine/">jasmine</a> <a class="tag tag--primary tag--small t-link" href="/tags/javascript/">javascript</a> <a class="tag tag--primary tag--small t-link" href="/tags/테스트-코드/">테스트 코드</a>
+
+            </div>
+        
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2020/01/27/도구-다루기-2/" data-tooltip="도구 다루기-2" aria-label="이전: 도구 다루기-2">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2020/01/12/메모이제이션/" data-tooltip="메모이제이션" aria-label="다음: 메모이제이션">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2020/01/19/도구-다루기/" title="Facebook 공유">
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2020/01/19/도구-다루기/" title="Twitter 공유">
+                    <i class="fab fa-twitter" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2020/01/19/도구-다루기/" title="Google+ 공유">
+                    <i class="fab fa-google-plus" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+        
+            
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2020 kkangil. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+                    <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2020/01/27/도구-다루기-2/" data-tooltip="도구 다루기-2" aria-label="이전: 도구 다루기-2">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2020/01/12/메모이제이션/" data-tooltip="메모이제이션" aria-label="다음: 메모이제이션">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2020/01/19/도구-다루기/" title="Facebook 공유">
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2020/01/19/도구-다루기/" title="Twitter 공유">
+                    <i class="fab fa-twitter" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2020/01/19/도구-다루기/" title="Google+ 공유">
+                    <i class="fab fa-google-plus" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                
+    <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+        <i id="btn-close-shareoptions" class="fa fa-times"></i>
+        <ul class="share-options">
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2020/01/19/도구-다루기/">
+                        <i class="fab fa-facebook" aria-hidden="true"></i><span>Facebook 공유</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2020/01/19/도구-다루기/">
+                        <i class="fab fa-twitter" aria-hidden="true"></i><span>Twitter 공유</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2020/01/19/도구-다루기/">
+                        <i class="fab fa-google-plus" aria-hidden="true"></i><span>Google+ 공유</span>
+                    </a>
+                </li>
+            
+        </ul>
+    </div>
+
+
+            
+        </div>
+        
+
+
+    
+        
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-times"></i>
+        </div>
+        
+            <img id="about-card-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+        
+            <h4 id="about-card-name">kkangil</h4>
+        
+            <div id="about-card-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br>
+                <p>web developer</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker-alt"></i>
+                <br>
+                Asia/Seoul
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-dbd16rvloemmuxdzniplmnxxvwoz24eya9wol0b7vvmlokgqsjivmb8dnscy.min.js"></script>
+<!--SCRIPTS END-->
+
+    
+
+
+
+    </body>
+</html>

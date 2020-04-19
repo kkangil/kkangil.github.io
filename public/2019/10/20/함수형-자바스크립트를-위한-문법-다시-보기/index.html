@@ -1,0 +1,597 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="kkangil&#39;s Blog">
+    <title>함수형 자바스크립트를 위한 문법 다시 보기 - kkangil&#39;s Blog</title>
+    <meta name="author" content="kkangil">
+    
+    
+    
+        <link rel="alternate" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg"},"articleBody":"함수형 자바스크립트를 잘 다루기 위해서는 숲을 보는 것보다 나무의 결을 들여다 보는 것이 중요하다. 자바스크립트 문법과 기본적인 동작에 집중해보자. 함수 하나가 정의되고 실행되고 참조되는 과정, 인자를 받거나 넘기는 과정, 클로저가 되거나 비동기가 일어나는 과정, 괄호, 대괄호, 점, 쉼표 등을 자세히 들여다 보자. 문법적 감각이 좋아지면 원하는 곳 어디에서나 함수를 열고 실행할 수 있게 된다.\n\n객체와 대괄호 다시 보기객체와 key12345678var obj = &#123; a: 1, &quot;b&quot;: 2 &#125;; // 1obj.c = 3;obj[&apos;d&apos;] = 4; // 2var e = &apos;e&apos;;obj[e] = 5;function f() &#123; return &apos;f&apos; &#125;;obj[f()] = 6;console.log(obj);\n일단 객체의 key 와 value에 대한 부분이다. 객체의 key와 value는 {}, . , [] 등을 통해 설정할 수 있다.그중 어떤 문자열이든 key로 정의할 수 있는 곳이 있는데 1과 2 같은 곳이다. 이 두 가지 방식이 가진 공통점이 있다면 띄어쓰기, 특수 문자, 숫자 등을 가리지 않고 어떤 문자열이든 key로 만들 수 있다는 점이다.\n1234567891011var obj2 = &#123; &quot;a a a&quot;: 1 &#125;;obj2[&quot;b b b&quot;] = 2;console.log(obj2);var obj3 = &#123; &quot;margin-top&quot;: 5 &#125;;obj3[&quot;padding-bottom&quot;] = 20;console.log(obj3);var obj4 = &#123; 1: 10 &#125;;obj4[2] = 20;console.log(obj4);\n그렇다면 {} 안쪽에서 key를 선언하는 것과 [] 안에서 선언하는 것은 차이가 없을까? {}의 문자열 부분에서는 코드를 실행할 수 없고 []의 안쪽에서는 코드를 실행할 수 있다.\n1234var obj5 = &#123; (true ? &quot;a&quot; : &quot;b&quot;): 1&#125;; // Uncaught SyntaxErrorvar obj6 = &#123;&#125;;obj6[true ? &quot;a&quot; : &quot;b&quot;] = 1;console.log(obj6);\n{} 안쪽의 key 영역에서는 코드를 실행할 수 없다. [] 사이에는 문자열이 담긴 변수도 넣을 수 있고, 연산자도 사용할 수 있으며 함수도 실행할 수 있다. 즉, [] 에서는 코드를 실행할 수 있다.\n12var obj5 = &#123; [true ? &quot;a&quot; : &quot;b&quot;]: 1 &#125;console.log(obj5);\n하지만 ES6 의 경우에서는 {} 안에 [] 를 사용하여 코드를 실행할 수 있게됐다. \n함수나 배열에 달기12345function obj8() &#123; &#125;obj8.a = 1;obj8.b = 2;console.log(obj8.a); // 1console.log(obj8.b); // 2\n자바스크립트에서는 함수도 객체다. 그러므로 함수도 key/value 쌍으로 구성할 수 있다.\n1234var obj10 = []obj10.a = 1;console.log(obj10.a); // 1console.log(obj10.length); // 0\n배열도 객체이며 배열에도 숫자가 아닌 key를 사용할 수 있다. 단, 숫자가 아닌 key로 값을 할당할 경우 length는 변하지 않는다.\n12345var obj11 = [];obj11[0] = 1;obj11[1] = 2;console.log(obj11);console.log(obj11.length) // 2\n배열에 숫자로 key를 직접 할당해도 push와 동일하게 동작한다. 자동으로 length도 올라간다.\ndelete자바스크립트에서는 기본 객체의 메서드나 프로퍼티도 지울 수 있다.\n123456789var obj = &#123; a: 1, b: 2, c: 3 &#125;;delete obj.a;delete obj[&apos;b&apos;];delete obj[&apos;C&apos;.toLocaleLowerCase()];console.log(obj) // &#123;&#125;delete Array.prototype.push;var arr1 = [1, 2, 3];arr1.push(4); // Uncaught TypeError: arr1.push is not a function\n다른 언어를 다루었던 개발자라면 delete로 아무거나 지우기, 배열에 숫자가 아닌 key 사용하기 등을 봤을 때, 자바스크립트의 유연함을 난해하다거나 위험하다고 느낄 수 있다. 하지만 이 특징들을 문제가 아닌 자바스크립트의 특성으로 받아들인 후에 더욱 다양한 기법들이 나오기 시작했고 더 잘 동작하기까지했다.\n함수 정의 다시 보기기본 정의자바스크립트에서 함수를 정의하는 방법은 다양하다. 대표적인 방법들은 다음과 같다.\n1234567891011function add1(a, b) &#123;  return a + b;&#125;var add2 = function(a, b) &#123;  return a + b;&#125;var m = &#123;  add3: function (a, b) &#123;    return a + b;  &#125;&#125;\n함수를 정의하는 것은 이미 익숙하겠지만 확인해 볼 만한 부분이 있다. 바로 호이스팅인데, 호이스팅에 대해 어느 정도 알고 있더라도 읽어 보기를 권한다.\n호이스팅호이스팅(hoisting)이란 변수나 함수가 어디서 선언되든지 해당 스코프 최상단에 위치하게 되어 동일 스코프 어디서든 참조할 수 있는 것을 말한다. 아래의 코드 add1과 add2에는 호이스팅이 적용된다. ‘add2는 실행이 안 될 텐데 호이스팅이 아니지 않나?’하고 생각할 수 있지만 이것은 오해다. 물론 에러가 난 걸로 알 수 있듯이 add2는 선언하기 전 라인에서 실행할 수 없다. 하지만 분명히 add2도 호이스팅이 적용된 것이다. 결론부터 말하면 선언은 되었지만 아직 초기화되지 않은 상태에서 실행했기 때문에 에러가 난 것 이다.\n123456789add1(10, 5); // 15add2(10, 5); // Uncaught TypeError: add2 is not a functionfunction add1(a, b) &#123;  return a + b;&#125;var add2 = function (a, b) &#123;  return a + b;&#125;\n예제에서 add2는 실행되지 않았고, ‘add2 is not a function’ 이라는 에러 메시지가 출력되었다. 이번에는 선언한 적 없는 함수를 실행해보자.\n12hi();// Uncaught ReferenceError: hi is not defined\n에러 메시지가 다르다. 자바스크립트에서는 아예 선언된 적이 없는 것을 참조하려고 할 때 이러한 에러가 난다. 실행하지 않고 참조만 하려고 해도 동일한 에러가 난다.\n123456789console.log(add1); // function add1(a, b) &#123; return a + b &#125;;console.log(add2); // undefined;function add1(a, b) &#123;  return a + b;&#125;var add2 = function (a, b) &#123;  return a + b;&#125;\n이번엔 에러가 나지 않았고 undefined가 출력되었다. 그렇다면 add1과 add2는 어떤 차이에 의해 실행이 되고 안 되는 것 일까?이는 변수 선언과 함수 선언에서의 차이 떄문이다. 변수는 선언 단계와 초기화 단계가 구분되어 있다. 변수는 선언과 초기화가 동시에 이루어지지 않기 때문에 호이스팅에 의해 참조만 가능하고, 아직 값이 담기지 않아 실행은 불가능하다. 반면에 함수 선언은 선언과 동시에 초기화가 이루어지기 때문에 참조뿐 아니라 실행도 가능하다.add2는 변수를 선언하여 익명 함수를 담았고 add1은 함수로 선언했다. 호이스팅에 의해 add1은 미리 실행할 수 있고 add2는 호이스팅에 의해 미리 참조할 수 있지만 값이 없어 실행할 수는 없다.\n호이스팅 활용하기함수 선언과 호이스팅을 이용하면 다음과 같이 코드를 작성할 수 있다.\n12345678910function add(a, b) &#123;  return valid() ? a + b : new Error();  function valid() &#123;    return Number.isInteger(a) &amp;&amp; Number.isInteger(b);  &#125;&#125;console.log(add(10, 5)); // 15console.log(add(10, &apos;&apos;)); // Error(...)\n위와 같이 return 문 아래에 정의한 함수도 실행이 가능하다. 비교적 복잡한 코드를 하단부에 정의하고 실행부 코드는 깔끔하게 유지하는 등으로 활용할 수도 있다.\n괄호없이 즉시 실행하기123(function (a) &#123;  console.log(a);&#125;)(100);\n자바스크립트에서는 위와 같이 괄호를 통해 익명 함수를 즉시 실행할 수 있다. 괄호 없이 실행하면 에러가 발생한다. 많은 경우, 참조가 잘못되어 에러가 났다고 생각할 수 있지만 그렇지 않다. 에러가 난 이유는 익명 함수를 잘못 실행한 것이 아니라 익명 함수 선언 자체가 실패했기 떄문이다.\n12function() &#123;&#125;// Uncaught SyntaxError: Unexpected token (\n실행 없이 선언만 시도해도 에러가 난다. 그런데 우리는 이와 비슷한데 에러가 나지 않는 코드를 봤었다.\n1234567function f1() &#123;  return function() &#123;  &#125;&#125;f1();\n이 예제는 1장에서 봤었던 함수를 값으로 다루는 패턴 중 하나다. 위 코드는 함수를 괄호로 감싸지 않았는데 문법 에러가 나지 않고 정상적으로 동작한다. 이 상황에서 에러가 나지 않는다면 괄호 없이 즉시 실행도 되지 않을까?\n1234567function f1() &#123;  return function (a) &#123;    console.log(a)  &#125;(1)&#125;f1();\n이 코드는 정상적으로 동작한다. f1이라느느 함수 안에 있는 익명 함수는 괄호 없이도 즉시 실행이 되었다. 만일 f1이라는 함수의 return 바로 뒤에서 함수를 즉시 실행하고 싶다면, 그 상황에서는 괄호 없이도 익명 함수를 즉시 실행할 수 있다.\n1234567891011121314151617181920212223242526272829303132!function (a) &#123;  console.log(a)&#125;(1);true &amp;&amp; function (a) &#123;  console.log(a)&#125;(1);1 ? function (a) &#123;  console.log(a)&#125;(1) : 5;0, function (a) &#123;  console.log(a)&#125;(1);var b = function (a) &#123;  console.log(a)&#125;(1);function f2() &#123; &#125;f2(function (a) &#123;  console.log(a)&#125;(1));var f3 = function c(a) &#123;  console.log(a)&#125;(1);new function () &#123;  console.log(1);&#125;\n위와 같은 상황들에서는 괄호 없이도 익명 함수를 즉시 실행할 수 있다. 이 중 !를 이용한 방법은 꽤 알려진 편이다. 이 상황에서의 공통점은 무엇일까? 일단 모두 연산자와 함께 있고, 함수가 값으로 다뤄졌다. 그리고 모두 익명 함수 선언에 대한 오류가 나지 않는다. 앞에서 즉시 실행이 실패했던 것은 익명 함수를 잘못 실행한 것이 아니라 익명 함수 선언 자체를 하지 못해서였다.\n유명(named) 함수123var f1 = function f() &#123;  console.log(f);&#125;\n함수를 값으로 다루면서 익명이 아닌 f() 처럼 이름을 지은 함수를 유명 함수라고 한다. 함수를 즉시 실행한다거나 함수를 클로저로 만들어 리턴할 때, 함수를 메서도로 만들 때는 주로 익명 함수를 사용하게 된다. 이와 같은 상황에서 익명 함수 대신 유명 함수로 사용하는 것이 유용할 때가 있다.\n12345678910var f1 = function () &#123;  console.log(f1);&#125;f1();// 위험 상황var f2 = f1;f1 = &apos;hi~&apos;;f2();\n이렇게 하면 참조가 가능하지만 ‘위험 상황’ 부분처럼 함수 생성 이후 변경이 일어나면 더 이상 자기 자신을 참조하지 못하게 될 수 있다.\n123456789101112131415var f1 = function () &#123;  console.log(arguments.callee)&#125;f1();// ƒ () &#123;//   console.log(arguments.callee)// &#125;var f2 = f1;f1 = null;f2();// ƒ () &#123;//   console.log(arguments.callee)// &#125;\n위 방법은 이 전 코드의 문제를 해결하지만 arguments.callee는 ES5 Strict mode에서 사용할 수 없다. 유명 함수식을 사용하면 arguments.callee를 대체할 수 있다. 유명 함수는 함수가 값으로 사용되는 상황에서 자신을 참조하기 매우 편하다. 함수의 이름이 바뀌든 메서드 안에서 생성한 함수를 다시 참조하고 싶은 상황이든 어떤 상황에서든 상관없이 자기 자신을 정확히 참조할 수 있다.\n12345678var f1 = function f() &#123;  console.log(f);&#125;f1();var f2 = f1;f1 = null;f2();\n유명 함수를 이용한 재귀유명 함수는 재귀를 만들 때에도 편리하다. 다음은 깊이를 가진 배열을 펴 주는 flatten 함수다. 아래와 같은 함수를 만들 때 재귀와 유명 함수는 특히 유용하다.\n1234567891011121314function flatten(arr) &#123;  return function f(arr, new_arr) &#123; // 1    arr.forEach(function (v) &#123;      Array.isArray(v) ? f(v, new_arr) : new_arr.push(v); // 2    &#125;);    return new_arr;  &#125;(arr, []); // 3&#125;console.log(flatten([1, [2], [3, 4]]));// [1,2,3,4]console.log(flatten([1, [2], [[3], 4]]));// [1,2,3,4]\n\nflatten 함수가 실행되면 먼저 즉시 실행할 f 라는 이름의 유명 함수로 만든다.\n함수 f를 즉시 실행하면서 새로운 배열 객체를 생성하여 넘겨준다.\n루프를 돌면서 배열이 아닐 때만 값을 push하고 배열인 경우에는 f를 다시 실행하여 배열을 펴고 있다.\n\n이 코드가 재밌는 점은 즉시 실행과 유명 함수를 이용한 재귀라는 것이다. 만일 재귀로만 이 로직을 구현한다면 함수를 사용하는 개발자가 빈 배열을 항상 직접 넘겨주거나 if문을 체크하는 식으로 재귀를 제어해야 한다.\n123456789101112131415161718function flatten2(arr, new_arr) &#123;  arr.forEach(function (v) &#123;    Array.isArray(v) ? flatten2(v, new_arr) : new_arr.push(v);  &#125;);  return new_arr;&#125;flatten2([1, [2], [3, 4]], []) // 항상 빈 Array를 추가로 넘겨 줘야함.function flatten3(arr, new_arr) &#123;  if (!new_arr) return flatten3(arr, []); // if 문이 생김  arr.forEach(function (v) &#123;    Array.isArray(v) ? flatten3(v, new_arr) : new_arr.push(v);  &#125;);  return new_arr;&#125;\n세 가지 방식의 코드 모두 장단점이 있다. flatten2는 if가 없고 가장 빠르지만 함수를 사용할 때 개발자가 직접 배열을 넘겨주어야 한다. flatten3은 사용하기 간단하지만 if가 있다. flatten은 if가 없으면서 사용하기 간단하지만 함수를 한 번 생성한다. \n자바스크립트에서 재귀의 아쉬움재귀를 이용하면 복잡한 로직이나 중복되는 로직을 제거할 수 있고 읽기 쉬운 로직을 만들 수 있어 편하다. 그러나 아직까지는 자바스크립트에서 재귀를 사용하는 것에 약간 부담스러운면이 있다. 환경에 따라 다르지만 대략 15,000번 이상 재귀가 일어나면 ‘Maximum call stack exceeded’라는 에러가 발생하고 소프트웨어가 죽는다. 따라서 자바스크립트에서 얼마나 깊은 재귀가 일어날 것인가 유의하며 함수를 작성해야 한다.\n아직 자바스크립트의 실제 동작 환경에서는 꼬리 재귀 최적화가 되지 않았다. 그렇다고 자바스크립트에서 성능 때문에 재귀를 사용할 일이 없다는 것은 잘못된 얘기다. 자바스크립트의 실제 동작 환경에서는 비동기 프로그래밍이 많이 쓰이고 비동기가 일어나면 스택이 초기화 된다. 애초에 비동기 상황이었다면 어차피 스택이 초기화 될 것이므로 재귀 사용을 피할 이유가 없다. \n함수 실행과 인자 그리고 점 다시 보기() 다시 보기함수를 실행하는 방법에는 (), call, apply가 있고, 함수 안에서는 arguments 객체와 this 키워드를 사용할 수 있다. 각각의 사용법과 용도, 특이사항들을 하나씩 확인해 보자.\n12345function test(a, b, c) &#123;  console.log(&apos;a b c:&apos;, a, b, c);  console.log(this);  console.log(arguments);&#125;\n함수 실행 방법에 따른 차이를 정확히 확인하기 위해 test 함수를 만들었다. \n1234567891011121314test(10); // 1// a b c: 10 undefined undefined// this: Window &#123;...&#125;// arguments: [10]test(10, undefined); // 2// a b c: 10 undefined undefined// this: Window &#123;...&#125;// arguments: [10, undefined]test(10, 20, 30); // 3// a b c: 10 20 30// this: Window &#123;...&#125;// arguments: [10, 20, 30]\narguments는 함수가 실행될 때 넘겨받은 모든 인자를 배열과 비슷한 형태로 담은 객체다. length로 넘겨받은 인자의 수를 확인할 수 있고 index로 순서별 인자를 확인할 수 있다. 2의 경우 1과 거의 유사하지만 arguments 객체가 다르게 생성이 된다. 인자로 undefined를 직접 넘긴 경우와 넘기지 않아 자연히 undefined 상태가 되는 것 사이에는 분명한 차이가 있다.\n인자 다시 보기인자는 일반 변수 혹은 객체와 약간 다르게 동작하는 부분이 있다. \n123456789function test2(a, b) &#123;  b = 10;  console.log(arguments);&#125;test2(1); // 1// [1]test2(1, 2) // 2// [1, 10]\n인자는 변수와 달리 객체의 값이 바뀐다. 2는 arguments[1]에 해당하는 값이 넘어왔고, 인자인 b와 arguments[1]은 서로 마치 링크가 걸린 것 처럼 연결되어 있다. b를 고치니 arguments[1]도 바뀌었다. 1에서도 b를 고쳤는데 arguments[1]에 영향을 주지 않는다. 이 부분에 대해서 정확히 알고 있지 않은 상태에서 인자를 변경하는 코드를 작성할 경우, 의도와 다른 상황이 일어날 수 있을 것이다.\nthis 다시 보기위의 test 함수 내부의 console.log로 확인 하는 예제에서는 모든 this가 window 객체이다. 어떻게 해야 this에 다른 값이 들어갈 수 있을까?\n12345678910111213var o1 = &#123; name: &quot;obj1&quot; &#125;;o1.test = test;o1.test(3, 2, 1);// a b c: 3 2 1// this: Object &#123;name: &quot;obj1&quot;, test: f&#125;// arguments: [3,2,1]var a1 = [1, 2, 3];a1.test = test;a1.test(3, 3, 3);// a b c: 3 3 3// this: Array [1, 2, 3, test: f]// arguments: [3,3,3]\n기존에 있던 test 함수를 o1에 연결한 후 o1.test를 실행하니 this가 o1이 되었다. a1 역시 연결 후 실행하니 this가 a1이 되었다. 자바스크립트에서는 객체에 함수를 붙인 다음 그 함수를 . 으로 접근하여 실행하면 함수 내부의 this가 . 왼쪽의 객체가 된다.\n12345var o1_test = o1.test;o1_test(5, 6, 7);// a b c: 5 6 7// this: Window &#123;...&#125;// arguments: [5, 6, 7]\no1.test를 o1_test에 담은 다음 . 없이 o1_test를 실행했더니 this가 다시 window가 되었다. 이런 차이를 알아야 함수를 값으로 잘 다룰 수 있다. 실제로 메서드로 정의된 함수를 일반 함수처럼 사용하는 경우가 있다. o1.test에 붙였기 때문에 o1이 this가 되는 것이 아니라 . 으로 접근하여 실행했기 때문에 o1이 this가 되는 것이다. 어디에 붙어 있는 함수인지보다 어떻게 실행했는지가 중요하다.\n123456789(a1.test)(8, 9, 10);// a b c: 8 9 10// this: Array [1, 2, 3, test: f]// arguments: [8, 9, 10]a1[&apos;test&apos;](8, 9, 10);// a b c: 8 9 10// this: Array [1, 2, 3, test: f]// arguments: [8, 9, 10]\n괄호로 전체를 감쌌지만 여전히 this는 a1이 찍히고 있다. 참조를 어떻게 했느냐가 중요하다. [] 를 이용해 test 메서드를 참조 후 실행해도 . 으로 접근하여 실행한 것과 동일한 결과를 낸다.\n자바스크립트에서의 함수는 ‘어떻게 선언했느냐’와 ‘어떻게 실행했느냐’가 모두 중요하다. ‘어떻게 정의했느냐’는 클로저와 스코프와 관련된 부분들을 결정하고 ‘어떻게 실행했느냐’는 this와 arguments를 결정한다.\ncall, apply 다시 보기자바스크립트에서 함수를 실행하는 대표적인 방법이 2개 더 남아 있다.\n123test.call(undefined, 1, 2, 3);test.call(null, 1, 2, 3);test.call(void 0, 1, 2, 3);\n위 3가지 실행 모두 동일한 결과가 나온다. null 이나 undefined를 call의 첫 번째 인자에 넣으면 this는 windnow가 된다. void 0 의 결과도 undefined 이기 때문에 같은 결과가 나온다.\n12345678test.call(o1, 3, 2, 1);// a b c: 3 2 1// this: Object &#123;name: &quot;obj1&quot;, test: f&#125;// arguments: [3,2,1]test.call(1000, 3, 2, 1);// a b c: 3 2 1// this: Number &#123;1000&#125;// arguments: [3,2,1]\n함수의 메서드인 call은 Function.prototype.call 이다. test는 함수이자 객체이고  test 객체의 call은 함수 자신(test)을 실행하면서 첫 번째 인자로 받은 값을 this로 사용한다.\n12345678o1.test.call(undefined, 3, 2, 1);// a b c: 3 2 1// this: Window &#123;...&#125;// arguments: [3,2,1]o1.test.call([50], 3, 2, 1);// a b c: 3 2 1// this: Array [50]// arguments: [3,2,1]\ncall을 사용할 경우, 그 앞에서 함수를 .으로 참조했을지라도 call을 통해 넘겨받은 첫 번째 인자에 의해 this가 결정된다.\n12345678910111213141516test.apply(o1, [3, 2, 1]);// a b c: 3 2 1// this: Object &#123;name: &quot;obj1&quot;, test: f&#125;// arguments: [3,2,1]test.apply(1000, [3, 2, 1]);// a b c: 3 2 1// this: Number &#123;1000&#125;// arguments: [3,2,1]o1.test.apply(undefined, [3, 2, 1]);// a b c: 3 2 1// this: Window &#123;...&#125;// arguments: [3,2,1]o1.test.apply([50], [3, 2, 1])// a b c: 3 2 1// this: Array [50]// arguments: [3,2,1]\napply는 call과 동일하게 동작하지만 인자 전달 방식이 다르다. 인자들을 배열이나 배열과 비슷한 객체를 통해 전달한다. 여기서 배열과 비슷하다는 것은 다음과 같은 값들을 사용할 수 있다는 말이다.\n1234567891011test.apply(o1, &#123; 0: 3, 1: 2, 2: 1, length: 3 &#125;);// a b c: 3 2 1// this: Object &#123;name: &quot;obj1&quot;, test: f&#125;// arguments: [3,2,1](function () &#123;  test.apply(1000, arguments)&#125;)(3, 2, 1);// a b c: 3 2 1// this: Number &#123;1000&#125;// arguments: [3,2,1]\n{ 0: 3, 1: 2, 2: 1, length: 3 }은 Array도 아니고 Arguments도 아닌 그냥 일반 객체다. 숫자를 키로 사용하고 그에 맞는 length를 가지고 있다. 이와 같이 되어 있는 객체라면 apply를 통해 인자로 전달할 수 있다. 다른 함수를 통해 생성된 arguments도 apply로 전달할 수 있다.\ncall의 실용적 사례계속해서 확인하고 있는, 일반적이지 않은 이런 기법들은 유명한 자바스크립트 개발자들의 코드에서 자주 등장한다. \n123456789101112131415161718var slice = Array.prototype.slice;function toArray(data) &#123;  return slice.call(data);&#125;function rest(data, n) &#123;  return slice.call(data, n || 1);&#125;var arr1 = toArray(&#123; 0: 1, 1: 2, length: 2 &#125;);arr1.push(3);console.log(arr1);// [1,2,3]rest([1, 2, 3]);// [2, 3]rest([1, 2, 3], 2);// [3]\nArray.prototye.slice의 경우, 키를 숫자로 갖고 length를 갖는 객체이기만 하면 Array가 아닌 값이어도 call을 통해 Array.prototype.slice를 동작시킬 수 있다. toArray와 rest 함수는 구현을 Native Helper에게 위임하여 짧은 코드로 성능이 좋은 유틸 함수를 만들었다.\n자바스크립트에서는 this 키워드 못지않게 call, apply, arguments 등도 중요하다. call, apply, arguments, bind 등을 알고 자바스크립트를 다루는 것과 그렇지 않은 것은 정말 큰 차이를 만든다. 그리고 이 모든 기능들은 자바스크립트의 함수와 관련되어 있다. 자바스크립트 진영의 객체지향 관련 라이브러리에도 상속이나 메서드 오버라이드 같은 것을 구현하기 위해서는 apply와 arguments 등을 사용해야 한다. 함수형 자바스크립트에서는 특히나 중요하다. apply, arguments는 좋은 도구들이며 실제로 매우 실용적이다.\n\nConclusion오늘은 함수형 프로그래밍을 시작하기 앞서 기본적인 것들을 다시 확인해보는 시간이었다. 이미 알고 있던 내용도 있었지만, 복습하고 확실히 익히고자 하는 마음으로 정리했다. 해당 챕터의 내용이 많아 나머지 내용은 다음 시간에 정리해야겠다.\n참조: 함수형 자바스크립트 프로그래밍\n","dateCreated":"2019-10-20T14:29:11+09:00","dateModified":"2019-12-01T18:41:32+09:00","datePublished":"2019-10-20T14:29:11+09:00","description":"함수형 자바스크립트를 잘 다루기 위해서는 숲을 보는 것보다 나무의 결을 들여다 보는 것이 중요하다. 자바스크립트 문법과 기본적인 동작에 집중해보자. 함수 하나가 정의되고 실행되고 참조되는 과정, 인자를 받거나 넘기는 과정, 클로저가 되거나 비동기가 일어나는 과정, 괄호, 대괄호, 점, 쉼표 등을 자세히 들여다 보자. 문법적 감각이 좋아지면 원하는 곳 어디에서나 함수를 열고 실행할 수 있게 된다.","headline":"함수형 자바스크립트를 위한 문법 다시 보기","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"https://kkangil.github.io/2019/10/20/함수형-자바스크립트를-위한-문법-다시-보기/"},"publisher":{"@type":"Organization","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg","logo":{"@type":"ImageObject","url":"profile.jpeg"}},"url":"https://kkangil.github.io/2019/10/20/함수형-자바스크립트를-위한-문법-다시-보기/","keywords":"javascript, 함수형 프로그래밍, 객체, 함수의 호이스팅, named function, call, apply, arguments, this"}</script>
+    <meta name="description" content="함수형 자바스크립트를 잘 다루기 위해서는 숲을 보는 것보다 나무의 결을 들여다 보는 것이 중요하다. 자바스크립트 문법과 기본적인 동작에 집중해보자. 함수 하나가 정의되고 실행되고 참조되는 과정, 인자를 받거나 넘기는 과정, 클로저가 되거나 비동기가 일어나는 과정, 괄호, 대괄호, 점, 쉼표 등을 자세히 들여다 보자. 문법적 감각이 좋아지면 원하는 곳 어디에">
+<meta name="keywords" content="javascript,함수형 프로그래밍,객체,함수의 호이스팅,named function,call, apply, arguments, this">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="함수형 자바스크립트를 위한 문법 다시 보기">
+<meta property="og:url" content="https://kkangil.github.io/2019/10/20/함수형-자바스크립트를-위한-문법-다시-보기/index.html">
+<meta property="og:site_name" content="kkangil&#39;s Blog">
+<meta property="og:description" content="함수형 자바스크립트를 잘 다루기 위해서는 숲을 보는 것보다 나무의 결을 들여다 보는 것이 중요하다. 자바스크립트 문법과 기본적인 동작에 집중해보자. 함수 하나가 정의되고 실행되고 참조되는 과정, 인자를 받거나 넘기는 과정, 클로저가 되거나 비동기가 일어나는 과정, 괄호, 대괄호, 점, 쉼표 등을 자세히 들여다 보자. 문법적 감각이 좋아지면 원하는 곳 어디에">
+<meta property="og:locale" content="ko">
+<meta property="og:updated_time" content="2019-12-01T09:41:32.119Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="함수형 자바스크립트를 위한 문법 다시 보기">
+<meta name="twitter:description" content="함수형 자바스크립트를 잘 다루기 위해서는 숲을 보는 것보다 나무의 결을 들여다 보는 것이 중요하다. 자바스크립트 문법과 기본적인 동작에 집중해보자. 함수 하나가 정의되고 실행되고 참조되는 과정, 인자를 받거나 넘기는 과정, 클로저가 되거나 비동기가 일어나는 과정, 괄호, 대괄호, 점, 쉼표 등을 자세히 들여다 보자. 문법적 감각이 좋아지면 원하는 곳 어디에">
+    
+    
+        
+    
+    
+        <meta property="og:image" content="https://kkangil.github.io/assets/images/profile.jpeg"/>
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/style-c4ozcsklz4kht2pebhp44xorvyverh23toayhn7i6ubrpyedak24hv1v0hyd.min.css">
+    <!--STYLES END-->
+    
+
+    
+</head>
+
+    <body>
+        <div id="blog">
+            <!-- Define author's picture -->
+
+
+    
+        
+            
+        
+    
+
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a class="header-title-link" href="/ ">kkangil&#39;s Blog</a>
+    </div>
+    
+        
+            <a class="header-right-picture " href="#about">
+        
+        
+            <img class="header-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+        
+        </a>
+    
+</header>
+
+            <!-- Define author's picture -->
+
+
+
+        
+    
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
+        
+            <div class="sidebar-profile">
+                <a href="/#about">
+                    <img class="sidebar-profile-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+                </a>
+                <h4 class="sidebar-profile-name">kkangil</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
+</h5>
+                
+            </div>
+        
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/ " title="Home">
+                    
+                        <i class="sidebar-button-icon fa fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Home</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-categories" title="카테고리">
+                    
+                        <i class="sidebar-button-icon fa fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">카테고리</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-tags" title="태그">
+                    
+                        <i class="sidebar-button-icon fa fa-tags" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">태그</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-archives" title="기록">
+                    
+                        <i class="sidebar-button-icon fa fa-archive" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">기록</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link open-algolia-search" href="#search" title="검색">
+                    
+                        <i class="sidebar-button-icon fa fa-search" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">검색</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="#about" title="About">
+                    
+                        <i class="sidebar-button-icon fa fa-question" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">About</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="https://github.com/kkangil" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fab fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="http://stackoverflow.com/users/10870848/kkangil" target="_blank" rel="noopener" title="Stack Overflow">
+                    
+                        <i class="sidebar-button-icon fab fa-stack-overflow" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Stack Overflow</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="https://www.linkedin.com/in/kangil-kim-31093a169/" target="_blank" rel="noopener" title="LinkedIn">
+                    
+                        <i class="sidebar-button-icon fab fa-linkedin" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">LinkedIn</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/fe.kkangil@gmail.com" title="Mail">
+                    
+                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Mail</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/atom.xml" title="RSS">
+                    
+                        <i class="sidebar-button-icon fa fa-rss" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">RSS</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
+</nav>
+
+            
+            <div id="main" data-behavior="4"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title">
+            함수형 자바스크립트를 위한 문법 다시 보기
+        </h1>
+    
+    
+        <div class="post-meta">
+    <time datetime="2019-10-20T14:29:11+09:00">
+	
+		    10월 20, 2019
+    	
+    </time>
+    
+        <span>카테고리 </span>
+        
+    <a class="category-link" href="/categories/함수형-프로그래밍/">함수형 프로그래밍</a>
+
+
+    
+</div>
+
+    
+</div>
+
+    
+    <div class="post-content markdown">
+        <div class="main-content-wrap">
+            <p>함수형 자바스크립트를 잘 다루기 위해서는 숲을 보는 것보다 나무의 결을 들여다 보는 것이 중요하다. 자바스크립트 문법과 기본적인 동작에 집중해보자. 함수 하나가 정의되고 실행되고 참조되는 과정, 인자를 받거나 넘기는 과정, 클로저가 되거나 비동기가 일어나는 과정, 괄호, 대괄호, 점, 쉼표 등을 자세히 들여다 보자. 문법적 감각이 좋아지면 원하는 곳 어디에서나 함수를 열고 실행할 수 있게 된다.</p>
+<a id="more"></a>
+<h2 id="객체와-대괄호-다시-보기"><a href="#객체와-대괄호-다시-보기" class="headerlink" title="객체와 대괄호 다시 보기"></a>객체와 대괄호 다시 보기</h2><h3 id="객체와-key"><a href="#객체와-key" class="headerlink" title="객체와 key"></a>객체와 key</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">var obj = &#123; a: 1, &quot;b&quot;: 2 &#125;; // 1</span><br><span class="line">obj.c = 3;</span><br><span class="line">obj[&apos;d&apos;] = 4; // 2</span><br><span class="line">var e = &apos;e&apos;;</span><br><span class="line">obj[e] = 5;</span><br><span class="line">function f() &#123; return &apos;f&apos; &#125;;</span><br><span class="line">obj[f()] = 6;</span><br><span class="line">console.log(obj);</span><br></pre></td></tr></table></figure>
+<p>일단 객체의 key 와 value에 대한 부분이다. 객체의 key와 value는 {}, . , [] 등을 통해 설정할 수 있다.<br>그중 어떤 문자열이든 key로 정의할 수 있는 곳이 있는데 1과 2 같은 곳이다. 이 두 가지 방식이 가진 공통점이 있다면 띄어쓰기, 특수 문자, 숫자 등을 가리지 않고 어떤 문자열이든 key로 만들 수 있다는 점이다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">var obj2 = &#123; &quot;a a a&quot;: 1 &#125;;</span><br><span class="line">obj2[&quot;b b b&quot;] = 2;</span><br><span class="line">console.log(obj2);</span><br><span class="line"></span><br><span class="line">var obj3 = &#123; &quot;margin-top&quot;: 5 &#125;;</span><br><span class="line">obj3[&quot;padding-bottom&quot;] = 20;</span><br><span class="line">console.log(obj3);</span><br><span class="line"></span><br><span class="line">var obj4 = &#123; 1: 10 &#125;;</span><br><span class="line">obj4[2] = 20;</span><br><span class="line">console.log(obj4);</span><br></pre></td></tr></table></figure>
+<p>그렇다면 {} 안쪽에서 key를 선언하는 것과 [] 안에서 선언하는 것은 차이가 없을까? {}의 문자열 부분에서는 코드를 실행할 수 없고 []의 안쪽에서는 코드를 실행할 수 있다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">var obj5 = &#123; (true ? &quot;a&quot; : &quot;b&quot;): 1&#125;; // Uncaught SyntaxError</span><br><span class="line">var obj6 = &#123;&#125;;</span><br><span class="line">obj6[true ? &quot;a&quot; : &quot;b&quot;] = 1;</span><br><span class="line">console.log(obj6);</span><br></pre></td></tr></table></figure>
+<p>{} 안쪽의 key 영역에서는 코드를 실행할 수 없다. [] 사이에는 문자열이 담긴 변수도 넣을 수 있고, 연산자도 사용할 수 있으며 함수도 실행할 수 있다. 즉, [] 에서는 코드를 실행할 수 있다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">var obj5 = &#123; [true ? &quot;a&quot; : &quot;b&quot;]: 1 &#125;</span><br><span class="line">console.log(obj5);</span><br></pre></td></tr></table></figure>
+<p>하지만 ES6 의 경우에서는 {} 안에 [] 를 사용하여 코드를 실행할 수 있게됐다. </p>
+<h3 id="함수나-배열에-달기"><a href="#함수나-배열에-달기" class="headerlink" title="함수나 배열에 달기"></a>함수나 배열에 달기</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">function obj8() &#123; &#125;</span><br><span class="line">obj8.a = 1;</span><br><span class="line">obj8.b = 2;</span><br><span class="line">console.log(obj8.a); // 1</span><br><span class="line">console.log(obj8.b); // 2</span><br></pre></td></tr></table></figure>
+<p>자바스크립트에서는 함수도 객체다. 그러므로 함수도 key/value 쌍으로 구성할 수 있다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">var obj10 = []</span><br><span class="line">obj10.a = 1;</span><br><span class="line">console.log(obj10.a); // 1</span><br><span class="line">console.log(obj10.length); // 0</span><br></pre></td></tr></table></figure>
+<p>배열도 객체이며 배열에도 숫자가 아닌 key를 사용할 수 있다. 단, 숫자가 아닌 key로 값을 할당할 경우 length는 변하지 않는다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">var obj11 = [];</span><br><span class="line">obj11[0] = 1;</span><br><span class="line">obj11[1] = 2;</span><br><span class="line">console.log(obj11);</span><br><span class="line">console.log(obj11.length) // 2</span><br></pre></td></tr></table></figure>
+<p>배열에 숫자로 key를 직접 할당해도 push와 동일하게 동작한다. 자동으로 length도 올라간다.</p>
+<h3 id="delete"><a href="#delete" class="headerlink" title="delete"></a>delete</h3><p>자바스크립트에서는 기본 객체의 메서드나 프로퍼티도 지울 수 있다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">var obj = &#123; a: 1, b: 2, c: 3 &#125;;</span><br><span class="line">delete obj.a;</span><br><span class="line">delete obj[&apos;b&apos;];</span><br><span class="line">delete obj[&apos;C&apos;.toLocaleLowerCase()];</span><br><span class="line">console.log(obj) // &#123;&#125;</span><br><span class="line"></span><br><span class="line">delete Array.prototype.push;</span><br><span class="line">var arr1 = [1, 2, 3];</span><br><span class="line">arr1.push(4); // Uncaught TypeError: arr1.push is not a function</span><br></pre></td></tr></table></figure>
+<p>다른 언어를 다루었던 개발자라면 delete로 아무거나 지우기, 배열에 숫자가 아닌 key 사용하기 등을 봤을 때, 자바스크립트의 유연함을 난해하다거나 위험하다고 느낄 수 있다. 하지만 이 특징들을 문제가 아닌 자바스크립트의 특성으로 받아들인 후에 더욱 다양한 기법들이 나오기 시작했고 더 잘 동작하기까지했다.</p>
+<h2 id="함수-정의-다시-보기"><a href="#함수-정의-다시-보기" class="headerlink" title="함수 정의 다시 보기"></a>함수 정의 다시 보기</h2><h3 id="기본-정의"><a href="#기본-정의" class="headerlink" title="기본 정의"></a>기본 정의</h3><p>자바스크립트에서 함수를 정의하는 방법은 다양하다. 대표적인 방법들은 다음과 같다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">function add1(a, b) &#123;</span><br><span class="line">  return a + b;</span><br><span class="line">&#125;</span><br><span class="line">var add2 = function(a, b) &#123;</span><br><span class="line">  return a + b;</span><br><span class="line">&#125;</span><br><span class="line">var m = &#123;</span><br><span class="line">  add3: function (a, b) &#123;</span><br><span class="line">    return a + b;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>함수를 정의하는 것은 이미 익숙하겠지만 확인해 볼 만한 부분이 있다. 바로 호이스팅인데, 호이스팅에 대해 어느 정도 알고 있더라도 읽어 보기를 권한다.</p>
+<h3 id="호이스팅"><a href="#호이스팅" class="headerlink" title="호이스팅"></a>호이스팅</h3><p>호이스팅(hoisting)이란 변수나 함수가 어디서 선언되든지 해당 스코프 최상단에 위치하게 되어 동일 스코프 어디서든 참조할 수 있는 것을 말한다. 아래의 코드 add1과 add2에는 호이스팅이 적용된다. ‘add2는 실행이 안 될 텐데 호이스팅이 아니지 않나?’하고 생각할 수 있지만 이것은 오해다. 물론 에러가 난 걸로 알 수 있듯이 add2는 선언하기 전 라인에서 실행할 수 없다. 하지만 분명히 add2도 호이스팅이 적용된 것이다. 결론부터 말하면 선언은 되었지만 아직 초기화되지 않은 상태에서 실행했기 때문에 에러가 난 것 이다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">add1(10, 5); // 15</span><br><span class="line">add2(10, 5); // Uncaught TypeError: add2 is not a function</span><br><span class="line"></span><br><span class="line">function add1(a, b) &#123;</span><br><span class="line">  return a + b;</span><br><span class="line">&#125;</span><br><span class="line">var add2 = function (a, b) &#123;</span><br><span class="line">  return a + b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>예제에서 add2는 실행되지 않았고, ‘add2 is not a function’ 이라는 에러 메시지가 출력되었다. 이번에는 선언한 적 없는 함수를 실행해보자.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hi();</span><br><span class="line">// Uncaught ReferenceError: hi is not defined</span><br></pre></td></tr></table></figure>
+<p>에러 메시지가 다르다. 자바스크립트에서는 아예 선언된 적이 없는 것을 참조하려고 할 때 이러한 에러가 난다. 실행하지 않고 참조만 하려고 해도 동일한 에러가 난다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">console.log(add1); // function add1(a, b) &#123; return a + b &#125;;</span><br><span class="line">console.log(add2); // undefined;</span><br><span class="line"></span><br><span class="line">function add1(a, b) &#123;</span><br><span class="line">  return a + b;</span><br><span class="line">&#125;</span><br><span class="line">var add2 = function (a, b) &#123;</span><br><span class="line">  return a + b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>이번엔 에러가 나지 않았고 undefined가 출력되었다. 그렇다면 add1과 add2는 어떤 차이에 의해 실행이 되고 안 되는 것 일까?<br>이는 변수 선언과 함수 선언에서의 차이 떄문이다. 변수는 선언 단계와 초기화 단계가 구분되어 있다. 변수는 선언과 초기화가 동시에 이루어지지 않기 때문에 호이스팅에 의해 참조만 가능하고, 아직 값이 담기지 않아 실행은 불가능하다. 반면에 함수 선언은 선언과 동시에 초기화가 이루어지기 때문에 참조뿐 아니라 실행도 가능하다.<br>add2는 변수를 선언하여 익명 함수를 담았고 add1은 함수로 선언했다. 호이스팅에 의해 add1은 미리 실행할 수 있고 add2는 호이스팅에 의해 미리 참조할 수 있지만 값이 없어 실행할 수는 없다.</p>
+<h3 id="호이스팅-활용하기"><a href="#호이스팅-활용하기" class="headerlink" title="호이스팅 활용하기"></a>호이스팅 활용하기</h3><p>함수 선언과 호이스팅을 이용하면 다음과 같이 코드를 작성할 수 있다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">function add(a, b) &#123;</span><br><span class="line">  return valid() ? a + b : new Error();</span><br><span class="line"></span><br><span class="line">  function valid() &#123;</span><br><span class="line">    return Number.isInteger(a) &amp;&amp; Number.isInteger(b);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">console.log(add(10, 5)); // 15</span><br><span class="line">console.log(add(10, &apos;&apos;)); // Error(...)</span><br></pre></td></tr></table></figure>
+<p>위와 같이 return 문 아래에 정의한 함수도 실행이 가능하다. 비교적 복잡한 코드를 하단부에 정의하고 실행부 코드는 깔끔하게 유지하는 등으로 활용할 수도 있다.</p>
+<h3 id="괄호없이-즉시-실행하기"><a href="#괄호없이-즉시-실행하기" class="headerlink" title="괄호없이 즉시 실행하기"></a>괄호없이 즉시 실행하기</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">(function (a) &#123;</span><br><span class="line">  console.log(a);</span><br><span class="line">&#125;)(100);</span><br></pre></td></tr></table></figure>
+<p>자바스크립트에서는 위와 같이 괄호를 통해 익명 함수를 즉시 실행할 수 있다. 괄호 없이 실행하면 에러가 발생한다. 많은 경우, 참조가 잘못되어 에러가 났다고 생각할 수 있지만 그렇지 않다. 에러가 난 이유는 익명 함수를 잘못 실행한 것이 아니라 익명 함수 선언 자체가 실패했기 떄문이다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">function() &#123;&#125;</span><br><span class="line">// Uncaught SyntaxError: Unexpected token (</span><br></pre></td></tr></table></figure>
+<p>실행 없이 선언만 시도해도 에러가 난다. 그런데 우리는 이와 비슷한데 에러가 나지 않는 코드를 봤었다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">function f1() &#123;</span><br><span class="line">  return function() &#123;</span><br><span class="line"></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">f1();</span><br></pre></td></tr></table></figure>
+<p>이 예제는 1장에서 봤었던 함수를 값으로 다루는 패턴 중 하나다. 위 코드는 함수를 괄호로 감싸지 않았는데 문법 에러가 나지 않고 정상적으로 동작한다. 이 상황에서 에러가 나지 않는다면 괄호 없이 즉시 실행도 되지 않을까?</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">function f1() &#123;</span><br><span class="line">  return function (a) &#123;</span><br><span class="line">    console.log(a)</span><br><span class="line">  &#125;(1)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">f1();</span><br></pre></td></tr></table></figure>
+<p>이 코드는 정상적으로 동작한다. f1이라느느 함수 안에 있는 익명 함수는 괄호 없이도 즉시 실행이 되었다. 만일 f1이라는 함수의 return 바로 뒤에서 함수를 즉시 실행하고 싶다면, 그 상황에서는 괄호 없이도 익명 함수를 즉시 실행할 수 있다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">!function (a) &#123;</span><br><span class="line">  console.log(a)</span><br><span class="line">&#125;(1);</span><br><span class="line"></span><br><span class="line">true &amp;&amp; function (a) &#123;</span><br><span class="line">  console.log(a)</span><br><span class="line">&#125;(1);</span><br><span class="line"></span><br><span class="line">1 ? function (a) &#123;</span><br><span class="line">  console.log(a)</span><br><span class="line">&#125;(1) : 5;</span><br><span class="line"></span><br><span class="line">0, function (a) &#123;</span><br><span class="line">  console.log(a)</span><br><span class="line">&#125;(1);</span><br><span class="line"></span><br><span class="line">var b = function (a) &#123;</span><br><span class="line">  console.log(a)</span><br><span class="line">&#125;(1);</span><br><span class="line"></span><br><span class="line">function f2() &#123; &#125;</span><br><span class="line">f2(function (a) &#123;</span><br><span class="line">  console.log(a)</span><br><span class="line">&#125;(1));</span><br><span class="line"></span><br><span class="line">var f3 = function c(a) &#123;</span><br><span class="line">  console.log(a)</span><br><span class="line">&#125;(1);</span><br><span class="line"></span><br><span class="line">new function () &#123;</span><br><span class="line">  console.log(1);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>위와 같은 상황들에서는 괄호 없이도 익명 함수를 즉시 실행할 수 있다. 이 중 !를 이용한 방법은 꽤 알려진 편이다. 이 상황에서의 공통점은 무엇일까? 일단 모두 연산자와 함께 있고, 함수가 값으로 다뤄졌다. 그리고 모두 익명 함수 선언에 대한 오류가 나지 않는다. 앞에서 즉시 실행이 실패했던 것은 익명 함수를 잘못 실행한 것이 아니라 익명 함수 선언 자체를 하지 못해서였다.</p>
+<h3 id="유명-named-함수"><a href="#유명-named-함수" class="headerlink" title="유명(named) 함수"></a>유명(named) 함수</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">var f1 = function f() &#123;</span><br><span class="line">  console.log(f);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>함수를 값으로 다루면서 익명이 아닌 f() 처럼 이름을 지은 함수를 유명 함수라고 한다. 함수를 즉시 실행한다거나 함수를 클로저로 만들어 리턴할 때, 함수를 메서도로 만들 때는 주로 익명 함수를 사용하게 된다. 이와 같은 상황에서 익명 함수 대신 유명 함수로 사용하는 것이 유용할 때가 있다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">var f1 = function () &#123;</span><br><span class="line">  console.log(f1);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">f1();</span><br><span class="line"></span><br><span class="line">// 위험 상황</span><br><span class="line">var f2 = f1;</span><br><span class="line">f1 = &apos;hi~&apos;;</span><br><span class="line">f2();</span><br></pre></td></tr></table></figure>
+<p>이렇게 하면 참조가 가능하지만 ‘위험 상황’ 부분처럼 함수 생성 이후 변경이 일어나면 더 이상 자기 자신을 참조하지 못하게 될 수 있다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">var f1 = function () &#123;</span><br><span class="line">  console.log(arguments.callee)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">f1();</span><br><span class="line">// ƒ () &#123;</span><br><span class="line">//   console.log(arguments.callee)</span><br><span class="line">// &#125;</span><br><span class="line"></span><br><span class="line">var f2 = f1;</span><br><span class="line">f1 = null;</span><br><span class="line">f2();</span><br><span class="line">// ƒ () &#123;</span><br><span class="line">//   console.log(arguments.callee)</span><br><span class="line">// &#125;</span><br></pre></td></tr></table></figure>
+<p>위 방법은 이 전 코드의 문제를 해결하지만 arguments.callee는 ES5 Strict mode에서 사용할 수 없다. 유명 함수식을 사용하면 arguments.callee를 대체할 수 있다. 유명 함수는 함수가 값으로 사용되는 상황에서 자신을 참조하기 매우 편하다. 함수의 이름이 바뀌든 메서드 안에서 생성한 함수를 다시 참조하고 싶은 상황이든 어떤 상황에서든 상관없이 자기 자신을 정확히 참조할 수 있다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">var f1 = function f() &#123;</span><br><span class="line">  console.log(f);</span><br><span class="line">&#125;</span><br><span class="line">f1();</span><br><span class="line"></span><br><span class="line">var f2 = f1;</span><br><span class="line">f1 = null;</span><br><span class="line">f2();</span><br></pre></td></tr></table></figure>
+<h3 id="유명-함수를-이용한-재귀"><a href="#유명-함수를-이용한-재귀" class="headerlink" title="유명 함수를 이용한 재귀"></a>유명 함수를 이용한 재귀</h3><p>유명 함수는 재귀를 만들 때에도 편리하다. 다음은 깊이를 가진 배열을 펴 주는 flatten 함수다. 아래와 같은 함수를 만들 때 재귀와 유명 함수는 특히 유용하다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">function flatten(arr) &#123;</span><br><span class="line">  return function f(arr, new_arr) &#123; // 1</span><br><span class="line">    arr.forEach(function (v) &#123;</span><br><span class="line">      Array.isArray(v) ? f(v, new_arr) : new_arr.push(v); // 2</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    return new_arr;</span><br><span class="line">  &#125;(arr, []); // 3</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">console.log(flatten([1, [2], [3, 4]]));</span><br><span class="line">// [1,2,3,4]</span><br><span class="line">console.log(flatten([1, [2], [[3], 4]]));</span><br><span class="line">// [1,2,3,4]</span><br></pre></td></tr></table></figure>
+<ol>
+<li>flatten 함수가 실행되면 먼저 즉시 실행할 f 라는 이름의 유명 함수로 만든다.</li>
+<li>함수 f를 즉시 실행하면서 새로운 배열 객체를 생성하여 넘겨준다.</li>
+<li>루프를 돌면서 배열이 아닐 때만 값을 push하고 배열인 경우에는 f를 다시 실행하여 배열을 펴고 있다.</li>
+</ol>
+<p>이 코드가 재밌는 점은 즉시 실행과 유명 함수를 이용한 재귀라는 것이다. 만일 재귀로만 이 로직을 구현한다면 함수를 사용하는 개발자가 빈 배열을 항상 직접 넘겨주거나 if문을 체크하는 식으로 재귀를 제어해야 한다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">function flatten2(arr, new_arr) &#123;</span><br><span class="line">  arr.forEach(function (v) &#123;</span><br><span class="line">    Array.isArray(v) ? flatten2(v, new_arr) : new_arr.push(v);</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  return new_arr;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">flatten2([1, [2], [3, 4]], []) // 항상 빈 Array를 추가로 넘겨 줘야함.</span><br><span class="line"></span><br><span class="line">function flatten3(arr, new_arr) &#123;</span><br><span class="line">  if (!new_arr) return flatten3(arr, []); // if 문이 생김</span><br><span class="line">  arr.forEach(function (v) &#123;</span><br><span class="line">    Array.isArray(v) ? flatten3(v, new_arr) : new_arr.push(v);</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  return new_arr;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>세 가지 방식의 코드 모두 장단점이 있다. flatten2는 if가 없고 가장 빠르지만 함수를 사용할 때 개발자가 직접 배열을 넘겨주어야 한다. flatten3은 사용하기 간단하지만 if가 있다. flatten은 if가 없으면서 사용하기 간단하지만 함수를 한 번 생성한다. </p>
+<h3 id="자바스크립트에서-재귀의-아쉬움"><a href="#자바스크립트에서-재귀의-아쉬움" class="headerlink" title="자바스크립트에서 재귀의 아쉬움"></a>자바스크립트에서 재귀의 아쉬움</h3><p>재귀를 이용하면 복잡한 로직이나 중복되는 로직을 제거할 수 있고 읽기 쉬운 로직을 만들 수 있어 편하다. 그러나 아직까지는 자바스크립트에서 재귀를 사용하는 것에 약간 부담스러운면이 있다. 환경에 따라 다르지만 대략 15,000번 이상 재귀가 일어나면 ‘Maximum call stack exceeded’라는 에러가 발생하고 소프트웨어가 죽는다. 따라서 자바스크립트에서 얼마나 깊은 재귀가 일어날 것인가 유의하며 함수를 작성해야 한다.</p>
+<p>아직 자바스크립트의 실제 동작 환경에서는 꼬리 재귀 최적화가 되지 않았다. 그렇다고 자바스크립트에서 성능 때문에 재귀를 사용할 일이 없다는 것은 잘못된 얘기다. 자바스크립트의 실제 동작 환경에서는 비동기 프로그래밍이 많이 쓰이고 비동기가 일어나면 스택이 초기화 된다. 애초에 비동기 상황이었다면 어차피 스택이 초기화 될 것이므로 재귀 사용을 피할 이유가 없다. </p>
+<h2 id="함수-실행과-인자-그리고-점-다시-보기"><a href="#함수-실행과-인자-그리고-점-다시-보기" class="headerlink" title="함수 실행과 인자 그리고 점 다시 보기"></a>함수 실행과 인자 그리고 점 다시 보기</h2><h3 id="다시-보기"><a href="#다시-보기" class="headerlink" title="() 다시 보기"></a>() 다시 보기</h3><p>함수를 실행하는 방법에는 (), call, apply가 있고, 함수 안에서는 arguments 객체와 this 키워드를 사용할 수 있다. 각각의 사용법과 용도, 특이사항들을 하나씩 확인해 보자.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">function test(a, b, c) &#123;</span><br><span class="line">  console.log(&apos;a b c:&apos;, a, b, c);</span><br><span class="line">  console.log(this);</span><br><span class="line">  console.log(arguments);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>함수 실행 방법에 따른 차이를 정확히 확인하기 위해 test 함수를 만들었다. </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">test(10); // 1</span><br><span class="line">// a b c: 10 undefined undefined</span><br><span class="line">// this: Window &#123;...&#125;</span><br><span class="line">// arguments: [10]</span><br><span class="line"></span><br><span class="line">test(10, undefined); // 2</span><br><span class="line">// a b c: 10 undefined undefined</span><br><span class="line">// this: Window &#123;...&#125;</span><br><span class="line">// arguments: [10, undefined]</span><br><span class="line"></span><br><span class="line">test(10, 20, 30); // 3</span><br><span class="line">// a b c: 10 20 30</span><br><span class="line">// this: Window &#123;...&#125;</span><br><span class="line">// arguments: [10, 20, 30]</span><br></pre></td></tr></table></figure>
+<p>arguments는 함수가 실행될 때 넘겨받은 모든 인자를 배열과 비슷한 형태로 담은 객체다. length로 넘겨받은 인자의 수를 확인할 수 있고 index로 순서별 인자를 확인할 수 있다. 2의 경우 1과 거의 유사하지만 arguments 객체가 다르게 생성이 된다. 인자로 undefined를 직접 넘긴 경우와 넘기지 않아 자연히 undefined 상태가 되는 것 사이에는 분명한 차이가 있다.</p>
+<h3 id="인자-다시-보기"><a href="#인자-다시-보기" class="headerlink" title="인자 다시 보기"></a>인자 다시 보기</h3><p>인자는 일반 변수 혹은 객체와 약간 다르게 동작하는 부분이 있다. </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">function test2(a, b) &#123;</span><br><span class="line">  b = 10;</span><br><span class="line">  console.log(arguments);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">test2(1); // 1</span><br><span class="line">// [1]</span><br><span class="line">test2(1, 2) // 2</span><br><span class="line">// [1, 10]</span><br></pre></td></tr></table></figure>
+<p>인자는 변수와 달리 객체의 값이 바뀐다. 2는 arguments[1]에 해당하는 값이 넘어왔고, 인자인 b와 arguments[1]은 서로 마치 링크가 걸린 것 처럼 연결되어 있다. b를 고치니 arguments[1]도 바뀌었다. 1에서도 b를 고쳤는데 arguments[1]에 영향을 주지 않는다. 이 부분에 대해서 정확히 알고 있지 않은 상태에서 인자를 변경하는 코드를 작성할 경우, 의도와 다른 상황이 일어날 수 있을 것이다.</p>
+<h3 id="this-다시-보기"><a href="#this-다시-보기" class="headerlink" title="this 다시 보기"></a>this 다시 보기</h3><p>위의 test 함수 내부의 console.log로 확인 하는 예제에서는 모든 this가 window 객체이다. 어떻게 해야 this에 다른 값이 들어갈 수 있을까?</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">var o1 = &#123; name: &quot;obj1&quot; &#125;;</span><br><span class="line">o1.test = test;</span><br><span class="line">o1.test(3, 2, 1);</span><br><span class="line">// a b c: 3 2 1</span><br><span class="line">// this: Object &#123;name: &quot;obj1&quot;, test: f&#125;</span><br><span class="line">// arguments: [3,2,1]</span><br><span class="line"></span><br><span class="line">var a1 = [1, 2, 3];</span><br><span class="line">a1.test = test;</span><br><span class="line">a1.test(3, 3, 3);</span><br><span class="line">// a b c: 3 3 3</span><br><span class="line">// this: Array [1, 2, 3, test: f]</span><br><span class="line">// arguments: [3,3,3]</span><br></pre></td></tr></table></figure>
+<p>기존에 있던 test 함수를 o1에 연결한 후 o1.test를 실행하니 this가 o1이 되었다. a1 역시 연결 후 실행하니 this가 a1이 되었다. 자바스크립트에서는 객체에 함수를 붙인 다음 그 함수를 . 으로 접근하여 실행하면 함수 내부의 this가 . 왼쪽의 객체가 된다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">var o1_test = o1.test;</span><br><span class="line">o1_test(5, 6, 7);</span><br><span class="line">// a b c: 5 6 7</span><br><span class="line">// this: Window &#123;...&#125;</span><br><span class="line">// arguments: [5, 6, 7]</span><br></pre></td></tr></table></figure>
+<p>o1.test를 o1_test에 담은 다음 . 없이 o1_test를 실행했더니 this가 다시 window가 되었다. 이런 차이를 알아야 함수를 값으로 잘 다룰 수 있다. 실제로 메서드로 정의된 함수를 일반 함수처럼 사용하는 경우가 있다. o1.test에 붙였기 때문에 o1이 this가 되는 것이 아니라 . 으로 접근하여 실행했기 때문에 o1이 this가 되는 것이다. 어디에 붙어 있는 함수인지보다 어떻게 실행했는지가 중요하다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">(a1.test)(8, 9, 10);</span><br><span class="line">// a b c: 8 9 10</span><br><span class="line">// this: Array [1, 2, 3, test: f]</span><br><span class="line">// arguments: [8, 9, 10]</span><br><span class="line"></span><br><span class="line">a1[&apos;test&apos;](8, 9, 10);</span><br><span class="line">// a b c: 8 9 10</span><br><span class="line">// this: Array [1, 2, 3, test: f]</span><br><span class="line">// arguments: [8, 9, 10]</span><br></pre></td></tr></table></figure>
+<p>괄호로 전체를 감쌌지만 여전히 this는 a1이 찍히고 있다. 참조를 어떻게 했느냐가 중요하다. [] 를 이용해 test 메서드를 참조 후 실행해도 . 으로 접근하여 실행한 것과 동일한 결과를 낸다.</p>
+<p>자바스크립트에서의 함수는 ‘어떻게 선언했느냐’와 ‘어떻게 실행했느냐’가 모두 중요하다. ‘어떻게 정의했느냐’는 클로저와 스코프와 관련된 부분들을 결정하고 ‘어떻게 실행했느냐’는 this와 arguments를 결정한다.</p>
+<h3 id="call-apply-다시-보기"><a href="#call-apply-다시-보기" class="headerlink" title="call, apply 다시 보기"></a>call, apply 다시 보기</h3><p>자바스크립트에서 함수를 실행하는 대표적인 방법이 2개 더 남아 있다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">test.call(undefined, 1, 2, 3);</span><br><span class="line">test.call(null, 1, 2, 3);</span><br><span class="line">test.call(void 0, 1, 2, 3);</span><br></pre></td></tr></table></figure>
+<p>위 3가지 실행 모두 동일한 결과가 나온다. null 이나 undefined를 call의 첫 번째 인자에 넣으면 this는 windnow가 된다. void 0 의 결과도 undefined 이기 때문에 같은 결과가 나온다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">test.call(o1, 3, 2, 1);</span><br><span class="line">// a b c: 3 2 1</span><br><span class="line">// this: Object &#123;name: &quot;obj1&quot;, test: f&#125;</span><br><span class="line">// arguments: [3,2,1]</span><br><span class="line">test.call(1000, 3, 2, 1);</span><br><span class="line">// a b c: 3 2 1</span><br><span class="line">// this: Number &#123;1000&#125;</span><br><span class="line">// arguments: [3,2,1]</span><br></pre></td></tr></table></figure>
+<p>함수의 메서드인 call은 Function.prototype.call 이다. test는 함수이자 객체이고  test 객체의 call은 함수 자신(test)을 실행하면서 첫 번째 인자로 받은 값을 this로 사용한다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">o1.test.call(undefined, 3, 2, 1);</span><br><span class="line">// a b c: 3 2 1</span><br><span class="line">// this: Window &#123;...&#125;</span><br><span class="line">// arguments: [3,2,1]</span><br><span class="line">o1.test.call([50], 3, 2, 1);</span><br><span class="line">// a b c: 3 2 1</span><br><span class="line">// this: Array [50]</span><br><span class="line">// arguments: [3,2,1]</span><br></pre></td></tr></table></figure>
+<p>call을 사용할 경우, 그 앞에서 함수를 .으로 참조했을지라도 call을 통해 넘겨받은 첫 번째 인자에 의해 this가 결정된다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">test.apply(o1, [3, 2, 1]);</span><br><span class="line">// a b c: 3 2 1</span><br><span class="line">// this: Object &#123;name: &quot;obj1&quot;, test: f&#125;</span><br><span class="line">// arguments: [3,2,1]</span><br><span class="line">test.apply(1000, [3, 2, 1]);</span><br><span class="line">// a b c: 3 2 1</span><br><span class="line">// this: Number &#123;1000&#125;</span><br><span class="line">// arguments: [3,2,1]</span><br><span class="line">o1.test.apply(undefined, [3, 2, 1]);</span><br><span class="line">// a b c: 3 2 1</span><br><span class="line">// this: Window &#123;...&#125;</span><br><span class="line">// arguments: [3,2,1]</span><br><span class="line">o1.test.apply([50], [3, 2, 1])</span><br><span class="line">// a b c: 3 2 1</span><br><span class="line">// this: Array [50]</span><br><span class="line">// arguments: [3,2,1]</span><br></pre></td></tr></table></figure>
+<p>apply는 call과 동일하게 동작하지만 인자 전달 방식이 다르다. 인자들을 배열이나 배열과 비슷한 객체를 통해 전달한다. 여기서 배열과 비슷하다는 것은 다음과 같은 값들을 사용할 수 있다는 말이다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">test.apply(o1, &#123; 0: 3, 1: 2, 2: 1, length: 3 &#125;);</span><br><span class="line">// a b c: 3 2 1</span><br><span class="line">// this: Object &#123;name: &quot;obj1&quot;, test: f&#125;</span><br><span class="line">// arguments: [3,2,1]</span><br><span class="line"></span><br><span class="line">(function () &#123;</span><br><span class="line">  test.apply(1000, arguments)</span><br><span class="line">&#125;)(3, 2, 1);</span><br><span class="line">// a b c: 3 2 1</span><br><span class="line">// this: Number &#123;1000&#125;</span><br><span class="line">// arguments: [3,2,1]</span><br></pre></td></tr></table></figure>
+<p>{ 0: 3, 1: 2, 2: 1, length: 3 }은 Array도 아니고 Arguments도 아닌 그냥 일반 객체다. 숫자를 키로 사용하고 그에 맞는 length를 가지고 있다. 이와 같이 되어 있는 객체라면 apply를 통해 인자로 전달할 수 있다. 다른 함수를 통해 생성된 arguments도 apply로 전달할 수 있다.</p>
+<h3 id="call의-실용적-사례"><a href="#call의-실용적-사례" class="headerlink" title="call의 실용적 사례"></a>call의 실용적 사례</h3><p>계속해서 확인하고 있는, 일반적이지 않은 이런 기법들은 유명한 자바스크립트 개발자들의 코드에서 자주 등장한다. </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">var slice = Array.prototype.slice;</span><br><span class="line">function toArray(data) &#123;</span><br><span class="line">  return slice.call(data);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">function rest(data, n) &#123;</span><br><span class="line">  return slice.call(data, n || 1);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">var arr1 = toArray(&#123; 0: 1, 1: 2, length: 2 &#125;);</span><br><span class="line">arr1.push(3);</span><br><span class="line">console.log(arr1);</span><br><span class="line">// [1,2,3]</span><br><span class="line"></span><br><span class="line">rest([1, 2, 3]);</span><br><span class="line">// [2, 3]</span><br><span class="line">rest([1, 2, 3], 2);</span><br><span class="line">// [3]</span><br></pre></td></tr></table></figure>
+<p>Array.prototye.slice의 경우, 키를 숫자로 갖고 length를 갖는 객체이기만 하면 Array가 아닌 값이어도 call을 통해 Array.prototype.slice를 동작시킬 수 있다. toArray와 rest 함수는 구현을 <code>Native Helper</code>에게 위임하여 짧은 코드로 성능이 좋은 유틸 함수를 만들었다.</p>
+<p>자바스크립트에서는 this 키워드 못지않게 call, apply, arguments 등도 중요하다. call, apply, arguments, bind 등을 알고 자바스크립트를 다루는 것과 그렇지 않은 것은 정말 큰 차이를 만든다. 그리고 이 모든 기능들은 자바스크립트의 함수와 관련되어 있다. 자바스크립트 진영의 객체지향 관련 라이브러리에도 상속이나 메서드 오버라이드 같은 것을 구현하기 위해서는 apply와 arguments 등을 사용해야 한다. 함수형 자바스크립트에서는 특히나 중요하다. apply, arguments는 좋은 도구들이며 실제로 매우 실용적이다.</p>
+<hr>
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>오늘은 함수형 프로그래밍을 시작하기 앞서 기본적인 것들을 다시 확인해보는 시간이었다. 이미 알고 있던 내용도 있었지만, 복습하고 확실히 익히고자 하는 마음으로 정리했다. 해당 챕터의 내용이 많아 나머지 내용은 다음 시간에 정리해야겠다.</p>
+<p>참조: <a href="http://www.yes24.com/Product/Goods/56885507" target="_blank" rel="noopener">함수형 자바스크립트 프로그래밍</a></p>
+
+            
+
+        </div>
+    </div>
+    <div id="post-footer" class="post-footer main-content-wrap">
+        
+            <div class="post-footer-tags">
+                <span class="text-color-light text-small">태그</span><br>
+                
+    <a class="tag tag--primary tag--small t-link" href="/tags/call-apply-arguments-this/">call, apply, arguments, this</a> <a class="tag tag--primary tag--small t-link" href="/tags/javascript/">javascript</a> <a class="tag tag--primary tag--small t-link" href="/tags/named-function/">named function</a> <a class="tag tag--primary tag--small t-link" href="/tags/객체/">객체</a> <a class="tag tag--primary tag--small t-link" href="/tags/함수의-호이스팅/">함수의 호이스팅</a> <a class="tag tag--primary tag--small t-link" href="/tags/함수형-프로그래밍/">함수형 프로그래밍</a>
+
+            </div>
+        
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/10/27/함수형-자바스크립트를-위한-문법-다시-보기-2/" data-tooltip="함수형 자바스크립트를 위한 문법 다시 보기-2" aria-label="이전: 함수형 자바스크립트를 위한 문법 다시 보기-2">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/10/13/함수형-자바스크립트를-위한-기초/" data-tooltip="함수형 자바스크립트를 위한 기초" aria-label="다음: 함수형 자바스크립트를 위한 기초">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2019/10/20/함수형-자바스크립트를-위한-문법-다시-보기/" title="Facebook 공유">
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2019/10/20/함수형-자바스크립트를-위한-문법-다시-보기/" title="Twitter 공유">
+                    <i class="fab fa-twitter" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2019/10/20/함수형-자바스크립트를-위한-문법-다시-보기/" title="Google+ 공유">
+                    <i class="fab fa-google-plus" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+        
+            
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2020 kkangil. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+                    <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/10/27/함수형-자바스크립트를-위한-문법-다시-보기-2/" data-tooltip="함수형 자바스크립트를 위한 문법 다시 보기-2" aria-label="이전: 함수형 자바스크립트를 위한 문법 다시 보기-2">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/10/13/함수형-자바스크립트를-위한-기초/" data-tooltip="함수형 자바스크립트를 위한 기초" aria-label="다음: 함수형 자바스크립트를 위한 기초">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2019/10/20/함수형-자바스크립트를-위한-문법-다시-보기/" title="Facebook 공유">
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2019/10/20/함수형-자바스크립트를-위한-문법-다시-보기/" title="Twitter 공유">
+                    <i class="fab fa-twitter" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2019/10/20/함수형-자바스크립트를-위한-문법-다시-보기/" title="Google+ 공유">
+                    <i class="fab fa-google-plus" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                
+    <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+        <i id="btn-close-shareoptions" class="fa fa-times"></i>
+        <ul class="share-options">
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2019/10/20/함수형-자바스크립트를-위한-문법-다시-보기/">
+                        <i class="fab fa-facebook" aria-hidden="true"></i><span>Facebook 공유</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2019/10/20/함수형-자바스크립트를-위한-문법-다시-보기/">
+                        <i class="fab fa-twitter" aria-hidden="true"></i><span>Twitter 공유</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2019/10/20/함수형-자바스크립트를-위한-문법-다시-보기/">
+                        <i class="fab fa-google-plus" aria-hidden="true"></i><span>Google+ 공유</span>
+                    </a>
+                </li>
+            
+        </ul>
+    </div>
+
+
+            
+        </div>
+        
+
+
+    
+        
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-times"></i>
+        </div>
+        
+            <img id="about-card-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+        
+            <h4 id="about-card-name">kkangil</h4>
+        
+            <div id="about-card-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br>
+                <p>web developer</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker-alt"></i>
+                <br>
+                Asia/Seoul
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-dbd16rvloemmuxdzniplmnxxvwoz24eya9wol0b7vvmlokgqsjivmb8dnscy.min.js"></script>
+<!--SCRIPTS END-->
+
+    
+
+
+
+    </body>
+</html>

@@ -1,0 +1,548 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="kkangil&#39;s Blog">
+    <title>도구 다루기-3 - kkangil&#39;s Blog</title>
+    <meta name="author" content="kkangil">
+    
+    
+    
+        <link rel="alternate" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg"},"articleBody":"의존성 주입이란?ConferenceWebSvc 객체에 서비스를 캡슐화하고 메시지를 화면에 표시할 자바스크립트 객체 Messenger를 작성한다.\n참가자는 1인당 세션을 10개까지 등록할 수 있다. 참가자가 한 세션을 등록하면 그 결과를 성공/실패 메시지로 화면에 표시하는 함수를 개발해야 한다. 아래 코드는 해당 기능을 구현하기 위한 초기 버전이다.\n\n123456789101112131415161718192021Attendee = function (attendeeId) &#123;  // &apos;new&apos;로 생성하도록 강제  if (!(this instanceof Attendee)) &#123;    return new Attendee(attendeeId);  &#125;  this.attendeeId = attendeeId;  this.service = new ConferenceWebSvc();  this.messenger = new Messenger();&#125;// 주어진 세션에 좌석 예약을 시도하고 성공/실패 여부를 메시지로 알려줌.Attendee.prototype.reserve = function (sessionId) &#123;  if (this.service.reserve(this.attendeeId, sessionId)) &#123;    this.messenger.success(      `좌석 예약이 완료되었습니다! 고객님은 $&#123;this.service.getRemainingReservations()&#125; 좌석을 추가로 예약하실 수 있습니다.`    );  &#125; else &#123;    this.messenger.failure(&apos;죄송합니다. 해당 좌석은 예약하실 수 없습니다.&apos;);  &#125;&#125;\n이 코드는 ConferenceWebSvc, Messenger, Attendee 객체가 각자 자신만의 임무를 갖고 모듈로 조화를 이룬것 처럼 보인다. Attendee.reserve는 너무 간단해서 굳이 단위 테스트를 하지 않아도 되는데, 어차피 그럴 수도 없다. ConferenceWebSvc 내부에는 HTTP 호출이 있다. Messenger는 메시지마다 OK 버튼이 있어야 하는데, 이 또한 이 모듈에서 단위 테스트할 대상은 아니다. 단위 테스트는 자바스크립트 코드를 바르게 작성하기 위한 핵심인데, 모든 단위가 미처 준비도 되기 전에 시스템 테스트의 늪으로 빠지는 게 싫다.\n요는, Attendee 객체가 아니라 이 객체가 의존하는 코드다. 의존성을 주입하는 식으로 바꾸면 해결할 수 있다. 즉, ConferenceWebSvc와 Messenger와의 의존성을 하드 코딩하지 말고 이들을 Attendee에 주입하는 것이다. 실제 운영 환경에서는 진짜 의존성을 주입하겠지만, 단위 테스트용으로는 모의체(fake)나 재스민 스파이 같은 대체제를 주입하면 된다.\n12345// 운영 환경:var attendee: new Attendee(new ConferenceWebSvc(), new Messenger(), id);// 개발 환경:var attendee = new Attendee(fakeService, fakeMessenger, id);\n이처럼 의존성을 주입하는 것을 두고 ‘빈자의 의존성 주입’이라 한다. 아래 코드는 빈자의 의존성 주입 방식으로 작성한 Attendee 객체다.\n12345678910Attendee = function (service, messenger, attendeeId) &#123;  // &apos;new&apos;로 생성하도록 강제  if (!(this instanceof Attendee)) &#123;    return new Attendee(attendeeId);  &#125;  this.attendeeId = attendeeId;  this.service = service;  this.messenger = messenger;&#125;\n의존성을 주입하여 믿음직한 코드 만들기의존성을 주입하여 다른 방법으로는 할 수 없는 단위 테스트를 어떻게 하는지 알았다. 아무래도 테스트를 통과한, 자동화한 테스트 꾸러미로 계속 테스트할 수 있는 코드가 더 믿음직하다. 이 뿐만 아니라, 의존성 주입은 실제 객체보다 주입한 스파이나 모의 객체에 더 많은 제어권을 안겨주므로 다양한 에러 조건과 기이한 상황을 만들어내기 쉽다.\n의존성 주입은 코드 재사용을 적극적으로 유도한다. 의존성을 품은, 하드 코딩한 모듈은 보통 재사용하기 어렵다. 초기 Attendee 모듈도 Messenger를 하드 코딩하여 쓴 탓에 서버 측에서 재사용할 수 없었다. 의존성 주입으로 바꾼 다음에는 성공/실패 메서드만 있으면 어떤 messenger 라도 사용할 수 있다.\n의존성 주입의 모든 것의존성 주입은 어렵지 않다. 몇 가지 개념만 기억하면 잘 활용할 수 있다.어떤 객체를 코딩하든 어떤 객체를 생성하든 스스로 다음 질문을 해봤을때 한 가지라도 답변이 ‘예’ 라면 직접 인스턴스화 하지 말고 주입하는 방향으로 생각을 전환해야 한다.\n\n객체 또는 의존성 중 어느 하나라도 DB, 설정 파일, HTTP, 기타 인프라 등의 외부 자원에 의존 하는가\n객체 내부에서 발생할지 모를 에러를 테스트에서 고려해야 하나\n특정한 방향으로 객체를 작동시켜야 할 테스트가 있는가\n서드파티 제공 객체가 아니라 온전히 내가 소유한 객체인가\n\n경량급 의존성 주입 프레임워크 개발지금까지는 의존성 주입을 하드 코딩했다. 전문가다운 의존성 주입 프레임워크는 이렇게 작동한다.\n\n애플리케이션이 시작되자마자 각 인젝터블(주입 가능한 모든 의존성을 집합적으로 일컫는 말) 명을 확인하고 의존성을 지칭하며 순서대로 DI 컨테이너에 등록한다.\n객체가 필요하면 컨테이너에 요청한다.\n컨테이너는 일단 요청받은 객체와 그 의존성을 모두 재귀적으로 인스턴스화한다. 그리고 요건에 따라 필요한 객체에 각각 주입한다.\n\n컨테이너는 인젝터블과 의존성을 등록하고 요청시 객체를 내어주는 두 가지 일을 한다. register 함수의 인자는 세 가지를 받는다.\n\n인젝터블 명\n의존성 명을 담은 배열\n인젝터블 객체를 반환하는 함수. 인젝터블 인스턴스를 요청하면 컨테이너는 이 함수를 호출하여 반환 값을 다시 그대로 반환한다.\n\nTDD는 단계마다 가급적 조금씩 코딩하는게 좋다. 먼저 빈 DiContainer와 register 함수를 생성한다.\n1234567DiContainer = function() &#123;&#125;;DiContainer.prototype.register = function(name, dependencies, func) &#123;&#125;;\n12345678910111213141516171819202122232425262728describe(&apos;DiContainer&apos;, function () &#123;  var container;  beforeEach(function () &#123;    container = new DiContainer();  &#125;);  describe(&apos;register(name,dependencies,func)&apos;, function () &#123;    it(&apos;인자가 하나라도 빠졌거나 타입이 잘못되면 예외를 던진다.&apos;, function () &#123;      var badArgs = [        // 인자가 아예 없는 경우        [],        [&apos;Name&apos;],        [&apos;Name&apos;, [&apos;Dependency1&apos;, &apos;Dependency2&apos;]],        [&apos;Name&apos;, function () &#123; &#125;],        // 타입이 잘못된 경우        [1, [&apos;a&apos;, &apos;b&apos;], function () &#123; &#125;],        [&apos;Name&apos;, [1, 2], function () &#123; &#125;],        [&apos;Name&apos;, [&apos;a&apos;, &apos;b&apos;], &apos;should be a function&apos;]      ];      badArgs.forEach(function (args) &#123;        expect(function () &#123;          container.register.apply(container, args);        &#125;).toThrowError(container.messages.registerRequiresArgs);      &#125;);    &#125;)  &#125;);&#125;)\n\ncontainer는 ‘테스트 대상’으로 beforeEach에서 생성된다. 테스트마다 인스턴스를 갓 구워내면 다른 테스트의 결과를 어지럽히지 않아도 된다.\nTDD 순수주의자는 badArgs 원소마다 테스트를 따로 만들라고 하겠지만, 실제로 그렇게까지 개발자에게 부담을 주면 필요한 조건을 모두 테스트하기도 전에 질려버릴지도 모른다.\n\n위의 테스트는 당연히 실패한다. DiContainer에 수정이 필요하다.\n123456789101112131415161718192021222324252627DiContainer = function () &#123;  if (!(this instanceof DiContainer)) &#123;    return new DiContainer();  &#125;&#125;;DiContainer.prototype.messages = &#123;  registerRequiresArgs: &apos;이 생성자 함수는 인자가 3개 있어야 합니다. 문자열, 문자열 배열, 함수&apos;&#125;DiContainer.prototype.register = function (name, dependencies, func) &#123;  var ix;  if (    typeof name !== &apos;string&apos; ||    !Array.isArray(dependencies) ||    typeof func !== &apos;function&apos;  ) &#123;    throw new Error(this.messages.registerRequiresArgs);  &#125;  for (ix = 0; ix &lt; dependencies.length; ++ix) &#123;    if (typeof dependencies[ix] !== &apos;string&apos;) &#123;      throw new Error(this.messages.registerRequiresArgs);    &#125;  &#125;&#125;;\nregister 함수는 여전히 아무 일도 하지 않지만, 이 함수만으로는 의존성을 다시 끌어낼 방법이 없으므로 컨테이너에 의존성이 잘 들어갔는지 테스트하기 어렵다. 따라서 자연스레 나머지 반쪽 그림에 해당하는 get 함수에 관심이 쏠린다. 이 함수의 유일한 인자는 조회할 의존성 명이다.\n123456789DiContainer.prototype.get = function (name) &#123;&#125;describe(&apos;get(name)&apos;, function () &#123;    it(&apos;성명이 등록되어 있지 않으면 undefined를 반환한다.&apos;, function () &#123;      expect(container.get(&apos;notDefined&apos;)).toBeUndefined();    &#125;)  &#125;)\n이제 get 함수 작성과 DiContainer 를 수정한다.\n12345678910111213141516171819202122232425262728DiContainer = function () &#123;  ...  this.registrations = [];&#125;;DiContainer.prototype.register = function (name, dependencies, func) &#123;  ...  this.registrations[name] = &#123; func: func &#125;;&#125;;DiContainer.prototype.get = function (name) &#123;  var registration = this.registrations[name];  if (registration === undefined) &#123;    return undefined;  &#125;  return registration.func();&#125;it(&apos;등록된 함수를 실행한 결과를 반환한다.&apos;, function () &#123;  var name = &apos;MyName&apos;,    returnFromRegisteredFunction = &quot;something&quot;;  container.register(name, [], function () &#123;    return returnFromRegisteredFunction;  &#125;);  expect(container.get(name)).toBe(returnFromRegisteredFunction);&#125;)\n이제 get은 자신이 반환하는 객체에 의존성을 제공할 수 있다. 아래 코드는 1개의 메인 객체와 2개의 의존성을 등록하는 테스트로, 메인 객체는 두 의존성의 반환값을 합한 값을 반환한다.\n12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849DiContainer.prototype.register = function (name, dependencies, func) &#123;  ...  this.registrations[name] = &#123; dependencies: dependencies, func: func &#125;;&#125;;DiContainer.prototype.get = function (name) &#123;  var self = this,    registration = this.registrations[name],    dependencies = [];  if (registration === undefined) &#123;    return undefined;  &#125;  registration.dependencies.forEach(function (dependencyName) &#123;    var dependency = self.get(dependencyName);    dependencies.push(dependency === undefined ? undefined : dependency);  &#125;);  return registration.func.apply(undefined, dependencies);&#125;it(&apos;등록된 함수에 의존성을 제공한다.&apos;, function () &#123;  var main = &apos;main&apos;,    mainFunc,    dep1 = &apos;dep1&apos;,    dep2 = &apos;dep2&apos;;  container.register(main, [dep1, dep2], function (dep1Func, dep2Func) &#123;    return function () &#123;      return dep1Func() + dep2Func();    &#125;;  &#125;);  container.register(dep1, [], function () &#123;    return function () &#123;      return 1;    &#125;  &#125;);  container.register(dep2, [], function () &#123;    return function () &#123;      return 2;    &#125;  &#125;);  mainFunc = container.get(main);  expect(mainFunc()).toBe(3);&#125;);\n참조: 자바스크립트 패턴과 테스트github\n","dateCreated":"2020-02-02T14:36:43+09:00","dateModified":"2020-02-02T16:54:54+09:00","datePublished":"2020-02-02T14:36:43+09:00","description":"의존성 주입이란?ConferenceWebSvc 객체에 서비스를 캡슐화하고 메시지를 화면에 표시할 자바스크립트 객체 Messenger를 작성한다.\n참가자는 1인당 세션을 10개까지 등록할 수 있다. 참가자가 한 세션을 등록하면 그 결과를 성공/실패 메시지로 화면에 표시하는 함수를 개발해야 한다. 아래 코드는 해당 기능을 구현하기 위한 초기 버전이다.","headline":"도구 다루기-3","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"https://kkangil.github.io/2020/02/02/도구-다루기-3/"},"publisher":{"@type":"Organization","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg","logo":{"@type":"ImageObject","url":"profile.jpeg"}},"url":"https://kkangil.github.io/2020/02/02/도구-다루기-3/","keywords":"javascript, 테스트 코드, jasmine, 의존성 주입"}</script>
+    <meta name="description" content="의존성 주입이란?ConferenceWebSvc 객체에 서비스를 캡슐화하고 메시지를 화면에 표시할 자바스크립트 객체 Messenger를 작성한다. 참가자는 1인당 세션을 10개까지 등록할 수 있다. 참가자가 한 세션을 등록하면 그 결과를 성공/실패 메시지로 화면에 표시하는 함수를 개발해야 한다. 아래 코드는 해당 기능을 구현하기 위한 초기 버전이다.">
+<meta name="keywords" content="javascript,테스트 코드,jasmine,의존성 주입">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="도구 다루기-3">
+<meta property="og:url" content="https://kkangil.github.io/2020/02/02/도구-다루기-3/index.html">
+<meta property="og:site_name" content="kkangil&#39;s Blog">
+<meta property="og:description" content="의존성 주입이란?ConferenceWebSvc 객체에 서비스를 캡슐화하고 메시지를 화면에 표시할 자바스크립트 객체 Messenger를 작성한다. 참가자는 1인당 세션을 10개까지 등록할 수 있다. 참가자가 한 세션을 등록하면 그 결과를 성공/실패 메시지로 화면에 표시하는 함수를 개발해야 한다. 아래 코드는 해당 기능을 구현하기 위한 초기 버전이다.">
+<meta property="og:locale" content="ko">
+<meta property="og:updated_time" content="2020-02-02T07:54:54.204Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="도구 다루기-3">
+<meta name="twitter:description" content="의존성 주입이란?ConferenceWebSvc 객체에 서비스를 캡슐화하고 메시지를 화면에 표시할 자바스크립트 객체 Messenger를 작성한다. 참가자는 1인당 세션을 10개까지 등록할 수 있다. 참가자가 한 세션을 등록하면 그 결과를 성공/실패 메시지로 화면에 표시하는 함수를 개발해야 한다. 아래 코드는 해당 기능을 구현하기 위한 초기 버전이다.">
+    
+    
+        
+    
+    
+        <meta property="og:image" content="https://kkangil.github.io/assets/images/profile.jpeg"/>
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/style-c4ozcsklz4kht2pebhp44xorvyverh23toayhn7i6ubrpyedak24hv1v0hyd.min.css">
+    <!--STYLES END-->
+    
+
+    
+</head>
+
+    <body>
+        <div id="blog">
+            <!-- Define author's picture -->
+
+
+    
+        
+            
+        
+    
+
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a class="header-title-link" href="/ ">kkangil&#39;s Blog</a>
+    </div>
+    
+        
+            <a class="header-right-picture " href="#about">
+        
+        
+            <img class="header-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+        
+        </a>
+    
+</header>
+
+            <!-- Define author's picture -->
+
+
+
+        
+    
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
+        
+            <div class="sidebar-profile">
+                <a href="/#about">
+                    <img class="sidebar-profile-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+                </a>
+                <h4 class="sidebar-profile-name">kkangil</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
+</h5>
+                
+            </div>
+        
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/ " title="Home">
+                    
+                        <i class="sidebar-button-icon fa fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Home</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-categories" title="카테고리">
+                    
+                        <i class="sidebar-button-icon fa fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">카테고리</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-tags" title="태그">
+                    
+                        <i class="sidebar-button-icon fa fa-tags" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">태그</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-archives" title="기록">
+                    
+                        <i class="sidebar-button-icon fa fa-archive" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">기록</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link open-algolia-search" href="#search" title="검색">
+                    
+                        <i class="sidebar-button-icon fa fa-search" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">검색</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="#about" title="About">
+                    
+                        <i class="sidebar-button-icon fa fa-question" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">About</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="https://github.com/kkangil" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fab fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="http://stackoverflow.com/users/10870848/kkangil" target="_blank" rel="noopener" title="Stack Overflow">
+                    
+                        <i class="sidebar-button-icon fab fa-stack-overflow" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Stack Overflow</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="https://www.linkedin.com/in/kangil-kim-31093a169/" target="_blank" rel="noopener" title="LinkedIn">
+                    
+                        <i class="sidebar-button-icon fab fa-linkedin" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">LinkedIn</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/fe.kkangil@gmail.com" title="Mail">
+                    
+                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Mail</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/atom.xml" title="RSS">
+                    
+                        <i class="sidebar-button-icon fa fa-rss" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">RSS</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
+</nav>
+
+            
+            <div id="main" data-behavior="4"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title">
+            도구 다루기-3
+        </h1>
+    
+    
+        <div class="post-meta">
+    <time datetime="2020-02-02T14:36:43+09:00">
+	
+		    2월 02, 2020
+    	
+    </time>
+    
+        <span>카테고리 </span>
+        
+    <a class="category-link" href="/categories/테스트-코드/">테스트 코드</a>
+
+
+    
+</div>
+
+    
+</div>
+
+    
+    <div class="post-content markdown">
+        <div class="main-content-wrap">
+            <h2 id="의존성-주입이란"><a href="#의존성-주입이란" class="headerlink" title="의존성 주입이란?"></a>의존성 주입이란?</h2><p>ConferenceWebSvc 객체에 서비스를 캡슐화하고 메시지를 화면에 표시할 자바스크립트 객체 Messenger를 작성한다.</p>
+<p>참가자는 1인당 세션을 10개까지 등록할 수 있다. 참가자가 한 세션을 등록하면 그 결과를 성공/실패 메시지로 화면에 표시하는 함수를 개발해야 한다. 아래 코드는 해당 기능을 구현하기 위한 초기 버전이다.</p>
+<a id="more"></a>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">Attendee = function (attendeeId) &#123;</span><br><span class="line">  // &apos;new&apos;로 생성하도록 강제</span><br><span class="line">  if (!(this instanceof Attendee)) &#123;</span><br><span class="line">    return new Attendee(attendeeId);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  this.attendeeId = attendeeId;</span><br><span class="line">  this.service = new ConferenceWebSvc();</span><br><span class="line">  this.messenger = new Messenger();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 주어진 세션에 좌석 예약을 시도하고 성공/실패 여부를 메시지로 알려줌.</span><br><span class="line">Attendee.prototype.reserve = function (sessionId) &#123;</span><br><span class="line">  if (this.service.reserve(this.attendeeId, sessionId)) &#123;</span><br><span class="line">    this.messenger.success(</span><br><span class="line">      `좌석 예약이 완료되었습니다! 고객님은 $&#123;this.service.getRemainingReservations()&#125; 좌석을 추가로 예약하실 수 있습니다.`</span><br><span class="line">    );</span><br><span class="line">  &#125; else &#123;</span><br><span class="line">    this.messenger.failure(&apos;죄송합니다. 해당 좌석은 예약하실 수 없습니다.&apos;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>이 코드는 ConferenceWebSvc, Messenger, Attendee 객체가 각자 자신만의 임무를 갖고 모듈로 조화를 이룬것 처럼 보인다. Attendee.reserve는 너무 간단해서 굳이 단위 테스트를 하지 않아도 되는데, 어차피 그럴 수도 없다. ConferenceWebSvc 내부에는 HTTP 호출이 있다. Messenger는 메시지마다 OK 버튼이 있어야 하는데, 이 또한 이 모듈에서 단위 테스트할 대상은 아니다. 단위 테스트는 자바스크립트 코드를 바르게 작성하기 위한 핵심인데, 모든 단위가 미처 준비도 되기 전에 시스템 테스트의 늪으로 빠지는 게 싫다.</p>
+<p>요는, Attendee 객체가 아니라 이 객체가 의존하는 코드다. 의존성을 주입하는 식으로 바꾸면 해결할 수 있다. 즉, ConferenceWebSvc와 Messenger와의 의존성을 하드 코딩하지 말고 이들을 Attendee에 주입하는 것이다. 실제 운영 환경에서는 진짜 의존성을 주입하겠지만, 단위 테스트용으로는 모의체(fake)나 재스민 스파이 같은 대체제를 주입하면 된다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">// 운영 환경:</span><br><span class="line">var attendee: new Attendee(new ConferenceWebSvc(), new Messenger(), id);</span><br><span class="line"></span><br><span class="line">// 개발 환경:</span><br><span class="line">var attendee = new Attendee(fakeService, fakeMessenger, id);</span><br></pre></td></tr></table></figure>
+<p>이처럼 의존성을 주입하는 것을 두고 ‘빈자의 의존성 주입’이라 한다. 아래 코드는 빈자의 의존성 주입 방식으로 작성한 Attendee 객체다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Attendee = function (service, messenger, attendeeId) &#123;</span><br><span class="line">  // &apos;new&apos;로 생성하도록 강제</span><br><span class="line">  if (!(this instanceof Attendee)) &#123;</span><br><span class="line">    return new Attendee(attendeeId);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  this.attendeeId = attendeeId;</span><br><span class="line">  this.service = service;</span><br><span class="line">  this.messenger = messenger;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="의존성을-주입하여-믿음직한-코드-만들기"><a href="#의존성을-주입하여-믿음직한-코드-만들기" class="headerlink" title="의존성을 주입하여 믿음직한 코드 만들기"></a>의존성을 주입하여 믿음직한 코드 만들기</h2><p>의존성을 주입하여 다른 방법으로는 할 수 없는 단위 테스트를 어떻게 하는지 알았다. 아무래도 테스트를 통과한, 자동화한 테스트 꾸러미로 계속 테스트할 수 있는 코드가 더 믿음직하다. 이 뿐만 아니라, 의존성 주입은 실제 객체보다 주입한 스파이나 모의 객체에 더 많은 제어권을 안겨주므로 다양한 에러 조건과 기이한 상황을 만들어내기 쉽다.</p>
+<p>의존성 주입은 코드 재사용을 적극적으로 유도한다. 의존성을 품은, 하드 코딩한 모듈은 보통 재사용하기 어렵다. 초기 Attendee 모듈도 Messenger를 하드 코딩하여 쓴 탓에 서버 측에서 재사용할 수 없었다. 의존성 주입으로 바꾼 다음에는 성공/실패 메서드만 있으면 어떤 messenger 라도 사용할 수 있다.</p>
+<h2 id="의존성-주입의-모든-것"><a href="#의존성-주입의-모든-것" class="headerlink" title="의존성 주입의 모든 것"></a>의존성 주입의 모든 것</h2><p>의존성 주입은 어렵지 않다. 몇 가지 개념만 기억하면 잘 활용할 수 있다.<br>어떤 객체를 코딩하든 어떤 객체를 생성하든 스스로 다음 질문을 해봤을때 한 가지라도 답변이 ‘예’ 라면 직접 인스턴스화 하지 말고 주입하는 방향으로 생각을 전환해야 한다.</p>
+<ul>
+<li>객체 또는 의존성 중 어느 하나라도 DB, 설정 파일, HTTP, 기타 인프라 등의 외부 자원에 의존 하는가</li>
+<li>객체 내부에서 발생할지 모를 에러를 테스트에서 고려해야 하나</li>
+<li>특정한 방향으로 객체를 작동시켜야 할 테스트가 있는가</li>
+<li>서드파티 제공 객체가 아니라 온전히 내가 소유한 객체인가</li>
+</ul>
+<h2 id="경량급-의존성-주입-프레임워크-개발"><a href="#경량급-의존성-주입-프레임워크-개발" class="headerlink" title="경량급 의존성 주입 프레임워크 개발"></a>경량급 의존성 주입 프레임워크 개발</h2><p>지금까지는 의존성 주입을 하드 코딩했다. 전문가다운 의존성 주입 프레임워크는 이렇게 작동한다.</p>
+<ol>
+<li>애플리케이션이 시작되자마자 각 인젝터블(주입 가능한 모든 의존성을 집합적으로 일컫는 말) 명을 확인하고 의존성을 지칭하며 순서대로 DI 컨테이너에 등록한다.</li>
+<li>객체가 필요하면 컨테이너에 요청한다.</li>
+<li>컨테이너는 일단 요청받은 객체와 그 의존성을 모두 재귀적으로 인스턴스화한다. 그리고 요건에 따라 필요한 객체에 각각 주입한다.</li>
+</ol>
+<p>컨테이너는 인젝터블과 의존성을 등록하고 요청시 객체를 내어주는 두 가지 일을 한다. register 함수의 인자는 세 가지를 받는다.</p>
+<ul>
+<li>인젝터블 명</li>
+<li>의존성 명을 담은 배열</li>
+<li>인젝터블 객체를 반환하는 함수. 인젝터블 인스턴스를 요청하면 컨테이너는 이 함수를 호출하여 반환 값을 다시 그대로 반환한다.</li>
+</ul>
+<p>TDD는 단계마다 가급적 조금씩 코딩하는게 좋다. 먼저 빈 DiContainer와 register 함수를 생성한다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">DiContainer = function() &#123;</span><br><span class="line"></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">DiContainer.prototype.register = function(name, dependencies, func) &#123;</span><br><span class="line"></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">describe(&apos;DiContainer&apos;, function () &#123;</span><br><span class="line">  var container;</span><br><span class="line">  beforeEach(function () &#123;</span><br><span class="line">    container = new DiContainer();</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  describe(&apos;register(name,dependencies,func)&apos;, function () &#123;</span><br><span class="line">    it(&apos;인자가 하나라도 빠졌거나 타입이 잘못되면 예외를 던진다.&apos;, function () &#123;</span><br><span class="line">      var badArgs = [</span><br><span class="line">        // 인자가 아예 없는 경우</span><br><span class="line">        [],</span><br><span class="line">        [&apos;Name&apos;],</span><br><span class="line">        [&apos;Name&apos;, [&apos;Dependency1&apos;, &apos;Dependency2&apos;]],</span><br><span class="line">        [&apos;Name&apos;, function () &#123; &#125;],</span><br><span class="line">        // 타입이 잘못된 경우</span><br><span class="line">        [1, [&apos;a&apos;, &apos;b&apos;], function () &#123; &#125;],</span><br><span class="line">        [&apos;Name&apos;, [1, 2], function () &#123; &#125;],</span><br><span class="line">        [&apos;Name&apos;, [&apos;a&apos;, &apos;b&apos;], &apos;should be a function&apos;]</span><br><span class="line">      ];</span><br><span class="line"></span><br><span class="line">      badArgs.forEach(function (args) &#123;</span><br><span class="line">        expect(function () &#123;</span><br><span class="line">          container.register.apply(container, args);</span><br><span class="line">        &#125;).toThrowError(container.messages.registerRequiresArgs);</span><br><span class="line">      &#125;);</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<ul>
+<li>container는 ‘테스트 대상’으로 beforeEach에서 생성된다. 테스트마다 인스턴스를 갓 구워내면 다른 테스트의 결과를 어지럽히지 않아도 된다.</li>
+<li>TDD 순수주의자는 badArgs 원소마다 테스트를 따로 만들라고 하겠지만, 실제로 그렇게까지 개발자에게 부담을 주면 필요한 조건을 모두 테스트하기도 전에 질려버릴지도 모른다.</li>
+</ul>
+<p>위의 테스트는 당연히 실패한다. DiContainer에 수정이 필요하다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">DiContainer = function () &#123;</span><br><span class="line">  if (!(this instanceof DiContainer)) &#123;</span><br><span class="line">    return new DiContainer();</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">DiContainer.prototype.messages = &#123;</span><br><span class="line">  registerRequiresArgs: &apos;이 생성자 함수는 인자가 3개 있어야 합니다. 문자열, 문자열 배열, 함수&apos;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">DiContainer.prototype.register = function (name, dependencies, func) &#123;</span><br><span class="line">  var ix;</span><br><span class="line"></span><br><span class="line">  if (</span><br><span class="line">    typeof name !== &apos;string&apos; ||</span><br><span class="line">    !Array.isArray(dependencies) ||</span><br><span class="line">    typeof func !== &apos;function&apos;</span><br><span class="line">  ) &#123;</span><br><span class="line">    throw new Error(this.messages.registerRequiresArgs);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  for (ix = 0; ix &lt; dependencies.length; ++ix) &#123;</span><br><span class="line">    if (typeof dependencies[ix] !== &apos;string&apos;) &#123;</span><br><span class="line">      throw new Error(this.messages.registerRequiresArgs);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>register 함수는 여전히 아무 일도 하지 않지만, 이 함수만으로는 의존성을 다시 끌어낼 방법이 없으므로 컨테이너에 의존성이 잘 들어갔는지 테스트하기 어렵다. 따라서 자연스레 나머지 반쪽 그림에 해당하는 get 함수에 관심이 쏠린다. 이 함수의 유일한 인자는 조회할 의존성 명이다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">DiContainer.prototype.get = function (name) &#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">describe(&apos;get(name)&apos;, function () &#123;</span><br><span class="line">    it(&apos;성명이 등록되어 있지 않으면 undefined를 반환한다.&apos;, function () &#123;</span><br><span class="line">      expect(container.get(&apos;notDefined&apos;)).toBeUndefined();</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;)</span><br></pre></td></tr></table></figure>
+<p>이제 get 함수 작성과 DiContainer 를 수정한다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">DiContainer = function () &#123;</span><br><span class="line">  ...</span><br><span class="line">  this.registrations = [];</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">DiContainer.prototype.register = function (name, dependencies, func) &#123;</span><br><span class="line">  ...</span><br><span class="line">  this.registrations[name] = &#123; func: func &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">DiContainer.prototype.get = function (name) &#123;</span><br><span class="line">  var registration = this.registrations[name];</span><br><span class="line">  if (registration === undefined) &#123;</span><br><span class="line">    return undefined;</span><br><span class="line">  &#125;</span><br><span class="line">  return registration.func();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">it(&apos;등록된 함수를 실행한 결과를 반환한다.&apos;, function () &#123;</span><br><span class="line">  var name = &apos;MyName&apos;,</span><br><span class="line">    returnFromRegisteredFunction = &quot;something&quot;;</span><br><span class="line"></span><br><span class="line">  container.register(name, [], function () &#123;</span><br><span class="line">    return returnFromRegisteredFunction;</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  expect(container.get(name)).toBe(returnFromRegisteredFunction);</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>이제 get은 자신이 반환하는 객체에 의존성을 제공할 수 있다. 아래 코드는 1개의 메인 객체와 2개의 의존성을 등록하는 테스트로, 메인 객체는 두 의존성의 반환값을 합한 값을 반환한다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line">DiContainer.prototype.register = function (name, dependencies, func) &#123;</span><br><span class="line">  ...</span><br><span class="line">  this.registrations[name] = &#123; dependencies: dependencies, func: func &#125;;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">DiContainer.prototype.get = function (name) &#123;</span><br><span class="line">  var self = this,</span><br><span class="line">    registration = this.registrations[name],</span><br><span class="line">    dependencies = [];</span><br><span class="line"></span><br><span class="line">  if (registration === undefined) &#123;</span><br><span class="line">    return undefined;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  registration.dependencies.forEach(function (dependencyName) &#123;</span><br><span class="line">    var dependency = self.get(dependencyName);</span><br><span class="line">    dependencies.push(dependency === undefined ? undefined : dependency);</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  return registration.func.apply(undefined, dependencies);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">it(&apos;등록된 함수에 의존성을 제공한다.&apos;, function () &#123;</span><br><span class="line">  var main = &apos;main&apos;,</span><br><span class="line">    mainFunc,</span><br><span class="line">    dep1 = &apos;dep1&apos;,</span><br><span class="line">    dep2 = &apos;dep2&apos;;</span><br><span class="line"></span><br><span class="line">  container.register(main, [dep1, dep2], function (dep1Func, dep2Func) &#123;</span><br><span class="line">    return function () &#123;</span><br><span class="line">      return dep1Func() + dep2Func();</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  container.register(dep1, [], function () &#123;</span><br><span class="line">    return function () &#123;</span><br><span class="line">      return 1;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  container.register(dep2, [], function () &#123;</span><br><span class="line">    return function () &#123;</span><br><span class="line">      return 2;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">  mainFunc = container.get(main);</span><br><span class="line">  expect(mainFunc()).toBe(3);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>참조: <a href="http://www.yes24.com/Product/Goods/33211518?Acode=101" target="_blank" rel="noopener">자바스크립트 패턴과 테스트</a><br><a href="https://github.com/kkangil/javascript-pattern-test" target="_blank" rel="noopener">github</a></p>
+
+            
+
+        </div>
+    </div>
+    <div id="post-footer" class="post-footer main-content-wrap">
+        
+            <div class="post-footer-tags">
+                <span class="text-color-light text-small">태그</span><br>
+                
+    <a class="tag tag--primary tag--small t-link" href="/tags/jasmine/">jasmine</a> <a class="tag tag--primary tag--small t-link" href="/tags/javascript/">javascript</a> <a class="tag tag--primary tag--small t-link" href="/tags/의존성-주입/">의존성 주입</a> <a class="tag tag--primary tag--small t-link" href="/tags/테스트-코드/">테스트 코드</a>
+
+            </div>
+        
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2020/02/02/기본적인-웹-사이트-최적화-방법/" data-tooltip="기본적인 웹 사이트 최적화 방법" aria-label="이전: 기본적인 웹 사이트 최적화 방법">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2020/01/27/웹-사이트-최적화/" data-tooltip="웹 사이트 최적화" aria-label="다음: 웹 사이트 최적화">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2020/02/02/도구-다루기-3/" title="Facebook 공유">
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2020/02/02/도구-다루기-3/" title="Twitter 공유">
+                    <i class="fab fa-twitter" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2020/02/02/도구-다루기-3/" title="Google+ 공유">
+                    <i class="fab fa-google-plus" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+        
+            
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2020 kkangil. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+                    <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2020/02/02/기본적인-웹-사이트-최적화-방법/" data-tooltip="기본적인 웹 사이트 최적화 방법" aria-label="이전: 기본적인 웹 사이트 최적화 방법">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2020/01/27/웹-사이트-최적화/" data-tooltip="웹 사이트 최적화" aria-label="다음: 웹 사이트 최적화">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2020/02/02/도구-다루기-3/" title="Facebook 공유">
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2020/02/02/도구-다루기-3/" title="Twitter 공유">
+                    <i class="fab fa-twitter" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2020/02/02/도구-다루기-3/" title="Google+ 공유">
+                    <i class="fab fa-google-plus" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                
+    <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+        <i id="btn-close-shareoptions" class="fa fa-times"></i>
+        <ul class="share-options">
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2020/02/02/도구-다루기-3/">
+                        <i class="fab fa-facebook" aria-hidden="true"></i><span>Facebook 공유</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2020/02/02/도구-다루기-3/">
+                        <i class="fab fa-twitter" aria-hidden="true"></i><span>Twitter 공유</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2020/02/02/도구-다루기-3/">
+                        <i class="fab fa-google-plus" aria-hidden="true"></i><span>Google+ 공유</span>
+                    </a>
+                </li>
+            
+        </ul>
+    </div>
+
+
+            
+        </div>
+        
+
+
+    
+        
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-times"></i>
+        </div>
+        
+            <img id="about-card-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+        
+            <h4 id="about-card-name">kkangil</h4>
+        
+            <div id="about-card-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br>
+                <p>web developer</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker-alt"></i>
+                <br>
+                Asia/Seoul
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-dbd16rvloemmuxdzniplmnxxvwoz24eya9wol0b7vvmlokgqsjivmb8dnscy.min.js"></script>
+<!--SCRIPTS END-->
+
+    
+
+
+
+    </body>
+</html>

@@ -1,0 +1,573 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="kkangil&#39;s Blog">
+    <title>Partial.js와 함수 조립 - kkangil&#39;s Blog</title>
+    <meta name="author" content="kkangil">
+    
+    
+    
+        <link rel="alternate" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg"},"articleBody":"파이프라인즉시 실행 파이프라인, _.go와 _.mr_.go는 파이프라인의 즉시 실행 버전이다. 첫 번째 인자로 받은 값을 두 번째 인자로 받은 함수에게 넘겨주고, 두 번째 인자로 받은 함수의 결과는 세 번째 함수에게 넘겨준다. 이것을 반복하다가 마지막 함수의 결과를 리턴해 준다.\n12345_.go(10, // 첫번째 인자  function (a) &#123; return a * 10 &#125;, // 100  function (a) &#123; return a - 50 &#125;, // 50  function (a) &#123; return a + 10 &#125; // 60)\n_.go는 Multiple Results를 지원한다. _.mr 함수를 함께 사용하면 다음 함수에게 2개 이상의 인자들을 전달할 수 있다.\n\n123456_.go(10,  function (a) &#123; return _.mr(a * 10, 50) &#125;,  function (a, b) &#123; return a - b &#125;,  function (a) &#123; return a + 10 &#125;)// 60\n_.go의 첫 번째 인자는 두 번째 인자인 함수가 사용할 인자이며 두 번째 부터는 파이프라인에서 사용할 함수들이다. _.go의 두 번째 인자인 함수, 즉 최초 실행될 함수에게 2개 이상의 인자를 넘끼고자 한다면 그때도 _.mr을 사용하면 된다.\n12345678910_.go(_.mr(2, 3),  function (a, b) &#123;    return a + b;  &#125;,  function (a) &#123;    return a * a  &#125;)// 25\n위의 코드처럼 _.mr로 인자들을 감싸서 넘겨주면, 다음 함수는 인자를 여러개로 펼쳐서 받게 된다. _.mr(2, 3)은 하나의 값이지만 _.go 내부에서 인자를 펼쳐서 넘겨주어, 2와 3이 첫 번째 함수의 a와 b가 된다._.go는 이미 정의되어 있는 함수와 조합하거나 화살표 함수와 사용할 때 특히 표현력이 좋다.\n123456789function add(a, b) &#123;  return a + b;&#125;function square(a) &#123;  return a * a;&#125;_.go(_.mr(2, 3), add, square);_.go(_.mr(2, 3), (a, b) =&gt; a + b, a =&gt; a * a)\n함수를 만드는 파이프라인 _.pipe_.go가 즉시 실행하는 파이프라인이라면 _.pipe는 실행할 준비가 된 함수를 리턴하는 파이프라인 함수다. 그 외 모든 기능은 _.go와 동일하다.\n12345var f1 = _.pipe(add, square);f1(2, 3); // 25var f2 = _.pipe((a, b) =&gt; a + b, a =&gt; a * a);f2(2, 3) // 25\n부분 커링 함수와의 조합파이프라인 함수를, 함수를 리턴하는 함수와 함께 사용해 보자.\n123456789101112131415var products = [  &#123; id: 1, name: &quot;후드 집업&quot;, discounted_price: 6000, price: 10000 &#125;,  &#123; id: 2, name: &quot;코잼 후드티&quot;, discounted_price: 8000, price: 8000 &#125;,  &#123; id: 3, name: &quot;A1 반팔티&quot;, discounted_price: 6000, price: 6000 &#125;,  &#123; id: 4, name: &quot;코잼 반팔티&quot;, discounted_price: 5000, price: 6000 &#125;,]_.go(products,  _.filter(p =&gt; p.discounted_price &lt; p.price), // 1  _.sortBy(&apos;discounted_price&apos;), // 2  _.first, // 3  _.val(&apos;name&apos;) // 4)// 코잼 반팔티\n\nproducts 중에 할인 중인 상품만 남긴다.\ndiscounted_price 가 낮은 순으로 정렬한다.\n첫 번째를 꺼낸다.\nproduct.name 을 확인한다.\n\nPartial.js의 _.filter, _.sortBy, _.val은 모두 부분 커링이 된다. 모두 인자를 하나만 넘겨 앞으로 실행될 함수를 리턴 받았다. 그렇게 만들어진 함수들은 _.go를 통해 순서대로 실행된다.\n123456789101112131415161718192021222324252627282930// 할인 상품 중 가격이 가장 높은 상품의 이름_.go(products,  _.filter(p =&gt; p.discounted_price &lt; p.price),  _.sortBy(&apos;discounted_price&apos;),  _.last,  _.val(&apos;name&apos;),  console.log)// 후드 집업// 할인 상품 중 할인액이 가장 높은 상품의 이름_.go(  products,  _.filter(p =&gt; p.discounted_price &lt; p.price),  _.sortBy(p =&gt; p.discounted_price - p.price),  _.first,  _.val(&apos;name&apos;),  console.log)// 후드 집업// 할인 상품 중 할인액이 가장 낮은 상품의 이름_.go(  products,  _.filter(p =&gt; p.discounted_price &lt; p.price),  _.max(p =&gt; p.discounted_price - p.price),  _.val(&apos;name&apos;),  console.log)// 코잼 반팔티\n중간중간 들어간 함수들의 조합을 약간씩 수정하여, 다른 로직으로 쉽게 변경할 수 있다. 할인이 진행 중인 상품들 중 제일 비싼 상품을 꺼낸다든지, 할인이 되지 않는 상품 중 제일 싼 상품을 꺼낸다든지 하는 로직으로 변경하는 것이 위에서 알 수 있듯 매우 쉽다.\n보조 함수로 사용하는 파이프라인파이프라인을 보조 함수로 만들기 위해 사용하는 것도 좋다. 파이프라인을 _.each, _.map, _.reduce 등과 같은 고차 함수들의 보조 함수로 사용해 보자.\n1234567_.go(  products,  _.filter(p =&gt; p.discounted_price &lt; p.price),  _.map(_.pipe(_.identity, _.pick([&apos;id&apos;, &apos;name&apos;]), _.values)),  console.log)// [[1, &quot;후드 집업&quot;], [4, &quot;코잼 반팔티&quot;]]\n_.filter 에서는 할인 중인 상품만 남게 된다. _.map 에서는 iteratee를 파이프라인으로 만들었다. _.pipe는 _.identity를 통해 iteratee의 첫 번째 인자인 product만 리턴하게 되고, 부분 커링된 _.pick을 통애 id와 name만 남은 객체로 만들게 된다. 마지막으로 _.values를 통해 값만 남겼다.\n비동기와 _.go_.go는 비동기 제어를 지원한다. Promise가 체인 방식에 함수적인 아이디어를 가미하여 비동기 상황을 제어했다면, _.go는 함수적으로만 비동기를 제어한다. _.go는 내부적으로 함수들을 순차적으로 실행해 나가면서 비동기 함수의 결과를 재귀 함수로 꺼낸 후, 다음 함수에게 이어주는 식으로 비동기 상황을 제어한다._.go와 _.pipe는 일반 콜백 함수와 Promise를 모두 지원한다. _.go와 _.pipe는 기본적으로 동기로 동작하지만 파이프라인의 함수들을 실행하는 도중에 Promise 객체가 리턴되거나 jQuery의 then과 같은 Deferred Object가 리턴되거나 _.callback 함수를 이용했다면, 내부적으로 비동기를 제어하는 파이프라인으로 변한다.Promise의 경우에는 함수가 실행되면 즉시 setTimeout을 일으키고, 일단 { then: … } 을 리턴하게 되므로 동기 함수들과 중첩 사용을 할 수 없다. 그러나 _.go의 경우에는 비동기 상황이 없을 경우 결과를 즉시 리턴하기 때문에, 이후 연속적으로 실행되는 함수들이 반드시 비동기성을 띌 필요가 없다.\n1234567891011_.go(  10,  _.callback(function (a, next) &#123;    setTimeout(function () &#123;      next(a + 10)    &#125;, 100)  &#125;),  function (a) &#123; // next를 통해 받은 결과 a    console.log(a);  &#125;)\n위 상황에서 _.go는 첫 번째 함수를 실행하면서 내부적으로 next를 만들어 함수에게 넘긴다. next에게 결과를 전달하면 그 결과는 다음 함수의 인자로 넘어가게 된다. 다시 바깥으로 나와 그 다음 함수들을 순차적으로 실행하므로 콜백 지옥에서 벗어날 수 있다.\n12345678910111213141516171819202122232425262728293031323334353637383940414243444546function asyncCallback() &#123;  function add(a, b, next) &#123;    setTimeout(function () &#123;      next(a + b);    &#125;, 1000);  &#125;  function sub(a, b, next) &#123;    setTimeout(function () &#123;      next(a - b);    &#125;, 1000);  &#125;  function mul(a, b, next) &#123;    setTimeout(function () &#123;      next(a * b);    &#125;, 1000);  &#125;  function log(msg, next) &#123;    setTimeout(function () &#123;      console.log(msg);      next(msg);    &#125;, 1000);  &#125;  _.go(    _.mr(5, 10),    _.callback(      function (a, b, next) &#123;        add(a, b, next);      &#125;,      function (result, next) &#123;        sub(result, 10, next);      &#125;,      function (result, next) &#123;        mul(result, 10, next);      &#125;,      function (result, next) &#123;        log(result, next);      &#125;    )  )&#125;asyncCallback(); // 50\n연속적으로 비동기 함수가 사용되어야 한다면 위와 같이 _.callback 함수에 여러개의 함수를 넘겨도 되고, 아래와 같이 미리 _.callback 패턴이라고 지정해 두면 더욱 간결하게 코딩할 수 있다.\n1234567891011121314151617181920212223242526272829303132333435363738var add = _.callback(function (a, b, next) &#123;  setTimeout(function () &#123;    next(a + b);  &#125;, 1000);&#125;);var sub = _.callback(function (a, b, next) &#123;  setTimeout(function () &#123;    next(a - b);  &#125;, 1000);&#125;);var mul = _.callback(function (a, b, next) &#123;  setTimeout(function () &#123;    next(a * b);  &#125;, 1000);&#125;);var log = _.callback(function (msg, next) &#123;  setTimeout(function () &#123;    console.log(msg);    next(msg);  &#125;, 1000);&#125;);_.go(  _.mr(5, 10),  add,  function (result) &#123;    return sub(result, 10);  &#125;,  function (result) &#123;    return mul(result, 100);  &#125;,  function (result) &#123;    return log(result);  &#125;)\n위 코드 처럼 _.callback 함수로 미리 정의해 둔 ad, sub 등의 함수를 실행하면 그 함수는 Promise 객체를 리턴한다. 정확히는 Promise가 지원되는 환경에서는 Promise 객체를 리턴하고, Promise가 지원되지 않는 환경에서는 Partial.js 내부에 구현된 Promise 객체를 리턴한다. Promise 객체를 파이프라인이 다시 받아도 다시 비동기를 제어한다. 따라서 Promise가 지원되지 않는 환경에서도 파이프라인식의 비동기 제어가 가능하다.\n중간에 멈추고 나가기일반 함수에서는 함수 중간 어디서든 return문으로 함수를 빠져 나올 수 있다. Partial.js는 파이프라인에서도 이와 같은 일이 가능하도록 지원하는데, 바로 _.stop이라는 함수를 이용하면 된다.\n1234567_.go(  null,  function () &#123; console.log(1) &#125;,  function () &#123; console.log(2) &#125;,  function () &#123; return _.stop() &#125;,  function () &#123; console.log(3) &#125;)\n1과 2만 찍힌 후 세번째 함수는 실행되지 않고 파이프라인 전체를 나오게 된다. _.go의 최종 결과도 함께 전달하고 싶다면 _.stop 함수에게 전달하면 된다.\n123456789var result = _.go(  null,  function () &#123; console.log(1) &#125;,  function () &#123; console.log(2) &#125;,  function () &#123; return _.stop(&quot;Hi&quot;) &#125;,  function () &#123; console.log(3) &#125;);console.log(result); // Hi\n비동기코드 변경없이 비동기 제어가 되는 고차 함수Partial.js의 _.each, _.map, _.reduce 등의 주요 함수들은 _.go와 _.pipe 처럼 하나의 함수로 동기와 비동기 상황이 모두 대응되도록 되어 있다. Partial.js의 함수를 이용하면 비동기 상황에서도 동기 상황과 동일한 코드를 작성할 수 있고, 비동기 함수와 동기 함수의 조합도 가능하다.\n123456789101112131415161718// 1console.log(JSON.stringify(_.map([1, 2, 3], function (v) &#123;  return new Date();&#125;)))//  [&quot;2019-12-01T08:20:00.422Z&quot;,&quot;2019-12-01T08:20:00.422Z&quot;,&quot;2019-12-01T08:20:00.422Z&quot;]// 2_.map([1, 2, 3], function () &#123;  return new Promise(function (resolve) &#123;    setTimeout(function () &#123;      resolve(new Date())    &#125;, 1000);  &#125;);&#125;).then(function (result) &#123;  console.log(JSON.stringify(result))&#125;)// [&quot;2019-12-01T08:20:01.424Z&quot;,&quot;2019-12-01T08:20:02.424Z&quot;,&quot;2019-12-01T08:20:03.428Z&quot;]\n같은 _.map 함수지만 1은 즉시 완료되었고, 2는 3초 정도의 시간이 걸려 완료되었다. Partial.js의 _.each, _.map, _.reduce 등은 첫 번째 iteratee의 결과가 Promise 객체일 경우 내부적으로 for문 대신 재귀로 변경된다. 2의 경우 iteratee가 각각 모두 1초 정도의 시간이 걸렸기 때문에 배열에 1초 정도의 차이를 가진 값들이 담겼다.위 코드는 둘 다 동일한 _.map 함수로 작성하기는 했지만 동기 상황의 코드와 비동기 상황의 전체적인 코드 구조가 다르다. _.go, _.pipe 등을 이용하면 두 가지 코드 모두 동일한 구조를 갖도록 만들 수 있다.\n123456789101112131415161718192021// 1_.go(  [1, 2, 3],  _.map(function () &#123; return new Date() &#125;),  JSON.stringify,  console.log);// 2_.go(  [1, 2, 3],  _.map(function () &#123;    return new Promise(function (resolve) &#123;      setTimeout(function () &#123;        resolve(new Date())      &#125;, 1000);    &#125;);  &#125;),  JSON.stringify,  console.log)\n_.map의 iteratee에서 Promise 함수가 아닌 일반 비동기 함수를 사용해야 한다면 다음과 같이 사용하면 된다.\n12345678910_.go(  [1, 2, 3],  _.map(_.callback(function (val, i, list, next) &#123;    setTimeout(function () &#123;      next(new Date());    &#125;, 1000)  &#125;)),  JSON.stringify,  console.log)\n마지막 인자로 next가 들어오고 next를 통해 결과를 전달하면, 그 결과가 하나씩 _.map의 결과인 새로운 배열에 쌓여간다. new Promise를 사용하는 것 보다 간결하다.\nPartial.js는 iteratee의 결과나 iteratee의 속성에 따라 동기 로직과 비동기 로직을 알아서 선택하도록 되어있다. 동기 로직으로 돌아가야 할 경우에는 for문을 사용하고 비동기 로직을 사용해야 할 경우에만 재귀로 변경되기 때문에 성능적으로도 문제가 없다.\n비동기 결과를 기다리는 if문, _.if아래 is_1, is_2 함수는 결과를 즉시 리턴하는 함수다. 아래와 같은 함수는 if문과 같은 조건절에서 사용할 수 있다.\n1234567891011121314var is_1 = function (a) &#123;  return a === 1;&#125;;var is_2 = function (a) &#123;  return a === 2;&#125;;function test1(a) &#123;  if (is_1(a)) return &apos;1입니다.&apos;  else if (is_2(a)) return &apos;2입니다.&apos;  else return &apos;1도 아니고 2도 아닙니다.&apos;&#125;console.log(test1(2)); // 2입니다.\n그런데 만약 is_1과 같은 함수가 즉시 값을 리턴할 수 없고, 데이터베이스에 다녀와야 하거나 HTTP 통신이 있어야 하면 상황은 달라진다. 자바스크립트에서는 아래와 같은 상황을 if문으로 제어할 수 없다.\n1234567891011121314151617181920212223var is_1_async = function (a) &#123;  return new Promise(function (resolve) &#123;    setTimeout(function () &#123;      resolve(a === 1);    &#125;, 1000);  &#125;)&#125;;var is_2_async = function (a) &#123;  return new Promise(function (resolve) &#123;    setTimeout(function () &#123;      resolve(a === 2);    &#125;, 1000);  &#125;)&#125;;function test2(a) &#123;  if (is_1_async(a)) return &apos;1입니다.&apos;  else if (is_2_async(a)) return &apos;2입니다.&apos;  else return &apos;1도 아니고 2도 아닙니다.&apos;&#125;;console.log(test2(2)); // 1입니다. (정상적으로 동작하지 않음)\nis_1_async 함수의 진짜 결과는 false이겠지만  is_1_async가 즉시 Promise 객체를 리턴하기 때문에 if의 조건문 입장에서는 true가 된다. is_1_async가 콜백 패턴으로 이루어진 일반 함수 였다고 하더라고, undefined가 즉시 리턴될 것이므로 역시 정상적인 결과를 만들수 없다.\n123456var test4 =  _.if(is_1_async, function () &#123; return &apos;1입니다.&apos; &#125;)    .else_if(is_2_async, function () &#123; return &apos;2입니다.&apos; &#125;)    .else(function () &#123; return &apos;1도 아니고 2도 아닙니다. &apos; &#125;);test4(2).then(console.log); // 2입니다.\n위 함수는 동기 함수를 사용했던 test1과 유사한 구조를 가지고 있다. _.constant나 화살표 함수를 사용하면 더욱 간결해진다. _.go와 함께 사용한 버전도 확인해 보자.\n12345678910111213141516171819202122var test5 =  _.if(is_1_async, _.constant(&apos;1입니다.&apos;))    .else_if(is_2_async, _.constant(&apos;2입니다.&apos;))    .else(_.constant(&apos;1도 아니고 2도 아닙니다. &apos;));test5(2).then(console.log);// 화살표함수var test6 =  _.if(is_1_async, () =&gt; &apos;1입니다.&apos;)    .else_if(is_2_async, () =&gt; &apos;2입니다.&apos;)    .else(() =&gt; &apos;1도 아니고 2도 아닙니다. &apos;);test6(1).then(console.log)// _.go_.go(  3,  _.if(is_1_async, _.constant(&apos;1입니다.&apos;))    .else_if(is_2_async, _.constant(&apos;2입니다.&apos;))    .else(_.constant(&apos;1도 아니고 2도 아닙니다. &apos;)),  console.log)\n동기와 비동기 상황을 동시에 대응하는 함수를 쉽게 만드는 팁이 있다. 해당 함수의 로직을 _.go나 _.pipe로 구현해 두는 것이다. 그렇게 하면 자동으로 동기 상황과 비동기 상황에 맞춰 로직을 알아서 변경시키기 때문에 추가적인 다른 작업을 하지 않아도 된다.\n고차 함수_.all, _.spread이 두 함수는 파이프라인과 함께 사용할 때 유용한 함수다. _.all과 _.spread 모두 받은 인자를 받은 함수들에게 전달하는 함수들인데, _.all은 받은 모든 인자를 모든 함수들에게 동일하게 전달하고, _.spread는 받은 인자들을 하나씩 나눠 준다.\n12345678910_.all(10, 5, [  function (a, b) &#123; return a + b &#125;,  function (a, b) &#123; return a - b &#125;,  function (a, b) &#123; return a * b &#125;])_.spread(10, 5, [  function (a) &#123; return a * a &#125;,  function (b) &#123; return b * b &#125;])\n_.all은 받아 둔 모든 인자를 마지막 인자로 들어온 배열 안에 있는 모든 함수들에게 동일하게 전달한다. _.spread는 받은 인자를 하나씩 나눠서, 받은 함수들에게 하나씩 전달하는 함수다._.all과 _.spread에게 인자 전달 없이 함수들만 전달하면 함수를 리턴하는 함수로 동작하여 파이프라인 등에서 사용하기 좋다.\n12345678910111213141516_.go(  10,  _.all(    function (a) &#123; return a + 5 &#125;,    function (a) &#123; return a - 5 &#125;,    function (a) &#123; return a * 5 &#125;  ),  _.spread(    function (a) &#123; return a + 1 &#125;,    function (b) &#123; return b + 2 &#125;,    function (c) &#123; return c + 3 &#125;  ),  console.log)// 16 7 53\n파이프라인2_.go에서 this 사용Partial.js의 _.pipe가 this를 지원하는 것을 확인했었다. _.go에서도 this 지원이 가능하다.\n1234567891011121314var user = &#123; name: &quot;Cojamm&quot; &#125;;_.go.call(user, 32,  function (age) &#123;    this.age = age;  &#125;,  function () &#123;    console.log(this.name);  &#125;,  function () &#123;    this.job = &quot;Rapper&quot;;  &#125;)console.log(user); // &#123;name: &quot;Cojamm&quot;, age: 32, job: &quot;Rapper&quot;&#125;\n_.go.call의 call은 Fucntion.prototype.call 이다. _.go는 일반 함수이므로 call을 사용하는게 자연스럽다. _.go 는 call을 통해 전달받은 this를 파이프라인 내 함수들에게 전달한다. apply 역시 사용할 수 있다.\n또 다른 파이프라인, _.indent자바스크립트에서는 부모 스코프와 자식 스코프라는 개념이 있다. 자식 스코프는 부모 스코프의 지역 변수를 참조할 수 있다. 이러한 중첩 구조의 접근 방식이 파이프라인 내에서도 필요했는데, 이를 위한 함수가 바로 _.indent다. _.indent는 이름처럼 _.indent가 중첩될 때마다 this와 arguments를 한 단계씩 안으로 들여쓰는 콘셉트를 가지고 있다.\n1234567891011var f1 = _.indent(  function () &#123;    console.log(this, arguments); // 1    return &apos;hi&apos;;  &#125;,  function () &#123;    console.log(this, arguments) // 2  &#125;)f1(1, 2);\n_.indent는 _.pipe처럼 함수를 리턴하는 파이프라인이다. 함수들의 연속 실행이 준비된 함수를 리턴하여 f1에 담았고 실행했다.1과 2의 결과에는 차이가 있다. console.log 에게 두 번째 인자로 넘긴 arguments에 담긴 값이 다르다. 1은 파이프라인의 첫 번째 함수이기에 f1을 통해 넘겨진 인자 [1,2]가 arguments에 들어온다. 2는 두 번째 함수이고, 이전 함수에서 ‘hi’를 리턴했기에 [‘hi’]가 arguments에 담겨 있다.파이프라인으로 코딩하다 보면 파이프라인의 최초 함수가 아닌 중간에 있는 함수에서 파이프라인이 최초로 받은 인자를 알고 싶을 때가 있다. 이것은 클로저를 사용하는 것으로도 자연스럽게 해결된다._.indent의 해결법은 파이프라인 내부의 함수들은 중간 어디서든 this.arguments로 파이프라인의 최초 인자들에 접근할 수 있다.\n_.indent의 this는 한 번의 파이프라인 사용 후 휘발되는 this다. 파이프라인 전체에서 공유하고자 하는 값이 있을 때 값을 이어주는 식으로 사용할 수도 있다. 또한 인스턴스를 만들어 두고 계속 사용하는 this가 아닌, 함수를 실행할 때마다 새로 생겼다 사라지는 this이므로 부수효과가 최소화되고 메모리 사용에도 문제가 없다.\n123456789var f2 = _.indent(  function (a) &#123; this.b = a + 10; &#125;,  function () &#123; &#125;,  function () &#123; &#125;,  function () &#123; console.log(this.b) &#125;,)f2(5); // 15f2(7); // 17\n_.indent에서 this는 이번에 실행할 때 열린 부모 스코프를 대신하는 역할이므로, 그 this의 key/value를 확장한다는 것은 새로운 변수를 할당하는 것 이라고 볼 수 있다. this에 값을 단 후 값을 변경하지 않는다면 부수 효과로부터 자유로워진다. 하나의 큰 함수 안에서 변수에 담고 그 변수에 담긴 값을 변경하지 않는 것과 동일하다.\n1234567891011121314151617181920var f3 = _.indent(  function (a) &#123;    this.b = a + 10;  &#125;,  _.indent(    function () &#123;      this.b = 20;      console.log(this.b); // 20      console.log(this.parent.b) // 15    &#125;,    function () &#123;      console.log(this.parent.arguments); // [5]    &#125;  ),  function () &#123;    console.log(this.b);  &#125;)f3(5);\nparent를 통해 부모를 찾아갈 수 있고, this.parent.arguments로 파이프라인의 최초 인자도 찾아갈 수 있다. 자바스크립트에서 값에 접근할 수 있다는 것은 값을 변경할 수도 있다는 의미이므로 위험하다. 이것은 모든 값 혹은 변수에 해당하는 이야기다. 그러나 값을 참조하는 식으로 접근한다면, 여기저기에서 값에 접근할 수 있다는 것 자체는 문제가 되지는 않는다.\n무조건 비동기로 동작하는 _.async_.go, _.pipe, _.indent는 파이프라인 내부의 함수에서 비동기 결과가 나올 경우 비동기 제어를 시작하도록 구현되어 있다. 그러므로 비동기 상황이 생기지 않는다면 즉시 일반 값이 리턴되고, 비동기 상황이 생겼을 때만 Promise 객체가 리턴된다. 때로는 내부 함수의 결과와 상관없이 무조건 비동기를 일으키고 싶을 때가 있다. _.async는 이럴 때 사용하기 적합한, 무조건 비동기로 동작하는 파이프라인이다.\n1234567_.go.async(1, function (a) &#123;  return a;&#125;).then(console.log);console.log(2);// 2// 1\n참조: 함수형 자바스크립트 프로그래밍\n","dateCreated":"2019-12-01T15:35:32+09:00","dateModified":"2019-12-01T18:41:04+09:00","datePublished":"2019-12-01T15:35:32+09:00","description":"파이프라인즉시 실행 파이프라인, _.go와 _.mr_.go는 파이프라인의 즉시 실행 버전이다. 첫 번째 인자로 받은 값을 두 번째 인자로 받은 함수에게 넘겨주고, 두 번째 인자로 받은 함수의 결과는 세 번째 함수에게 넘겨준다. 이것을 반복하다가 마지막 함수의 결과를 리턴해 준다.\n12345_.go(10, // 첫번째 인자  function (a) &#123; return a * 10 &#125;, // 100  function (a) &#123; return a - 50 &#125;, // 50  function (a) &#123; return a + 10 &#125; // 60)\n_.go는 Multiple Results를 지원한다. _.mr 함수를 함께 사용하면 다음 함수에게 2개 이상의 인자들을 전달할 수 있다.","headline":"Partial.js와 함수 조립","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"https://kkangil.github.io/2019/12/01/Partial-js와-함수-조립/"},"publisher":{"@type":"Organization","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg","logo":{"@type":"ImageObject","url":"profile.jpeg"}},"url":"https://kkangil.github.io/2019/12/01/Partial-js와-함수-조립/","keywords":"javascript, 함수형 프로그래밍, 파이프라인, go 함수, 비동기와 _.go, _.indent"}</script>
+    <meta name="description" content="파이프라인즉시 실행 파이프라인, _.go와 _.mr_.go는 파이프라인의 즉시 실행 버전이다. 첫 번째 인자로 받은 값을 두 번째 인자로 받은 함수에게 넘겨주고, 두 번째 인자로 받은 함수의 결과는 세 번째 함수에게 넘겨준다. 이것을 반복하다가 마지막 함수의 결과를 리턴해 준다. 12345_.go(10, // 첫번째 인자  function (a) &amp;#123">
+<meta name="keywords" content="javascript,함수형 프로그래밍,파이프라인,go 함수,비동기와 _.go,_.indent">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="Partial.js와 함수 조립">
+<meta property="og:url" content="https://kkangil.github.io/2019/12/01/Partial-js와-함수-조립/index.html">
+<meta property="og:site_name" content="kkangil&#39;s Blog">
+<meta property="og:description" content="파이프라인즉시 실행 파이프라인, _.go와 _.mr_.go는 파이프라인의 즉시 실행 버전이다. 첫 번째 인자로 받은 값을 두 번째 인자로 받은 함수에게 넘겨주고, 두 번째 인자로 받은 함수의 결과는 세 번째 함수에게 넘겨준다. 이것을 반복하다가 마지막 함수의 결과를 리턴해 준다. 12345_.go(10, // 첫번째 인자  function (a) &amp;#123">
+<meta property="og:locale" content="ko">
+<meta property="og:updated_time" content="2019-12-01T09:41:04.132Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Partial.js와 함수 조립">
+<meta name="twitter:description" content="파이프라인즉시 실행 파이프라인, _.go와 _.mr_.go는 파이프라인의 즉시 실행 버전이다. 첫 번째 인자로 받은 값을 두 번째 인자로 받은 함수에게 넘겨주고, 두 번째 인자로 받은 함수의 결과는 세 번째 함수에게 넘겨준다. 이것을 반복하다가 마지막 함수의 결과를 리턴해 준다. 12345_.go(10, // 첫번째 인자  function (a) &amp;#123">
+    
+    
+        
+    
+    
+        <meta property="og:image" content="https://kkangil.github.io/assets/images/profile.jpeg"/>
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/style-c4ozcsklz4kht2pebhp44xorvyverh23toayhn7i6ubrpyedak24hv1v0hyd.min.css">
+    <!--STYLES END-->
+    
+
+    
+</head>
+
+    <body>
+        <div id="blog">
+            <!-- Define author's picture -->
+
+
+    
+        
+            
+        
+    
+
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a class="header-title-link" href="/ ">kkangil&#39;s Blog</a>
+    </div>
+    
+        
+            <a class="header-right-picture " href="#about">
+        
+        
+            <img class="header-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+        
+        </a>
+    
+</header>
+
+            <!-- Define author's picture -->
+
+
+
+        
+    
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
+        
+            <div class="sidebar-profile">
+                <a href="/#about">
+                    <img class="sidebar-profile-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+                </a>
+                <h4 class="sidebar-profile-name">kkangil</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
+</h5>
+                
+            </div>
+        
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/ " title="Home">
+                    
+                        <i class="sidebar-button-icon fa fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Home</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-categories" title="카테고리">
+                    
+                        <i class="sidebar-button-icon fa fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">카테고리</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-tags" title="태그">
+                    
+                        <i class="sidebar-button-icon fa fa-tags" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">태그</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-archives" title="기록">
+                    
+                        <i class="sidebar-button-icon fa fa-archive" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">기록</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link open-algolia-search" href="#search" title="검색">
+                    
+                        <i class="sidebar-button-icon fa fa-search" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">검색</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="#about" title="About">
+                    
+                        <i class="sidebar-button-icon fa fa-question" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">About</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="https://github.com/kkangil" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fab fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="http://stackoverflow.com/users/10870848/kkangil" target="_blank" rel="noopener" title="Stack Overflow">
+                    
+                        <i class="sidebar-button-icon fab fa-stack-overflow" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Stack Overflow</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="https://www.linkedin.com/in/kangil-kim-31093a169/" target="_blank" rel="noopener" title="LinkedIn">
+                    
+                        <i class="sidebar-button-icon fab fa-linkedin" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">LinkedIn</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/fe.kkangil@gmail.com" title="Mail">
+                    
+                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Mail</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/atom.xml" title="RSS">
+                    
+                        <i class="sidebar-button-icon fa fa-rss" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">RSS</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
+</nav>
+
+            
+            <div id="main" data-behavior="4"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title">
+            Partial.js와 함수 조립
+        </h1>
+    
+    
+        <div class="post-meta">
+    <time datetime="2019-12-01T15:35:32+09:00">
+	
+		    12월 01, 2019
+    	
+    </time>
+    
+        <span>카테고리 </span>
+        
+    <a class="category-link" href="/categories/함수형-프로그래밍/">함수형 프로그래밍</a>
+
+
+    
+</div>
+
+    
+</div>
+
+    
+    <div class="post-content markdown">
+        <div class="main-content-wrap">
+            <h2 id="파이프라인"><a href="#파이프라인" class="headerlink" title="파이프라인"></a>파이프라인</h2><h3 id="즉시-실행-파이프라인-go와-mr"><a href="#즉시-실행-파이프라인-go와-mr" class="headerlink" title="즉시 실행 파이프라인, _.go와 _.mr"></a>즉시 실행 파이프라인, _.go와 _.mr</h3><p>_.go는 파이프라인의 즉시 실행 버전이다. 첫 번째 인자로 받은 값을 두 번째 인자로 받은 함수에게 넘겨주고, 두 번째 인자로 받은 함수의 결과는 세 번째 함수에게 넘겨준다. 이것을 반복하다가 마지막 함수의 결과를 리턴해 준다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">_.go(10, // 첫번째 인자</span><br><span class="line">  function (a) &#123; return a * 10 &#125;, // 100</span><br><span class="line">  function (a) &#123; return a - 50 &#125;, // 50</span><br><span class="line">  function (a) &#123; return a + 10 &#125; // 60</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>_.go는 Multiple Results를 지원한다. _.mr 함수를 함께 사용하면 다음 함수에게 2개 이상의 인자들을 전달할 수 있다.</p>
+<a id="more"></a>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">_.go(10,</span><br><span class="line">  function (a) &#123; return _.mr(a * 10, 50) &#125;,</span><br><span class="line">  function (a, b) &#123; return a - b &#125;,</span><br><span class="line">  function (a) &#123; return a + 10 &#125;</span><br><span class="line">)</span><br><span class="line">// 60</span><br></pre></td></tr></table></figure>
+<p>_.go의 첫 번째 인자는 두 번째 인자인 함수가 사용할 인자이며 두 번째 부터는 파이프라인에서 사용할 함수들이다. _.go의 두 번째 인자인 함수, 즉 최초 실행될 함수에게 2개 이상의 인자를 넘끼고자 한다면 그때도 _.mr을 사용하면 된다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">_.go(_.mr(2, 3),</span><br><span class="line">  function (a, b) &#123;</span><br><span class="line">    return a + b;</span><br><span class="line">  &#125;,</span><br><span class="line">  function (a) &#123;</span><br><span class="line">    return a * a</span><br><span class="line">  &#125;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">// 25</span><br></pre></td></tr></table></figure>
+<p>위의 코드처럼 _.mr로 인자들을 감싸서 넘겨주면, 다음 함수는 인자를 여러개로 펼쳐서 받게 된다. _.mr(2, 3)은 하나의 값이지만 _.go 내부에서 인자를 펼쳐서 넘겨주어, 2와 3이 첫 번째 함수의 a와 b가 된다.<br>_.go는 이미 정의되어 있는 함수와 조합하거나 화살표 함수와 사용할 때 특히 표현력이 좋다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">function add(a, b) &#123;</span><br><span class="line">  return a + b;</span><br><span class="line">&#125;</span><br><span class="line">function square(a) &#123;</span><br><span class="line">  return a * a;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">_.go(_.mr(2, 3), add, square);</span><br><span class="line">_.go(_.mr(2, 3), (a, b) =&gt; a + b, a =&gt; a * a)</span><br></pre></td></tr></table></figure>
+<h3 id="함수를-만드는-파이프라인-pipe"><a href="#함수를-만드는-파이프라인-pipe" class="headerlink" title="함수를 만드는 파이프라인 _.pipe"></a>함수를 만드는 파이프라인 _.pipe</h3><p>_.go가 즉시 실행하는 파이프라인이라면 _.pipe는 실행할 준비가 된 함수를 리턴하는 파이프라인 함수다. 그 외 모든 기능은 _.go와 동일하다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">var f1 = _.pipe(add, square);</span><br><span class="line">f1(2, 3); // 25</span><br><span class="line"></span><br><span class="line">var f2 = _.pipe((a, b) =&gt; a + b, a =&gt; a * a);</span><br><span class="line">f2(2, 3) // 25</span><br></pre></td></tr></table></figure>
+<h3 id="부분-커링-함수와의-조합"><a href="#부분-커링-함수와의-조합" class="headerlink" title="부분 커링 함수와의 조합"></a>부분 커링 함수와의 조합</h3><p>파이프라인 함수를, 함수를 리턴하는 함수와 함께 사용해 보자.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">var products = [</span><br><span class="line">  &#123; id: 1, name: &quot;후드 집업&quot;, discounted_price: 6000, price: 10000 &#125;,</span><br><span class="line">  &#123; id: 2, name: &quot;코잼 후드티&quot;, discounted_price: 8000, price: 8000 &#125;,</span><br><span class="line">  &#123; id: 3, name: &quot;A1 반팔티&quot;, discounted_price: 6000, price: 6000 &#125;,</span><br><span class="line">  &#123; id: 4, name: &quot;코잼 반팔티&quot;, discounted_price: 5000, price: 6000 &#125;,</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line">_.go(products,</span><br><span class="line">  _.filter(p =&gt; p.discounted_price &lt; p.price), // 1</span><br><span class="line">  _.sortBy(&apos;discounted_price&apos;), // 2</span><br><span class="line">  _.first, // 3</span><br><span class="line">  _.val(&apos;name&apos;) // 4</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">// 코잼 반팔티</span><br></pre></td></tr></table></figure>
+<ol>
+<li><code>products</code> 중에 할인 중인 상품만 남긴다.</li>
+<li><code>discounted_price</code> 가 낮은 순으로 정렬한다.</li>
+<li>첫 번째를 꺼낸다.</li>
+<li>product.name 을 확인한다.</li>
+</ol>
+<p>Partial.js의 _.filter, _.sortBy, _.val은 모두 부분 커링이 된다. 모두 인자를 하나만 넘겨 앞으로 실행될 함수를 리턴 받았다. 그렇게 만들어진 함수들은 _.go를 통해 순서대로 실행된다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">// 할인 상품 중 가격이 가장 높은 상품의 이름</span><br><span class="line">_.go(products,</span><br><span class="line">  _.filter(p =&gt; p.discounted_price &lt; p.price),</span><br><span class="line">  _.sortBy(&apos;discounted_price&apos;),</span><br><span class="line">  _.last,</span><br><span class="line">  _.val(&apos;name&apos;),</span><br><span class="line">  console.log</span><br><span class="line">)</span><br><span class="line">// 후드 집업</span><br><span class="line"></span><br><span class="line">// 할인 상품 중 할인액이 가장 높은 상품의 이름</span><br><span class="line">_.go(</span><br><span class="line">  products,</span><br><span class="line">  _.filter(p =&gt; p.discounted_price &lt; p.price),</span><br><span class="line">  _.sortBy(p =&gt; p.discounted_price - p.price),</span><br><span class="line">  _.first,</span><br><span class="line">  _.val(&apos;name&apos;),</span><br><span class="line">  console.log</span><br><span class="line">)</span><br><span class="line">// 후드 집업</span><br><span class="line"></span><br><span class="line">// 할인 상품 중 할인액이 가장 낮은 상품의 이름</span><br><span class="line">_.go(</span><br><span class="line">  products,</span><br><span class="line">  _.filter(p =&gt; p.discounted_price &lt; p.price),</span><br><span class="line">  _.max(p =&gt; p.discounted_price - p.price),</span><br><span class="line">  _.val(&apos;name&apos;),</span><br><span class="line">  console.log</span><br><span class="line">)</span><br><span class="line">// 코잼 반팔티</span><br></pre></td></tr></table></figure>
+<p>중간중간 들어간 함수들의 조합을 약간씩 수정하여, 다른 로직으로 쉽게 변경할 수 있다. 할인이 진행 중인 상품들 중 제일 비싼 상품을 꺼낸다든지, 할인이 되지 않는 상품 중 제일 싼 상품을 꺼낸다든지 하는 로직으로 변경하는 것이 위에서 알 수 있듯 매우 쉽다.</p>
+<h3 id="보조-함수로-사용하는-파이프라인"><a href="#보조-함수로-사용하는-파이프라인" class="headerlink" title="보조 함수로 사용하는 파이프라인"></a>보조 함수로 사용하는 파이프라인</h3><p>파이프라인을 보조 함수로 만들기 위해 사용하는 것도 좋다. 파이프라인을 _.each, _.map, _.reduce 등과 같은 고차 함수들의 보조 함수로 사용해 보자.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">_.go(</span><br><span class="line">  products,</span><br><span class="line">  _.filter(p =&gt; p.discounted_price &lt; p.price),</span><br><span class="line">  _.map(_.pipe(_.identity, _.pick([&apos;id&apos;, &apos;name&apos;]), _.values)),</span><br><span class="line">  console.log</span><br><span class="line">)</span><br><span class="line">// [[1, &quot;후드 집업&quot;], [4, &quot;코잼 반팔티&quot;]]</span><br></pre></td></tr></table></figure>
+<p>_.filter 에서는 할인 중인 상품만 남게 된다. _.map 에서는 iteratee를 파이프라인으로 만들었다. _.pipe는 _.identity를 통해 iteratee의 첫 번째 인자인 product만 리턴하게 되고, 부분 커링된 _.pick을 통애 id와 name만 남은 객체로 만들게 된다. 마지막으로 _.values를 통해 값만 남겼다.</p>
+<h3 id="비동기와-go"><a href="#비동기와-go" class="headerlink" title="비동기와 _.go"></a>비동기와 _.go</h3><p>_.go는 비동기 제어를 지원한다. Promise가 체인 방식에 함수적인 아이디어를 가미하여 비동기 상황을 제어했다면, _.go는 함수적으로만 비동기를 제어한다. _.go는 내부적으로 함수들을 순차적으로 실행해 나가면서 비동기 함수의 결과를 재귀 함수로 꺼낸 후, 다음 함수에게 이어주는 식으로 비동기 상황을 제어한다.<br>_.go와 _.pipe는 일반 콜백 함수와 Promise를 모두 지원한다. _.go와 _.pipe는 기본적으로 동기로 동작하지만 파이프라인의 함수들을 실행하는 도중에 Promise 객체가 리턴되거나 jQuery의 then과 같은 Deferred Object가 리턴되거나 _.callback 함수를 이용했다면, 내부적으로 비동기를 제어하는 파이프라인으로 변한다.<br>Promise의 경우에는 함수가 실행되면 즉시 setTimeout을 일으키고, 일단 { then: … } 을 리턴하게 되므로 동기 함수들과 중첩 사용을 할 수 없다. 그러나 _.go의 경우에는 비동기 상황이 없을 경우 결과를 즉시 리턴하기 때문에, 이후 연속적으로 실행되는 함수들이 반드시 비동기성을 띌 필요가 없다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">_.go(</span><br><span class="line">  10,</span><br><span class="line">  _.callback(function (a, next) &#123;</span><br><span class="line">    setTimeout(function () &#123;</span><br><span class="line">      next(a + 10)</span><br><span class="line">    &#125;, 100)</span><br><span class="line">  &#125;),</span><br><span class="line">  function (a) &#123; // next를 통해 받은 결과 a</span><br><span class="line">    console.log(a);</span><br><span class="line">  &#125;</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>위 상황에서 _.go는 첫 번째 함수를 실행하면서 내부적으로 next를 만들어 함수에게 넘긴다. next에게 결과를 전달하면 그 결과는 다음 함수의 인자로 넘어가게 된다. 다시 바깥으로 나와 그 다음 함수들을 순차적으로 실행하므로 콜백 지옥에서 벗어날 수 있다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">function asyncCallback() &#123;</span><br><span class="line">  function add(a, b, next) &#123;</span><br><span class="line">    setTimeout(function () &#123;</span><br><span class="line">      next(a + b);</span><br><span class="line">    &#125;, 1000);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  function sub(a, b, next) &#123;</span><br><span class="line">    setTimeout(function () &#123;</span><br><span class="line">      next(a - b);</span><br><span class="line">    &#125;, 1000);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  function mul(a, b, next) &#123;</span><br><span class="line">    setTimeout(function () &#123;</span><br><span class="line">      next(a * b);</span><br><span class="line">    &#125;, 1000);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  function log(msg, next) &#123;</span><br><span class="line">    setTimeout(function () &#123;</span><br><span class="line">      console.log(msg);</span><br><span class="line">      next(msg);</span><br><span class="line">    &#125;, 1000);</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  _.go(</span><br><span class="line">    _.mr(5, 10),</span><br><span class="line">    _.callback(</span><br><span class="line">      function (a, b, next) &#123;</span><br><span class="line">        add(a, b, next);</span><br><span class="line">      &#125;,</span><br><span class="line">      function (result, next) &#123;</span><br><span class="line">        sub(result, 10, next);</span><br><span class="line">      &#125;,</span><br><span class="line">      function (result, next) &#123;</span><br><span class="line">        mul(result, 10, next);</span><br><span class="line">      &#125;,</span><br><span class="line">      function (result, next) &#123;</span><br><span class="line">        log(result, next);</span><br><span class="line">      &#125;</span><br><span class="line">    )</span><br><span class="line">  )</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">asyncCallback(); // 50</span><br></pre></td></tr></table></figure>
+<p>연속적으로 비동기 함수가 사용되어야 한다면 위와 같이 _.callback 함수에 여러개의 함수를 넘겨도 되고, 아래와 같이 미리 _.callback 패턴이라고 지정해 두면 더욱 간결하게 코딩할 수 있다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">var add = _.callback(function (a, b, next) &#123;</span><br><span class="line">  setTimeout(function () &#123;</span><br><span class="line">    next(a + b);</span><br><span class="line">  &#125;, 1000);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">var sub = _.callback(function (a, b, next) &#123;</span><br><span class="line">  setTimeout(function () &#123;</span><br><span class="line">    next(a - b);</span><br><span class="line">  &#125;, 1000);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">var mul = _.callback(function (a, b, next) &#123;</span><br><span class="line">  setTimeout(function () &#123;</span><br><span class="line">    next(a * b);</span><br><span class="line">  &#125;, 1000);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">var log = _.callback(function (msg, next) &#123;</span><br><span class="line">  setTimeout(function () &#123;</span><br><span class="line">    console.log(msg);</span><br><span class="line">    next(msg);</span><br><span class="line">  &#125;, 1000);</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">_.go(</span><br><span class="line">  _.mr(5, 10),</span><br><span class="line">  add,</span><br><span class="line">  function (result) &#123;</span><br><span class="line">    return sub(result, 10);</span><br><span class="line">  &#125;,</span><br><span class="line">  function (result) &#123;</span><br><span class="line">    return mul(result, 100);</span><br><span class="line">  &#125;,</span><br><span class="line">  function (result) &#123;</span><br><span class="line">    return log(result);</span><br><span class="line">  &#125;</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>위 코드 처럼 _.callback 함수로 미리 정의해 둔 ad, sub 등의 함수를 실행하면 그 함수는 Promise 객체를 리턴한다. 정확히는 Promise가 지원되는 환경에서는 Promise 객체를 리턴하고, Promise가 지원되지 않는 환경에서는 Partial.js 내부에 구현된 Promise 객체를 리턴한다. Promise 객체를 파이프라인이 다시 받아도 다시 비동기를 제어한다. 따라서 Promise가 지원되지 않는 환경에서도 파이프라인식의 비동기 제어가 가능하다.</p>
+<h3 id="중간에-멈추고-나가기"><a href="#중간에-멈추고-나가기" class="headerlink" title="중간에 멈추고 나가기"></a>중간에 멈추고 나가기</h3><p>일반 함수에서는 함수 중간 어디서든 return문으로 함수를 빠져 나올 수 있다. Partial.js는 파이프라인에서도 이와 같은 일이 가능하도록 지원하는데, 바로 _.stop이라는 함수를 이용하면 된다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">_.go(</span><br><span class="line">  null,</span><br><span class="line">  function () &#123; console.log(1) &#125;,</span><br><span class="line">  function () &#123; console.log(2) &#125;,</span><br><span class="line">  function () &#123; return _.stop() &#125;,</span><br><span class="line">  function () &#123; console.log(3) &#125;</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>1과 2만 찍힌 후 세번째 함수는 실행되지 않고 파이프라인 전체를 나오게 된다. _.go의 최종 결과도 함께 전달하고 싶다면 _.stop 함수에게 전달하면 된다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">var result = _.go(</span><br><span class="line">  null,</span><br><span class="line">  function () &#123; console.log(1) &#125;,</span><br><span class="line">  function () &#123; console.log(2) &#125;,</span><br><span class="line">  function () &#123; return _.stop(&quot;Hi&quot;) &#125;,</span><br><span class="line">  function () &#123; console.log(3) &#125;</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line">console.log(result); // Hi</span><br></pre></td></tr></table></figure>
+<h2 id="비동기"><a href="#비동기" class="headerlink" title="비동기"></a>비동기</h2><h3 id="코드-변경없이-비동기-제어가-되는-고차-함수"><a href="#코드-변경없이-비동기-제어가-되는-고차-함수" class="headerlink" title="코드 변경없이 비동기 제어가 되는 고차 함수"></a>코드 변경없이 비동기 제어가 되는 고차 함수</h3><p>Partial.js의 _.each, _.map, _.reduce 등의 주요 함수들은 _.go와 _.pipe 처럼 하나의 함수로 동기와 비동기 상황이 모두 대응되도록 되어 있다. Partial.js의 함수를 이용하면 비동기 상황에서도 동기 상황과 동일한 코드를 작성할 수 있고, 비동기 함수와 동기 함수의 조합도 가능하다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">// 1</span><br><span class="line">console.log(JSON.stringify(_.map([1, 2, 3], function (v) &#123;</span><br><span class="line">  return new Date();</span><br><span class="line">&#125;)))</span><br><span class="line"></span><br><span class="line">//  [&quot;2019-12-01T08:20:00.422Z&quot;,&quot;2019-12-01T08:20:00.422Z&quot;,&quot;2019-12-01T08:20:00.422Z&quot;]</span><br><span class="line"></span><br><span class="line">// 2</span><br><span class="line">_.map([1, 2, 3], function () &#123;</span><br><span class="line">  return new Promise(function (resolve) &#123;</span><br><span class="line">    setTimeout(function () &#123;</span><br><span class="line">      resolve(new Date())</span><br><span class="line">    &#125;, 1000);</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;).then(function (result) &#123;</span><br><span class="line">  console.log(JSON.stringify(result))</span><br><span class="line">&#125;)</span><br><span class="line">// [&quot;2019-12-01T08:20:01.424Z&quot;,&quot;2019-12-01T08:20:02.424Z&quot;,&quot;2019-12-01T08:20:03.428Z&quot;]</span><br></pre></td></tr></table></figure>
+<p>같은 _.map 함수지만 1은 즉시 완료되었고, 2는 3초 정도의 시간이 걸려 완료되었다. Partial.js의 _.each, _.map, _.reduce 등은 첫 번째 iteratee의 결과가 Promise 객체일 경우 내부적으로 for문 대신 재귀로 변경된다. 2의 경우 iteratee가 각각 모두 1초 정도의 시간이 걸렸기 때문에 배열에 1초 정도의 차이를 가진 값들이 담겼다.<br>위 코드는 둘 다 동일한 _.map 함수로 작성하기는 했지만 동기 상황의 코드와 비동기 상황의 전체적인 코드 구조가 다르다. _.go, _.pipe 등을 이용하면 두 가지 코드 모두 동일한 구조를 갖도록 만들 수 있다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">// 1</span><br><span class="line">_.go(</span><br><span class="line">  [1, 2, 3],</span><br><span class="line">  _.map(function () &#123; return new Date() &#125;),</span><br><span class="line">  JSON.stringify,</span><br><span class="line">  console.log</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line">// 2</span><br><span class="line">_.go(</span><br><span class="line">  [1, 2, 3],</span><br><span class="line">  _.map(function () &#123;</span><br><span class="line">    return new Promise(function (resolve) &#123;</span><br><span class="line">      setTimeout(function () &#123;</span><br><span class="line">        resolve(new Date())</span><br><span class="line">      &#125;, 1000);</span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;),</span><br><span class="line">  JSON.stringify,</span><br><span class="line">  console.log</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>_.map의 iteratee에서 Promise 함수가 아닌 일반 비동기 함수를 사용해야 한다면 다음과 같이 사용하면 된다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">_.go(</span><br><span class="line">  [1, 2, 3],</span><br><span class="line">  _.map(_.callback(function (val, i, list, next) &#123;</span><br><span class="line">    setTimeout(function () &#123;</span><br><span class="line">      next(new Date());</span><br><span class="line">    &#125;, 1000)</span><br><span class="line">  &#125;)),</span><br><span class="line">  JSON.stringify,</span><br><span class="line">  console.log</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>마지막 인자로 next가 들어오고 next를 통해 결과를 전달하면, 그 결과가 하나씩 _.map의 결과인 새로운 배열에 쌓여간다. new Promise를 사용하는 것 보다 간결하다.</p>
+<p>Partial.js는 iteratee의 결과나 iteratee의 속성에 따라 동기 로직과 비동기 로직을 알아서 선택하도록 되어있다. 동기 로직으로 돌아가야 할 경우에는 for문을 사용하고 비동기 로직을 사용해야 할 경우에만 재귀로 변경되기 때문에 성능적으로도 문제가 없다.</p>
+<h3 id="비동기-결과를-기다리는-if문-if"><a href="#비동기-결과를-기다리는-if문-if" class="headerlink" title="비동기 결과를 기다리는 if문, _.if"></a>비동기 결과를 기다리는 if문, _.if</h3><p>아래 is_1, is_2 함수는 결과를 즉시 리턴하는 함수다. 아래와 같은 함수는 if문과 같은 조건절에서 사용할 수 있다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">var is_1 = function (a) &#123;</span><br><span class="line">  return a === 1;</span><br><span class="line">&#125;;</span><br><span class="line">var is_2 = function (a) &#123;</span><br><span class="line">  return a === 2;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">function test1(a) &#123;</span><br><span class="line">  if (is_1(a)) return &apos;1입니다.&apos;</span><br><span class="line">  else if (is_2(a)) return &apos;2입니다.&apos;</span><br><span class="line">  else return &apos;1도 아니고 2도 아닙니다.&apos;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">console.log(test1(2)); // 2입니다.</span><br></pre></td></tr></table></figure>
+<p>그런데 만약 is_1과 같은 함수가 즉시 값을 리턴할 수 없고, 데이터베이스에 다녀와야 하거나 HTTP 통신이 있어야 하면 상황은 달라진다. 자바스크립트에서는 아래와 같은 상황을 if문으로 제어할 수 없다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">var is_1_async = function (a) &#123;</span><br><span class="line">  return new Promise(function (resolve) &#123;</span><br><span class="line">    setTimeout(function () &#123;</span><br><span class="line">      resolve(a === 1);</span><br><span class="line">    &#125;, 1000);</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">var is_2_async = function (a) &#123;</span><br><span class="line">  return new Promise(function (resolve) &#123;</span><br><span class="line">    setTimeout(function () &#123;</span><br><span class="line">      resolve(a === 2);</span><br><span class="line">    &#125;, 1000);</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">function test2(a) &#123;</span><br><span class="line">  if (is_1_async(a)) return &apos;1입니다.&apos;</span><br><span class="line">  else if (is_2_async(a)) return &apos;2입니다.&apos;</span><br><span class="line">  else return &apos;1도 아니고 2도 아닙니다.&apos;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">console.log(test2(2)); // 1입니다. (정상적으로 동작하지 않음)</span><br></pre></td></tr></table></figure>
+<p>is_1_async 함수의 진짜 결과는 false이겠지만  is_1_async가 즉시 Promise 객체를 리턴하기 때문에 if의 조건문 입장에서는 true가 된다. is_1_async가 콜백 패턴으로 이루어진 일반 함수 였다고 하더라고, undefined가 즉시 리턴될 것이므로 역시 정상적인 결과를 만들수 없다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">var test4 =</span><br><span class="line">  _.if(is_1_async, function () &#123; return &apos;1입니다.&apos; &#125;)</span><br><span class="line">    .else_if(is_2_async, function () &#123; return &apos;2입니다.&apos; &#125;)</span><br><span class="line">    .else(function () &#123; return &apos;1도 아니고 2도 아닙니다. &apos; &#125;);</span><br><span class="line"></span><br><span class="line">test4(2).then(console.log); // 2입니다.</span><br></pre></td></tr></table></figure>
+<p>위 함수는 동기 함수를 사용했던 test1과 유사한 구조를 가지고 있다. _.constant나 화살표 함수를 사용하면 더욱 간결해진다. _.go와 함께 사용한 버전도 확인해 보자.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">var test5 =</span><br><span class="line">  _.if(is_1_async, _.constant(&apos;1입니다.&apos;))</span><br><span class="line">    .else_if(is_2_async, _.constant(&apos;2입니다.&apos;))</span><br><span class="line">    .else(_.constant(&apos;1도 아니고 2도 아닙니다. &apos;));</span><br><span class="line"></span><br><span class="line">test5(2).then(console.log);</span><br><span class="line"></span><br><span class="line">// 화살표함수</span><br><span class="line">var test6 =</span><br><span class="line">  _.if(is_1_async, () =&gt; &apos;1입니다.&apos;)</span><br><span class="line">    .else_if(is_2_async, () =&gt; &apos;2입니다.&apos;)</span><br><span class="line">    .else(() =&gt; &apos;1도 아니고 2도 아닙니다. &apos;);</span><br><span class="line">test6(1).then(console.log)</span><br><span class="line"></span><br><span class="line">// _.go</span><br><span class="line">_.go(</span><br><span class="line">  3,</span><br><span class="line">  _.if(is_1_async, _.constant(&apos;1입니다.&apos;))</span><br><span class="line">    .else_if(is_2_async, _.constant(&apos;2입니다.&apos;))</span><br><span class="line">    .else(_.constant(&apos;1도 아니고 2도 아닙니다. &apos;)),</span><br><span class="line">  console.log</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+<p>동기와 비동기 상황을 동시에 대응하는 함수를 쉽게 만드는 팁이 있다. 해당 함수의 로직을 _.go나 _.pipe로 구현해 두는 것이다. 그렇게 하면 자동으로 동기 상황과 비동기 상황에 맞춰 로직을 알아서 변경시키기 때문에 추가적인 다른 작업을 하지 않아도 된다.</p>
+<h2 id="고차-함수"><a href="#고차-함수" class="headerlink" title="고차 함수"></a>고차 함수</h2><h3 id="all-spread"><a href="#all-spread" class="headerlink" title="_.all, _.spread"></a>_.all, _.spread</h3><p>이 두 함수는 파이프라인과 함께 사용할 때 유용한 함수다. _.all과 _.spread 모두 받은 인자를 받은 함수들에게 전달하는 함수들인데, _.all은 받은 모든 인자를 모든 함수들에게 동일하게 전달하고, _.spread는 받은 인자들을 하나씩 나눠 준다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">_.all(10, 5, [</span><br><span class="line">  function (a, b) &#123; return a + b &#125;,</span><br><span class="line">  function (a, b) &#123; return a - b &#125;,</span><br><span class="line">  function (a, b) &#123; return a * b &#125;</span><br><span class="line">])</span><br><span class="line"></span><br><span class="line">_.spread(10, 5, [</span><br><span class="line">  function (a) &#123; return a * a &#125;,</span><br><span class="line">  function (b) &#123; return b * b &#125;</span><br><span class="line">])</span><br></pre></td></tr></table></figure>
+<p>_.all은 받아 둔 모든 인자를 마지막 인자로 들어온 배열 안에 있는 모든 함수들에게 동일하게 전달한다. _.spread는 받은 인자를 하나씩 나눠서, 받은 함수들에게 하나씩 전달하는 함수다.<br>_.all과 _.spread에게 인자 전달 없이 함수들만 전달하면 함수를 리턴하는 함수로 동작하여 파이프라인 등에서 사용하기 좋다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">_.go(</span><br><span class="line">  10,</span><br><span class="line">  _.all(</span><br><span class="line">    function (a) &#123; return a + 5 &#125;,</span><br><span class="line">    function (a) &#123; return a - 5 &#125;,</span><br><span class="line">    function (a) &#123; return a * 5 &#125;</span><br><span class="line">  ),</span><br><span class="line">  _.spread(</span><br><span class="line">    function (a) &#123; return a + 1 &#125;,</span><br><span class="line">    function (b) &#123; return b + 2 &#125;,</span><br><span class="line">    function (c) &#123; return c + 3 &#125;</span><br><span class="line">  ),</span><br><span class="line">  console.log</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">// 16 7 53</span><br></pre></td></tr></table></figure>
+<h2 id="파이프라인2"><a href="#파이프라인2" class="headerlink" title="파이프라인2"></a>파이프라인2</h2><h3 id="go에서-this-사용"><a href="#go에서-this-사용" class="headerlink" title="_.go에서 this 사용"></a>_.go에서 this 사용</h3><p>Partial.js의 _.pipe가 this를 지원하는 것을 확인했었다. _.go에서도 this 지원이 가능하다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">var user = &#123; name: &quot;Cojamm&quot; &#125;;</span><br><span class="line">_.go.call(user, 32,</span><br><span class="line">  function (age) &#123;</span><br><span class="line">    this.age = age;</span><br><span class="line">  &#125;,</span><br><span class="line">  function () &#123;</span><br><span class="line">    console.log(this.name);</span><br><span class="line">  &#125;,</span><br><span class="line">  function () &#123;</span><br><span class="line">    this.job = &quot;Rapper&quot;;</span><br><span class="line">  &#125;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">console.log(user); // &#123;name: &quot;Cojamm&quot;, age: 32, job: &quot;Rapper&quot;&#125;</span><br></pre></td></tr></table></figure>
+<p>_.go.call의 call은 Fucntion.prototype.call 이다. _.go는 일반 함수이므로 call을 사용하는게 자연스럽다. _.go 는 call을 통해 전달받은 this를 파이프라인 내 함수들에게 전달한다. apply 역시 사용할 수 있다.</p>
+<h3 id="또-다른-파이프라인-indent"><a href="#또-다른-파이프라인-indent" class="headerlink" title="또 다른 파이프라인, _.indent"></a>또 다른 파이프라인, _.indent</h3><p>자바스크립트에서는 부모 스코프와 자식 스코프라는 개념이 있다. 자식 스코프는 부모 스코프의 지역 변수를 참조할 수 있다. 이러한 중첩 구조의 접근 방식이 파이프라인 내에서도 필요했는데, 이를 위한 함수가 바로 _.indent다. _.indent는 이름처럼 _.indent가 중첩될 때마다 this와 arguments를 한 단계씩 안으로 들여쓰는 콘셉트를 가지고 있다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">var f1 = _.indent(</span><br><span class="line">  function () &#123;</span><br><span class="line">    console.log(this, arguments); // 1</span><br><span class="line">    return &apos;hi&apos;;</span><br><span class="line">  &#125;,</span><br><span class="line">  function () &#123;</span><br><span class="line">    console.log(this, arguments) // 2</span><br><span class="line">  &#125;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">f1(1, 2);</span><br></pre></td></tr></table></figure>
+<p>_.indent는 _.pipe처럼 함수를 리턴하는 파이프라인이다. 함수들의 연속 실행이 준비된 함수를 리턴하여 f1에 담았고 실행했다.<br>1과 2의 결과에는 차이가 있다. console.log 에게 두 번째 인자로 넘긴 arguments에 담긴 값이 다르다. 1은 파이프라인의 첫 번째 함수이기에 f1을 통해 넘겨진 인자 [1,2]가 arguments에 들어온다. 2는 두 번째 함수이고, 이전 함수에서 ‘hi’를 리턴했기에 [‘hi’]가 arguments에 담겨 있다.<br>파이프라인으로 코딩하다 보면 파이프라인의 최초 함수가 아닌 중간에 있는 함수에서 파이프라인이 최초로 받은 인자를 알고 싶을 때가 있다. 이것은 클로저를 사용하는 것으로도 자연스럽게 해결된다.<br>_.indent의 해결법은 파이프라인 내부의 함수들은 중간 어디서든 this.arguments로 파이프라인의 최초 인자들에 접근할 수 있다.</p>
+<p>_.indent의 this는 한 번의 파이프라인 사용 후 휘발되는 this다. 파이프라인 전체에서 공유하고자 하는 값이 있을 때 값을 이어주는 식으로 사용할 수도 있다. 또한 인스턴스를 만들어 두고 계속 사용하는 this가 아닌, 함수를 실행할 때마다 새로 생겼다 사라지는 this이므로 부수효과가 최소화되고 메모리 사용에도 문제가 없다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">var f2 = _.indent(</span><br><span class="line">  function (a) &#123; this.b = a + 10; &#125;,</span><br><span class="line">  function () &#123; &#125;,</span><br><span class="line">  function () &#123; &#125;,</span><br><span class="line">  function () &#123; console.log(this.b) &#125;,</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">f2(5); // 15</span><br><span class="line">f2(7); // 17</span><br></pre></td></tr></table></figure>
+<p>_.indent에서 this는 이번에 실행할 때 열린 부모 스코프를 대신하는 역할이므로, 그 this의 key/value를 확장한다는 것은 새로운 변수를 할당하는 것 이라고 볼 수 있다. this에 값을 단 후 값을 변경하지 않는다면 부수 효과로부터 자유로워진다. 하나의 큰 함수 안에서 변수에 담고 그 변수에 담긴 값을 변경하지 않는 것과 동일하다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">var f3 = _.indent(</span><br><span class="line">  function (a) &#123;</span><br><span class="line">    this.b = a + 10;</span><br><span class="line">  &#125;,</span><br><span class="line">  _.indent(</span><br><span class="line">    function () &#123;</span><br><span class="line">      this.b = 20;</span><br><span class="line">      console.log(this.b); // 20</span><br><span class="line">      console.log(this.parent.b) // 15</span><br><span class="line">    &#125;,</span><br><span class="line">    function () &#123;</span><br><span class="line">      console.log(this.parent.arguments); // [5]</span><br><span class="line">    &#125;</span><br><span class="line">  ),</span><br><span class="line">  function () &#123;</span><br><span class="line">    console.log(this.b);</span><br><span class="line">  &#125;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">f3(5);</span><br></pre></td></tr></table></figure>
+<p>parent를 통해 부모를 찾아갈 수 있고, this.parent.arguments로 파이프라인의 최초 인자도 찾아갈 수 있다. 자바스크립트에서 값에 접근할 수 있다는 것은 값을 변경할 수도 있다는 의미이므로 위험하다. 이것은 모든 값 혹은 변수에 해당하는 이야기다. 그러나 값을 참조하는 식으로 접근한다면, 여기저기에서 값에 접근할 수 있다는 것 자체는 문제가 되지는 않는다.</p>
+<h3 id="무조건-비동기로-동작하는-async"><a href="#무조건-비동기로-동작하는-async" class="headerlink" title="무조건 비동기로 동작하는 _.async"></a>무조건 비동기로 동작하는 _.async</h3><p>_.go, _.pipe, _.indent는 파이프라인 내부의 함수에서 비동기 결과가 나올 경우 비동기 제어를 시작하도록 구현되어 있다. 그러므로 비동기 상황이 생기지 않는다면 즉시 일반 값이 리턴되고, 비동기 상황이 생겼을 때만 Promise 객체가 리턴된다. 때로는 내부 함수의 결과와 상관없이 무조건 비동기를 일으키고 싶을 때가 있다. _.async는 이럴 때 사용하기 적합한, 무조건 비동기로 동작하는 파이프라인이다.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">_.go.async(1, function (a) &#123;</span><br><span class="line">  return a;</span><br><span class="line">&#125;).then(console.log);</span><br><span class="line">console.log(2);</span><br><span class="line"></span><br><span class="line">// 2</span><br><span class="line">// 1</span><br></pre></td></tr></table></figure>
+<p>참조: <a href="http://www.yes24.com/Product/Goods/56885507" target="_blank" rel="noopener">함수형 자바스크립트 프로그래밍</a></p>
+
+            
+
+        </div>
+    </div>
+    <div id="post-footer" class="post-footer main-content-wrap">
+        
+            <div class="post-footer-tags">
+                <span class="text-color-light text-small">태그</span><br>
+                
+    <a class="tag tag--primary tag--small t-link" href="/tags/indent/">_.indent</a> <a class="tag tag--primary tag--small t-link" href="/tags/go-함수/">go 함수</a> <a class="tag tag--primary tag--small t-link" href="/tags/javascript/">javascript</a> <a class="tag tag--primary tag--small t-link" href="/tags/비동기와-go/">비동기와 _.go</a> <a class="tag tag--primary tag--small t-link" href="/tags/파이프라인/">파이프라인</a> <a class="tag tag--primary tag--small t-link" href="/tags/함수형-프로그래밍/">함수형 프로그래밍</a>
+
+            </div>
+        
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/12/29/값에-대해/" data-tooltip="값에 대해" aria-label="이전: 값에 대해">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/11/17/함수-조립하기/" data-tooltip="함수 조립하기" aria-label="다음: 함수 조립하기">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2019/12/01/Partial-js와-함수-조립/" title="Facebook 공유">
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2019/12/01/Partial-js와-함수-조립/" title="Twitter 공유">
+                    <i class="fab fa-twitter" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2019/12/01/Partial-js와-함수-조립/" title="Google+ 공유">
+                    <i class="fab fa-google-plus" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+        
+            
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2020 kkangil. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+                    <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/12/29/값에-대해/" data-tooltip="값에 대해" aria-label="이전: 값에 대해">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/11/17/함수-조립하기/" data-tooltip="함수 조립하기" aria-label="다음: 함수 조립하기">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2019/12/01/Partial-js와-함수-조립/" title="Facebook 공유">
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2019/12/01/Partial-js와-함수-조립/" title="Twitter 공유">
+                    <i class="fab fa-twitter" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2019/12/01/Partial-js와-함수-조립/" title="Google+ 공유">
+                    <i class="fab fa-google-plus" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                
+    <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+        <i id="btn-close-shareoptions" class="fa fa-times"></i>
+        <ul class="share-options">
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2019/12/01/Partial-js와-함수-조립/">
+                        <i class="fab fa-facebook" aria-hidden="true"></i><span>Facebook 공유</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2019/12/01/Partial-js와-함수-조립/">
+                        <i class="fab fa-twitter" aria-hidden="true"></i><span>Twitter 공유</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2019/12/01/Partial-js와-함수-조립/">
+                        <i class="fab fa-google-plus" aria-hidden="true"></i><span>Google+ 공유</span>
+                    </a>
+                </li>
+            
+        </ul>
+    </div>
+
+
+            
+        </div>
+        
+
+
+    
+        
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-times"></i>
+        </div>
+        
+            <img id="about-card-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+        
+            <h4 id="about-card-name">kkangil</h4>
+        
+            <div id="about-card-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br>
+                <p>web developer</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker-alt"></i>
+                <br>
+                Asia/Seoul
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-dbd16rvloemmuxdzniplmnxxvwoz24eya9wol0b7vvmlokgqsjivmb8dnscy.min.js"></script>
+<!--SCRIPTS END-->
+
+    
+
+
+
+    </body>
+</html>

@@ -1,0 +1,529 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="kkangil&#39;s Blog">
+    <title>리액트 Hooks: 1. hooks 란? - kkangil&#39;s Blog</title>
+    <meta name="author" content="kkangil">
+    
+    
+    
+        <link rel="alternate" type="application/atom+xml" title="RSS" href="/atom.xml">
+    
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg"},"articleBody":"리액트 16.8 버전에서 Hooks 라는 새로운 기능이 추가 되었다.해당 기능은 간단히 설명하자면 기존 리액트 component 에서 state 와 라이프 사이클을 사용하려면 class 로 component 를 생성해야 했다.이말은 즉, 함수형 component 에서는 props 를 받아 사용할 수 있지만, state와 라이프 사이클을 사용할 수 없었다.\n\nhttps://reactjs.org/docs/hooks-intro.html\nHooks 특징\n현재 진행중인 프로젝트가 있다면 코드를 다시 짜지 않아도, 바로 사용할 수 있다. \n어떠한 변화 없이 기능이 추가 되었기 때문에 이전 버전과의 호환성이 100%이다.\n16.8.0 이후 버전에서 사용가능하다.\n\n\nHooks로 class를 대신할 수 있게됐지만, 리액트는 class를 제거할 계획이 없다고 밝혔다. 리액트에 대한 여러가지 컨셉(props, state, context, refs, and lifecycle)을 대체할 수 없는 대신, 더욱 직관적으로 제공한다고 한다.\n\nHooks가 나오게된 배경Component 사이에서 stateful 한 로직의 재사용이 어렵다.\n리액트는 컴포넌트에 재활용하는 방법인 “attach” 방법을 제공하지 않는다.\n이런 문제들을 해결하기 위해 다양한 패턴이 사용되었다. (render propr, HOC …) 이런 패턴을 사용했을 때, 재구조화를 해야하고 이는 번거롭고 어려워질 수 있다. 또한 이런 패턴을 DevTools 에서 확인해 보면 wrapper 지옥에 빠져있는 수많은 컴포넌트를 볼 수 있다.\nHooks 는 컴포넌트로 부터 stateful 한 로직을 추출해 낼 수 있으며 이것은 의존성과 재사용성을 테스트할 수 있다. \n\n이해하기 어려운 복잡한 컴포넌트\n처음은 가벼운 컴포넌트였지만, 개발을 진행하다보면 수많은 side effects와 stateful 로직이 걷잡을 수 없이 많아진다.\n각각의 라이프 사이클은 자주 연관성이 없는 로직을 섞어 사용하곤 한다. 예를 들어 컴포넌트는 componentDidMount와 componentDidUpdate 라이프사이클에서 데이터를 fetch 할 수 있다. 하지만 몇몇 componentDidMount 메소드는 이벤트를 설정하는 데 연관 없는 로직 들을 포함할 수 있으며 componentWillUnmount는 cleanup을 수행할 수도 있다. 함께 변경되는 관련 코드는 분리되지만 연관 없는 코드들은 단일 메소드로 결합한다. 이것은 버그와 무결성을 쉽게 발생시킨다.\n많은 경우 컴포넌트들을 작게 만드는 것은 불가능하다. stateful 로직은 모든곳에 있기 때문이다. 또한 이것은 테스트하는 것도 어렵다. 이것이 사람들이 state 를 관리하는 라이브러리를 함께 사용하는것을 선호하는 이유중 하나이다. 그러나 너무 추상적이라고 소개하고 다른 파일 사이를 건너뛰는것을 요구하며 컴포넌트 재사용을 더욱 어렵게 만든다.\n이러한 이슈들을 해결하기 위해 Hooks는 라이프사이클 메소드를 기초로한 분리에 초점을 맞추는 것보다는 컴포넌트들을 연관성을 기초로 더 작은 함수로 분리할 수 있게 한다.\n\n사람과 기계를 혼란시키는 Classes\n코드를 재사용성과 구조적으로 만드는 것은 어려울뿐만 아니라 리액트를 배울때 classes는 큰 진입장벽이다. 다른 대부분의 언어들과는 다른 Javascript가 어떻게 동작하는지 이해하고 있어야한다. 이벤트 핸들러는 항상 바인딩이 되어야 하는것을 기억해야 한다. 안정적인 문법의 제안이 없다면, 코드는 매우 장황해진다.\n사람들은 props, state, 단방향 데이터 흐름에 대해 이해하고 있지만 여전히 classes는 어려워한다.\n이러한 문제를 해결하기 위해서 Hooks는 classes 없이 리액트의 특징들을 사용할 수 있게 해준다.\n\n","dateCreated":"2019-04-19T12:48:12+09:00","dateModified":"2019-04-19T12:52:29+09:00","datePublished":"2019-04-19T12:48:12+09:00","description":"리액트 16.8 버전에서 Hooks 라는 새로운 기능이 추가 되었다.해당 기능은 간단히 설명하자면 기존 리액트 component 에서 state 와 라이프 사이클을 사용하려면 class 로 component 를 생성해야 했다.이말은 즉, 함수형 component 에서는 props 를 받아 사용할 수 있지만, state와 라이프 사이클을 사용할 수 없었다.","headline":"리액트 Hooks: 1. hooks 란?","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"https://kkangil.github.io/2019/04/19/리액트-Hooks-1-hooks-란/"},"publisher":{"@type":"Organization","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg","logo":{"@type":"ImageObject","url":"profile.jpeg"}},"url":"https://kkangil.github.io/2019/04/19/리액트-Hooks-1-hooks-란/","keywords":"React-Hooks, Hooks, hooks 정의"}</script>
+    <meta name="description" content="리액트 16.8 버전에서 Hooks 라는 새로운 기능이 추가 되었다.해당 기능은 간단히 설명하자면 기존 리액트 component 에서 state 와 라이프 사이클을 사용하려면 class 로 component 를 생성해야 했다.이말은 즉, 함수형 component 에서는 props 를 받아 사용할 수 있지만, state와 라이프 사이클을 사용할 수 없었다.">
+<meta name="keywords" content="React-Hooks,Hooks,hooks 정의">
+<meta property="og:type" content="blog">
+<meta property="og:title" content="리액트 Hooks: 1. hooks 란?">
+<meta property="og:url" content="https://kkangil.github.io/2019/04/19/리액트-Hooks-1-hooks-란/index.html">
+<meta property="og:site_name" content="kkangil&#39;s Blog">
+<meta property="og:description" content="리액트 16.8 버전에서 Hooks 라는 새로운 기능이 추가 되었다.해당 기능은 간단히 설명하자면 기존 리액트 component 에서 state 와 라이프 사이클을 사용하려면 class 로 component 를 생성해야 했다.이말은 즉, 함수형 component 에서는 props 를 받아 사용할 수 있지만, state와 라이프 사이클을 사용할 수 없었다.">
+<meta property="og:locale" content="ko">
+<meta property="og:updated_time" content="2019-04-19T03:52:29.003Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="리액트 Hooks: 1. hooks 란?">
+<meta name="twitter:description" content="리액트 16.8 버전에서 Hooks 라는 새로운 기능이 추가 되었다.해당 기능은 간단히 설명하자면 기존 리액트 component 에서 state 와 라이프 사이클을 사용하려면 class 로 component 를 생성해야 했다.이말은 즉, 함수형 component 에서는 props 를 받아 사용할 수 있지만, state와 라이프 사이클을 사용할 수 없었다.">
+    
+    
+        
+    
+    
+        <meta property="og:image" content="https://kkangil.github.io/assets/images/profile.jpeg"/>
+    
+    
+    
+    
+    <!--STYLES-->
+    <link rel="stylesheet" href="/assets/css/style-c4ozcsklz4kht2pebhp44xorvyverh23toayhn7i6ubrpyedak24hv1v0hyd.min.css">
+    <!--STYLES END-->
+    
+
+    
+</head>
+
+    <body>
+        <div id="blog">
+            <!-- Define author's picture -->
+
+
+    
+        
+            
+        
+    
+
+<header id="header" data-behavior="4">
+    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+    <div class="header-title">
+        <a class="header-title-link" href="/ ">kkangil&#39;s Blog</a>
+    </div>
+    
+        
+            <a class="header-right-picture " href="#about">
+        
+        
+            <img class="header-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+        
+        </a>
+    
+</header>
+
+            <!-- Define author's picture -->
+
+
+
+        
+    
+
+<nav id="sidebar" data-behavior="4">
+    <div class="sidebar-container">
+        
+            <div class="sidebar-profile">
+                <a href="/#about">
+                    <img class="sidebar-profile-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+                </a>
+                <h4 class="sidebar-profile-name">kkangil</h4>
+                
+                    <h5 class="sidebar-profile-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
+</h5>
+                
+            </div>
+        
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/ " title="Home">
+                    
+                        <i class="sidebar-button-icon fa fa-home" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Home</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-categories" title="카테고리">
+                    
+                        <i class="sidebar-button-icon fa fa-bookmark" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">카테고리</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-tags" title="태그">
+                    
+                        <i class="sidebar-button-icon fa fa-tags" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">태그</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/all-archives" title="기록">
+                    
+                        <i class="sidebar-button-icon fa fa-archive" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">기록</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link open-algolia-search" href="#search" title="검색">
+                    
+                        <i class="sidebar-button-icon fa fa-search" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">검색</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="#about" title="About">
+                    
+                        <i class="sidebar-button-icon fa fa-question" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">About</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="https://github.com/kkangil" target="_blank" rel="noopener" title="GitHub">
+                    
+                        <i class="sidebar-button-icon fab fa-github" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">GitHub</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="http://stackoverflow.com/users/10870848/kkangil" target="_blank" rel="noopener" title="Stack Overflow">
+                    
+                        <i class="sidebar-button-icon fab fa-stack-overflow" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Stack Overflow</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="https://www.linkedin.com/in/kangil-kim-31093a169/" target="_blank" rel="noopener" title="LinkedIn">
+                    
+                        <i class="sidebar-button-icon fab fa-linkedin" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">LinkedIn</span>
+                    </a>
+            </li>
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/fe.kkangil@gmail.com" title="Mail">
+                    
+                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">Mail</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+            <ul class="sidebar-buttons">
+            
+                <li class="sidebar-button">
+                    
+                        <a class="sidebar-button-link " href="/atom.xml" title="RSS">
+                    
+                        <i class="sidebar-button-icon fa fa-rss" aria-hidden="true"></i>
+                        <span class="sidebar-button-desc">RSS</span>
+                    </a>
+            </li>
+            
+        </ul>
+        
+    </div>
+</nav>
+
+            
+            <div id="main" data-behavior="4"
+                 class="
+                        hasCoverMetaIn
+                        ">
+                
+<article class="post">
+    
+    
+        <div class="post-header main-content-wrap text-left">
+    
+        <h1 class="post-title">
+            리액트 Hooks: 1. hooks 란?
+        </h1>
+    
+    
+        <div class="post-meta">
+    <time datetime="2019-04-19T12:48:12+09:00">
+	
+		    4월 19, 2019
+    	
+    </time>
+    
+        <span>카테고리 </span>
+        
+    <a class="category-link" href="/categories/React/">React</a>
+
+
+    
+</div>
+
+    
+</div>
+
+    
+    <div class="post-content markdown">
+        <div class="main-content-wrap">
+            <p>리액트 16.8 버전에서 <code>Hooks</code> 라는 새로운 기능이 추가 되었다.<br>해당 기능은 간단히 설명하자면 기존 리액트 component 에서 state 와 라이프 사이클을 사용하려면 class 로 component 를 생성해야 했다.<br>이말은 즉, 함수형 component 에서는 props 를 받아 사용할 수 있지만, state와 라이프 사이클을 사용할 수 없었다.</p>
+<a id="more"></a>
+<p><a href="https://reactjs.org/docs/hooks-intro.html" target="_blank" rel="noopener">https://reactjs.org/docs/hooks-intro.html</a></p>
+<h2 id="Hooks-특징"><a href="#Hooks-특징" class="headerlink" title="Hooks 특징"></a>Hooks 특징</h2><ul>
+<li>현재 진행중인 프로젝트가 있다면 코드를 다시 짜지 않아도, 바로 사용할 수 있다. </li>
+<li>어떠한 변화 없이 기능이 추가 되었기 때문에 이전 버전과의 호환성이 100%이다.</li>
+<li>16.8.0 이후 버전에서 사용가능하다.</li>
+</ul>
+<blockquote>
+<p>Hooks로 class를 대신할 수 있게됐지만, 리액트는 class를 제거할 계획이 없다고 밝혔다. 리액트에 대한 여러가지 컨셉(props, state, context, refs, and lifecycle)을 대체할 수 없는 대신, 더욱 직관적으로 제공한다고 한다.</p>
+</blockquote>
+<h2 id="Hooks가-나오게된-배경"><a href="#Hooks가-나오게된-배경" class="headerlink" title="Hooks가 나오게된 배경"></a>Hooks가 나오게된 배경</h2><h3 id="Component-사이에서-stateful-한-로직의-재사용이-어렵다"><a href="#Component-사이에서-stateful-한-로직의-재사용이-어렵다" class="headerlink" title="Component 사이에서 stateful 한 로직의 재사용이 어렵다."></a>Component 사이에서 stateful 한 로직의 재사용이 어렵다.</h3><ul>
+<li>리액트는 컴포넌트에 재활용하는 방법인 “attach” 방법을 제공하지 않는다.</li>
+<li>이런 문제들을 해결하기 위해 다양한 패턴이 사용되었다. (render propr, HOC …) 이런 패턴을 사용했을 때, 재구조화를 해야하고 이는 번거롭고 어려워질 수 있다. 또한 이런 패턴을 <code>DevTools</code> 에서 확인해 보면 wrapper 지옥에 빠져있는 수많은 컴포넌트를 볼 수 있다.</li>
+<li>Hooks 는 컴포넌트로 부터 stateful 한 로직을 추출해 낼 수 있으며 이것은 의존성과 재사용성을 테스트할 수 있다. </li>
+</ul>
+<h3 id="이해하기-어려운-복잡한-컴포넌트"><a href="#이해하기-어려운-복잡한-컴포넌트" class="headerlink" title="이해하기 어려운 복잡한 컴포넌트"></a>이해하기 어려운 복잡한 컴포넌트</h3><ul>
+<li>처음은 가벼운 컴포넌트였지만, 개발을 진행하다보면 수많은 side effects와 stateful 로직이 걷잡을 수 없이 많아진다.</li>
+<li>각각의 라이프 사이클은 자주 연관성이 없는 로직을 섞어 사용하곤 한다. 예를 들어 컴포넌트는 <code>componentDidMount</code>와 <code>componentDidUpdate</code> 라이프사이클에서 데이터를 fetch 할 수 있다. 하지만 몇몇 <code>componentDidMount</code> 메소드는 이벤트를 설정하는 데 연관 없는 로직 들을 포함할 수 있으며 <code>componentWillUnmount</code>는 cleanup을 수행할 수도 있다. 함께 변경되는 관련 코드는 분리되지만 연관 없는 코드들은 단일 메소드로 결합한다. 이것은 버그와 무결성을 쉽게 발생시킨다.</li>
+<li>많은 경우 컴포넌트들을 작게 만드는 것은 불가능하다. stateful 로직은 모든곳에 있기 때문이다. 또한 이것은 테스트하는 것도 어렵다. 이것이 사람들이 state 를 관리하는 라이브러리를 함께 사용하는것을 선호하는 이유중 하나이다. 그러나 너무 추상적이라고 소개하고 다른 파일 사이를 건너뛰는것을 요구하며 컴포넌트 재사용을 더욱 어렵게 만든다.</li>
+<li>이러한 이슈들을 해결하기 위해 Hooks는 라이프사이클 메소드를 기초로한 분리에 초점을 맞추는 것보다는 컴포넌트들을 연관성을 기초로 더 작은 함수로 분리할 수 있게 한다.</li>
+</ul>
+<h3 id="사람과-기계를-혼란시키는-Classes"><a href="#사람과-기계를-혼란시키는-Classes" class="headerlink" title="사람과 기계를 혼란시키는 Classes"></a>사람과 기계를 혼란시키는 Classes</h3><ul>
+<li>코드를 재사용성과 구조적으로 만드는 것은 어려울뿐만 아니라 리액트를 배울때 classes는 큰 진입장벽이다. 다른 대부분의 언어들과는 다른 Javascript가 어떻게 동작하는지 이해하고 있어야한다. 이벤트 핸들러는 항상 바인딩이 되어야 하는것을 기억해야 한다. 안정적인 문법의 제안이 없다면, 코드는 매우 장황해진다.</li>
+<li>사람들은 props, state, 단방향 데이터 흐름에 대해 이해하고 있지만 여전히 classes는 어려워한다.</li>
+<li>이러한 문제를 해결하기 위해서 Hooks는 classes 없이 리액트의 특징들을 사용할 수 있게 해준다.</li>
+</ul>
+
+            
+
+        </div>
+    </div>
+    <div id="post-footer" class="post-footer main-content-wrap">
+        
+            <div class="post-footer-tags">
+                <span class="text-color-light text-small">태그</span><br>
+                
+    <a class="tag tag--primary tag--small t-link" href="/tags/Hooks/">Hooks</a> <a class="tag tag--primary tag--small t-link" href="/tags/React-Hooks/">React-Hooks</a> <a class="tag tag--primary tag--small t-link" href="/tags/hooks-정의/">hooks 정의</a>
+
+            </div>
+        
+        
+            <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/04/19/리액트-Hooks-2-사용방법1/" data-tooltip="리액트 Hooks: 2. 사용방법1" aria-label="이전: 리액트 Hooks: 2. 사용방법1">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/04/18/Next-js-with-pm2-ecosystem/" data-tooltip="Next.js with pm2 ecosystem" aria-label="다음: Next.js with pm2 ecosystem">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2019/04/19/리액트-Hooks-1-hooks-란/" title="Facebook 공유">
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2019/04/19/리액트-Hooks-1-hooks-란/" title="Twitter 공유">
+                    <i class="fab fa-twitter" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2019/04/19/리액트-Hooks-1-hooks-란/" title="Google+ 공유">
+                    <i class="fab fa-google-plus" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+        
+        
+            
+        
+    </div>
+</article>
+
+
+
+                <footer id="footer" class="main-content-wrap">
+    <span class="copyrights">
+        Copyrights &copy; 2020 kkangil. All Rights Reserved.
+    </span>
+</footer>
+
+            </div>
+            
+                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+                    <div class="post-actions-wrap">
+    <nav>
+        <ul class="post-actions post-action-nav">
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/04/19/리액트-Hooks-2-사용방법1/" data-tooltip="리액트 Hooks: 2. 사용방법1" aria-label="이전: 리액트 Hooks: 2. 사용방법1">
+                
+                    <i class="fa fa-angle-left" aria-hidden="true"></i>
+                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
+                </a>
+            </li>
+            <li class="post-action">
+                
+                    
+                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/04/18/Next-js-with-pm2-ecosystem/" data-tooltip="Next.js with pm2 ecosystem" aria-label="다음: Next.js with pm2 ecosystem">
+                
+                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
+                    <i class="fa fa-angle-right" aria-hidden="true"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <ul class="post-actions post-action-share">
+        <li class="post-action hide-lg hide-md hide-sm">
+            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
+                <i class="fa fa-share-alt" aria-hidden="true"></i>
+            </a>
+        </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2019/04/19/리액트-Hooks-1-hooks-란/" title="Facebook 공유">
+                    <i class="fab fa-facebook" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2019/04/19/리액트-Hooks-1-hooks-란/" title="Twitter 공유">
+                    <i class="fab fa-twitter" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+            
+            
+            <li class="post-action hide-xs">
+                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2019/04/19/리액트-Hooks-1-hooks-란/" title="Google+ 공유">
+                    <i class="fab fa-google-plus" aria-hidden="true"></i>
+                </a>
+            </li>
+        
+        
+            
+        
+        <li class="post-action">
+            
+                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
+            
+                <i class="fa fa-list" aria-hidden="true"></i>
+            </a>
+        </li>
+    </ul>
+</div>
+
+
+                </div>
+                
+    <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+        <i id="btn-close-shareoptions" class="fa fa-times"></i>
+        <ul class="share-options">
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2019/04/19/리액트-Hooks-1-hooks-란/">
+                        <i class="fab fa-facebook" aria-hidden="true"></i><span>Facebook 공유</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2019/04/19/리액트-Hooks-1-hooks-란/">
+                        <i class="fab fa-twitter" aria-hidden="true"></i><span>Twitter 공유</span>
+                    </a>
+                </li>
+            
+                
+                
+                <li class="share-option">
+                    <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2019/04/19/리액트-Hooks-1-hooks-란/">
+                        <i class="fab fa-google-plus" aria-hidden="true"></i><span>Google+ 공유</span>
+                    </a>
+                </li>
+            
+        </ul>
+    </div>
+
+
+            
+        </div>
+        
+
+
+    
+        
+    
+
+<div id="about">
+    <div id="about-card">
+        <div id="about-btn-close">
+            <i class="fa fa-times"></i>
+        </div>
+        
+            <img id="about-card-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
+        
+            <h4 id="about-card-name">kkangil</h4>
+        
+            <div id="about-card-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
+</div>
+        
+        
+            <div id="about-card-job">
+                <i class="fa fa-briefcase"></i>
+                <br>
+                <p>web developer</p>
+
+            </div>
+        
+        
+            <div id="about-card-location">
+                <i class="fa fa-map-marker-alt"></i>
+                <br>
+                Asia/Seoul
+            </div>
+        
+    </div>
+</div>
+
+        
+        
+<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
+        <!--SCRIPTS-->
+<script src="/assets/js/script-dbd16rvloemmuxdzniplmnxxvwoz24eya9wol0b7vvmlokgqsjivmb8dnscy.min.js"></script>
+<!--SCRIPTS END-->
+
+    
+
+
+
+    </body>
+</html>
