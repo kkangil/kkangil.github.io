@@ -1,270 +1,16 @@
-
-<!DOCTYPE html>
-<html lang="ko">
-    
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="generator" content="kkangil&#39;s Blog">
-    <title>Next.js with pm2 ecosystem - kkangil&#39;s Blog</title>
-    <meta name="author" content="kkangil">
-    <link rel="canonical" href="https://kkangil.github.io/2019/04/18/next-js-with-pm2-ecosystem/"/>
-    <meta name="google-site-verification" content="6_Smv-rWZw7urNifInu4CE1hyB_GcTbeoXpaJkoFWIo" />
-    <meta name="naver-site-verification" content="b0ce7bc14af00ce2aee96528313654d78c325351" />
-    
-    
-    
-        <link rel="alternate" type="application/atom+xml" title="RSS" href="/rss2.xml">
-    
-    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg"},"articleBody":"Next.js는 Client-Side-Rendering 을 사용하는 react가 아닌 SSR(Server-Side-Rendering) 방식을 사용하는 react framework 이다.해당 글은 Next.js에서 배포시 참고하면 좋을 내용으로 Next.js가 뿐만 아니라 react, Node 에서도 사용 가능하다.\n\npm2 ecosystempm2 ecosystem이란, 실행할 인스턴스의 설정을 JSON 형식으로 관리할 수 있고, pm2 에서 제공해 주는 option 을 보다 쉽게 관리 할수 있도록 도와준다. pm2 명령어로 직접 실행시킬 수 있지만, ecosystem을 사용함으로써 어떤 서버나 환경에서도 같은 설정을 사용해서 서버를 실행할 수 있다는 점이 장점이다.\n\necosystem.config.js 를 최상위 폴더에 생성한다.\n작성방법\n\n123456789101112131415161718module.exports = &#123;  apps: [    &#123;      name: &quot;chungeoram&quot;,      script: &quot;./server.js&quot;,      watch: true,      interpreter: &apos;/home/ubuntu/.nvm/versions/node/v8.11.3/bin/node&apos;,      &quot;env_public-develop&quot;: &#123;        NODE_ENV: &quot;public-develop&quot;,        PORT: 1111,        API_END_POINT: &apos;http://endpoint/api&apos;      &#125;,      env_production: &#123;        NODE_ENV: &quot;production&quot;      &#125;    &#125;  ]&#125;;\n\nname: pm2 에서 관리하는 이름\nscript: 앱을 구동할 경로\nwatch: 파일이 변경되면 자동으로 재시작 유무\nignore_watch: 배열안에 있는 리스트는 watch 대상에서 무시한다.\nexec_mode: 클러스터 모드로 구동instances: 클러스터로 구동될시 몇개까지 구동할것인지 선택(0 : cpu갯수)\nmerge_logs: 클러스터로 구동할시 로그를 한파일에 기록\ninterpreter: 해석기 절대 경로(default: node)\nlog_date_format: 로그에 출력될 날짜와 시간값의 형식\nerror_file: 에러 파일 위치\nout_file: 기본 출력 로그 위치\nenv_{value}\nvalue는 process.env.NODE_ENV 값과 매칭된다. 예를 들어 현재 process.env.NODE_ENV가 public-develop 일때, env_public-develop 내부의 값이 사용된다. 내부의 값들은 process.env 객체 내로 값이 할당되며, process.env.PORT , process.env.API_END_POINT 로 값을 배포 환경의 따라 다르게 사용가능하다.\n\n\n\n\npm2 구동방법package.json script에 명령어를 추가해준다.1234567&quot;scripts&quot;: &#123;    &quot;precommit&quot;: &quot;lint-staged&quot;,    &quot;build&quot;: &quot;next build&quot;,    &quot;start&quot;: &quot;pm2 start ecosystem.config.js --env production&quot;,    &quot;start-public&quot;: &quot;pm2 start ecosystem.config.js --env public-develop&quot;,    &quot;dev&quot;: &quot;nodemon server.js&quot;  &#125;\n\n\n\n$ yarn build → $ yarn start\napp 빌드 후 명령어를 사용해서, pm2를 구동시켜 준다. pm2 start {파일이름} –env {value} 와 같은 형식으로 명령어를 추가한다. 여기서 환경변수는 ecosystem.config.js 의 env_{value}와 매칭 된다.\n\nNext.js 에서 process.env 변수 사용 주의사항Next.config.js 에서 sass, webpack 등의 처리 후 export 하는 과정에서, process.env 객체가 비어있는 문제를 발견했다. 하지만, api.js config.js 등 환경 변수에 따라 값을 변경해줘야 하기 때문에 process.env 객체가 비어있으면 안된다. 해당 문제를 처리하기 위해 Next.js 에서 publicRuntimeConfig 라는 옵션을 제공해준다.\n1234567891011121314151617181920const withSass = require(&apos;@zeit/next-sass&apos;)const withCSS = require(&apos;@zeit/next-css&apos;)const publicRuntimeConfig = &#123;  API_END_POINT: process.env.API_END_POINT,  NODE_ENV: process.env.NODE_ENV,&#125;module.exports = withCSS(withSass(&#123;  publicRuntimeConfig,  webpack: config =&gt; &#123;    // Fixes npm packages that depend on `fs` module    config.node = &#123;      fs: &apos;empty&apos;,      module: &apos;empty&apos;    &#125;    return config  &#125;&#125;))\n\n필요한 process.env 의 값을 publicRuntimeConfig 객체에 담아주고 Next.js 의 옵션 값에 할당해준다.할당해 주게되면, Next.js 의 config 값으로 저장되게 된다.이후 Next.js의 config 값을 불러오는 함수를 추가해준다.\n\n12345678910import getConfig from &apos;next/config&apos;;export const getNodeEnv = () =&gt; &#123;  const &#123; publicRuntimeConfig &#125; = getConfig();  const realNodeEnv = publicRuntimeConfig.NODE_ENV || process.env.NODE_ENV;  const apiEndPoint = publicRuntimeConfig.API_END_POINT;  return &#123; realNodeEnv, apiEndPoint &#125;&#125;;\n\n해당 함수는 Next.js의 config에서 publicRuntimeConfig 를 가져와 return 해준다.이제 process.env 환경변수를 사용하고 싶다면, process.env.API_END_POINT 와 같이 직접적으로 사용하는것이 아닌, 해당 함수를 사용해준다.\n\n123456789101112import config from &apos;./config&apos;import &#123; getNodeEnv &#125; from &apos;@/utils/env&apos;const env = getNodeEnv()const endPoint = env.apiEndPoint || config.apiEndPointexport default &#123;  AUTH_TOKEN: &#123;    method: &apos;POST&apos;,    path: () =&gt; `$&#123;endPoint&#125;/auth/authenticate-token`  &#125;&#125;","dateCreated":"2019-04-18T00:29:19+09:00","dateModified":"2019-04-18T00:47:37+09:00","datePublished":"2019-04-18T00:29:19+09:00","description":"Next.js는 Client-Side-Rendering 을 사용하는 react가 아닌 SSR(Server-Side-Rendering) 방식을 사용하는 react framework 이다.해당 글은 Next.js에서 배포시 참고하면 좋을 내용으로 Next.js가 뿐만 아니라 react, Node 에서도 사용 가능하다.","headline":"Next.js with pm2 ecosystem","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"https://kkangil.github.io/2019/04/18/Next-js-with-pm2-ecosystem/"},"publisher":{"@type":"Organization","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg","logo":{"@type":"ImageObject","url":"profile.jpeg"}},"url":"https://kkangil.github.io/2019/04/18/Next-js-with-pm2-ecosystem/","keywords":"Next.js, deploy Next.js, pm2, pm2-ecosystem"}</script>
-    <meta name="description" content="Next.js는 Client-Side-Rendering 을 사용하는 react가 아닌 SSR(Server-Side-Rendering) 방식을 사용하는 react framework 이다.해당 글은 Next.js에서 배포시 참고하면 좋을 내용으로 Next.js가 뿐만 아니라 react, Node 에서도 사용 가능하다.">
-<meta name="keywords" content="Next.js,deploy Next.js,pm2,pm2-ecosystem">
-<meta property="og:type" content="blog">
-<meta property="og:title" content="Next.js with pm2 ecosystem">
-<meta property="og:url" content="https://kkangil.github.io/2019/04/18/Next-js-with-pm2-ecosystem/index.html">
-<meta property="og:site_name" content="kkangil&#39;s Blog">
-<meta property="og:description" content="Next.js는 Client-Side-Rendering 을 사용하는 react가 아닌 SSR(Server-Side-Rendering) 방식을 사용하는 react framework 이다.해당 글은 Next.js에서 배포시 참고하면 좋을 내용으로 Next.js가 뿐만 아니라 react, Node 에서도 사용 가능하다.">
-<meta property="og:locale" content="ko">
-<meta property="og:updated_time" content="2019-04-17T15:47:37.770Z">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Next.js with pm2 ecosystem">
-<meta name="twitter:description" content="Next.js는 Client-Side-Rendering 을 사용하는 react가 아닌 SSR(Server-Side-Rendering) 방식을 사용하는 react framework 이다.해당 글은 Next.js에서 배포시 참고하면 좋을 내용으로 Next.js가 뿐만 아니라 react, Node 에서도 사용 가능하다.">
-    
-    
-        
-    
-    
-        <meta property="og:image" content="https://kkangil.github.io/assets/images/profile.jpeg"/>
-    
-    
-    
-    
-    <!--STYLES-->
-    <link rel="stylesheet" href="/assets/css/style-c4ozcsklz4kht2pebhp44xorvyverh23toayhn7i6ubrpyedak24hv1v0hyd.min.css">
-    <!--STYLES END-->
-    
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-165569140-1"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="generator" content="Hexo 4.2.0"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>Next.js with pm2 ecosystem - kkangil&#039;s Blog</title><meta description="Next.js는 Client-Side-Rendering 을 사용하는 react가 아닌 SSR(Server-Side-Rendering) 방식을 사용하는 react framework 이다.해당 글은 Next.js에서 배포시 참고하면 좋을 내용으로 Next.js가 뿐만 아니라 react, Node 에서도 사용 가능하다."><meta property="og:type" content="blog"><meta property="og:title" content="Next.js with pm2 ecosystem"><meta property="og:url" content="https://kkangil.github.io/2019/04/18/Next-js-with-pm2-ecosystem/"><meta property="og:site_name" content="kkangil&#039;s Blog"><meta property="og:description" content="Next.js는 Client-Side-Rendering 을 사용하는 react가 아닌 SSR(Server-Side-Rendering) 방식을 사용하는 react framework 이다.해당 글은 Next.js에서 배포시 참고하면 좋을 내용으로 Next.js가 뿐만 아니라 react, Node 에서도 사용 가능하다."><meta property="og:locale" content="ko_KR"><meta property="og:image" content="https://kkangil.github.io/img/og_image.png"><meta property="article:published_time" content="2019-04-17T15:29:19.000Z"><meta property="article:modified_time" content="2020-05-05T12:21:13.617Z"><meta property="article:author" content="kkangil"><meta property="article:tag" content="Next.js"><meta property="article:tag" content="deploy Next.js"><meta property="article:tag" content="pm2"><meta property="article:tag" content="pm2-ecosystem"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/og_image.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://kkangil.github.io/2019/04/18/Next-js-with-pm2-ecosystem/"},"headline":"kkangil's Blog","image":["https://kkangil.github.io/img/og_image.png"],"datePublished":"2019-04-17T15:29:19.000Z","dateModified":"2020-05-05T12:21:13.617Z","author":{"@type":"Person","name":"kkangil"},"description":"Next.js는 Client-Side-Rendering 을 사용하는 react가 아닌 SSR(Server-Side-Rendering) 방식을 사용하는 react framework 이다.해당 글은 Next.js에서 배포시 참고하면 좋을 내용으로 Next.js가 뿐만 아니라 react, Node 에서도 사용 가능하다."}</script><meta name="naver-site-verification" content="b0ce7bc14af00ce2aee96528313654d78c325351"><link rel="canonical" href="https://kkangil.github.io/2019/04/18/Next-js-with-pm2-ecosystem/"><link rel="icon" href="/images/coffee-favicon.png"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/tomorrow-night-bright.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><link href="https://fonts.googleapis.com/earlyaccess/jejugothic.css" rel="stylesheet"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/css/justifiedGallery.min.css"><script src="https://www.googletagmanager.com/gtag/js?id=UA-165569140-1" async></script><script>window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-
-        gtag('config', 'UA-165569140-1');
-    </script>
-
-
     
-    <script data-ad-client="ca-pub-5445993070474035" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-</head>
-
-    <body>
-        <div id="blog">
-            <!-- Define author's picture -->
-
-
-    
-        
-            
-        
-    
-
-<header id="header" data-behavior="4">
-    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
-    <div class="header-title">
-        <a class="header-title-link" href="/ ">kkangil&#39;s Blog</a>
-    </div>
-    
-        
-            <a class="header-right-picture " href="#about">
-        
-        
-            <img class="header-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
-        
-        </a>
-    
-</header>
-
-            <!-- Define author's picture -->
-
-
-
-        
-    
-
-<nav id="sidebar" data-behavior="4">
-    <div class="sidebar-container">
-        
-            <div class="sidebar-profile">
-                <a href="/#about">
-                    <img class="sidebar-profile-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
-                </a>
-                <h4 class="sidebar-profile-name">kkangil</h4>
-                
-                    <h5 class="sidebar-profile-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
-</h5>
-                
-            </div>
-        
-        
-            <ul class="sidebar-buttons">
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="/ " title="Home">
-                    
-                        <i class="sidebar-button-icon fa fa-home" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Home</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="/all-categories" title="카테고리">
-                    
-                        <i class="sidebar-button-icon fa fa-bookmark" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">카테고리</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="/all-tags" title="태그">
-                    
-                        <i class="sidebar-button-icon fa fa-tags" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">태그</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="/all-archives" title="기록">
-                    
-                        <i class="sidebar-button-icon fa fa-archive" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">기록</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link open-algolia-search" href="#search" title="검색">
-                    
-                        <i class="sidebar-button-icon fa fa-search" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">검색</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="#about" title="About">
-                    
-                        <i class="sidebar-button-icon fa fa-question" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">About</span>
-                    </a>
-            </li>
-            
-        </ul>
-        
-            <ul class="sidebar-buttons">
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="https://github.com/kkangil" target="_blank" rel="noopener" title="GitHub">
-                    
-                        <i class="sidebar-button-icon fab fa-github" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">GitHub</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="http://stackoverflow.com/users/10870848/kkangil" target="_blank" rel="noopener" title="Stack Overflow">
-                    
-                        <i class="sidebar-button-icon fab fa-stack-overflow" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Stack Overflow</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="https://www.linkedin.com/in/kangil-kim-31093a169/" target="_blank" rel="noopener" title="LinkedIn">
-                    
-                        <i class="sidebar-button-icon fab fa-linkedin" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">LinkedIn</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="/fe.kkangil@gmail.com" title="Mail">
-                    
-                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Mail</span>
-                    </a>
-            </li>
-            
-        </ul>
-        
-            <ul class="sidebar-buttons">
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="/atom.xml" title="RSS">
-                    
-                        <i class="sidebar-button-icon fa fa-rss" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">RSS</span>
-                    </a>
-            </li>
-            
-        </ul>
-        
-    </div>
-</nav>
-
-            
-            <div id="main" data-behavior="4"
-                 class="
-                        hasCoverMetaIn
-                        ">
-                
-<article class="post">
-    
-    
-        <div class="post-header main-content-wrap text-left">
-    
-        <h1 class="post-title">
-            Next.js with pm2 ecosystem
-        </h1>
-    
-    
-        <div class="post-meta">
-    <time datetime="2019-04-18T00:29:19+09:00">
-	
-		    4월 18, 2019
-    	
-    </time>
-    
-        <span>카테고리 </span>
-        
-    <a class="category-link" href="/categories/Deploy/">Deploy</a>
-
-
-    
-</div>
-
-    
-</div>
-
-    
-    <div class="post-content markdown">
-        <div class="main-content-wrap">
-            <p><code>Next.js</code>는 Client-Side-Rendering 을 사용하는 react가 아닌 <code>SSR(Server-Side-Rendering)</code> 방식을 사용하는 react framework 이다.<br>해당 글은 <code>Next.js</code>에서 배포시 참고하면 좋을 내용으로 <code>Next.js</code>가 뿐만 아니라 react, Node 에서도 사용 가능하다.</p>
+        gtag('config', 'UA-165569140-1');</script><!--!--><script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script><script data-ad-client="ca-pub-5445993070474035" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js" async></script></head><body class="is-2-column"><nav class="navbar navbar-main"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/">kkangil&#039;s Blog</a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">Home</a><a class="navbar-item" href="/archives">Archives</a><a class="navbar-item" href="/categories">Categories</a><a class="navbar-item" href="/tags">Tags</a><a class="navbar-item" href="/about">About</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="GitHub Home" href="https://github.com/hdw0903"><i class="fab fa-github"></i></a><a class="navbar-item search" title="검색" href="javascript:;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><span class="level-item">2019년 4월 18일 목요일 오전 12:29</span><span class="level-item"><a class="link-muted" href="/categories/Deploy/">Deploy</a></span><span class="level-item">6분 읽기 (대략 960 단어)</span></div></div><h1 class="title is-3 is-size-4-mobile">Next.js with pm2 ecosystem</h1><div class="content"><p><code>Next.js</code>는 Client-Side-Rendering 을 사용하는 react가 아닌 <code>SSR(Server-Side-Rendering)</code> 방식을 사용하는 react framework 이다.<br>해당 글은 <code>Next.js</code>에서 배포시 참고하면 좋을 내용으로 <code>Next.js</code>가 뿐만 아니라 react, Node 에서도 사용 가능하다.</p>
 <a id="more"></a>
 <h2 id="pm2-ecosystem"><a href="#pm2-ecosystem" class="headerlink" title="pm2 ecosystem"></a>pm2 ecosystem</h2><p>pm2 ecosystem이란, 실행할 인스턴스의 설정을 JSON 형식으로 관리할 수 있고, pm2 에서 제공해 주는 option 을 보다 쉽게 관리 할수 있도록 도와준다. pm2 명령어로 직접 실행시킬 수 있지만, ecosystem을 사용함으로써 어떤 서버나 환경에서도 같은 설정을 사용해서 서버를 실행할 수 있다는 점이 장점이다.</p>
 <ol>
 <li>ecosystem.config.js 를 최상위 폴더에 생성한다.</li>
 <li>작성방법</li>
 </ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">module.exports = &#123;</span><br><span class="line">  apps: [</span><br><span class="line">    &#123;</span><br><span class="line">      name: &quot;chungeoram&quot;,</span><br><span class="line">      script: &quot;./server.js&quot;,</span><br><span class="line">      watch: true,</span><br><span class="line">      interpreter: &apos;/home/ubuntu/.nvm/versions/node/v8.11.3/bin/node&apos;,</span><br><span class="line">      &quot;env_public-develop&quot;: &#123;</span><br><span class="line">        NODE_ENV: &quot;public-develop&quot;,</span><br><span class="line">        PORT: 1111,</span><br><span class="line">        API_END_POINT: &apos;http://endpoint/api&apos;</span><br><span class="line">      &#125;,</span><br><span class="line">      env_production: &#123;</span><br><span class="line">        NODE_ENV: &quot;production&quot;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">  apps: [</span><br><span class="line">    &#123;</span><br><span class="line">      name: <span class="string">"chungeoram"</span>,</span><br><span class="line">      script: <span class="string">"./server.js"</span>,</span><br><span class="line">      watch: <span class="literal">true</span>,</span><br><span class="line">      interpreter: <span class="string">'/home/ubuntu/.nvm/versions/node/v8.11.3/bin/node'</span>,</span><br><span class="line">      <span class="string">"env_public-develop"</span>: &#123;</span><br><span class="line">        NODE_ENV: <span class="string">"public-develop"</span>,</span><br><span class="line">        PORT: <span class="number">1111</span>,</span><br><span class="line">        API_END_POINT: <span class="string">'http://endpoint/api'</span></span><br><span class="line">      &#125;,</span><br><span class="line">      env_production: &#123;</span><br><span class="line">        NODE_ENV: <span class="string">"production"</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 <ul>
 <li>name: pm2 에서 관리하는 이름</li>
 <li>script: 앱을 구동할 경로</li>
@@ -282,275 +28,43 @@
 </li>
 </ul>
 <ol start="3">
-<li>pm2 구동방법<br>package.json script에 명령어를 추가해준다.<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&quot;scripts&quot;: &#123;</span><br><span class="line">    &quot;precommit&quot;: &quot;lint-staged&quot;,</span><br><span class="line">    &quot;build&quot;: &quot;next build&quot;,</span><br><span class="line">    &quot;start&quot;: &quot;pm2 start ecosystem.config.js --env production&quot;,</span><br><span class="line">    &quot;start-public&quot;: &quot;pm2 start ecosystem.config.js --env public-develop&quot;,</span><br><span class="line">    &quot;dev&quot;: &quot;nodemon server.js&quot;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
-</li>
+<li>pm2 구동방법<br>package.json script에 명령어를 추가해준다.<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">"scripts"</span>: &#123;</span><br><span class="line">    <span class="string">"precommit"</span>: <span class="string">"lint-staged"</span>,</span><br><span class="line">    <span class="string">"build"</span>: <span class="string">"next build"</span>,</span><br><span class="line">    <span class="string">"start"</span>: <span class="string">"pm2 start ecosystem.config.js --env production"</span>,</span><br><span class="line">    <span class="string">"start-public"</span>: <span class="string">"pm2 start ecosystem.config.js --env public-develop"</span>,</span><br><span class="line">    <span class="string">"dev"</span>: <span class="string">"nodemon server.js"</span></span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure></li>
 </ol>
 <ul>
 <li>$ yarn build → $ yarn start</li>
 <li>app 빌드 후 명령어를 사용해서, pm2를 구동시켜 준다. pm2 start {파일이름} –env {value} 와 같은 형식으로 명령어를 추가한다. 여기서 환경변수는 ecosystem.config.js 의 env_{value}와 매칭 된다.</li>
 </ul>
 <h2 id="Next-js-에서-process-env-변수-사용-주의사항"><a href="#Next-js-에서-process-env-변수-사용-주의사항" class="headerlink" title="Next.js 에서 process.env 변수 사용 주의사항"></a>Next.js 에서 process.env 변수 사용 주의사항</h2><p><code>Next.config.js</code> 에서 <code>sass</code>, <code>webpack</code> 등의 처리 후 export 하는 과정에서, process.env 객체가 비어있는 문제를 발견했다. 하지만, api.js config.js 등 환경 변수에 따라 값을 변경해줘야 하기 때문에 process.env 객체가 비어있으면 안된다. 해당 문제를 처리하기 위해 Next.js 에서 <code>publicRuntimeConfig</code> 라는 옵션을 제공해준다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">const withSass = require(&apos;@zeit/next-sass&apos;)</span><br><span class="line">const withCSS = require(&apos;@zeit/next-css&apos;)</span><br><span class="line"></span><br><span class="line">const publicRuntimeConfig = &#123;</span><br><span class="line">  API_END_POINT: process.env.API_END_POINT,</span><br><span class="line">  NODE_ENV: process.env.NODE_ENV,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">module.exports = withCSS(withSass(&#123;</span><br><span class="line">  publicRuntimeConfig,</span><br><span class="line">  webpack: config =&gt; &#123;</span><br><span class="line">    // Fixes npm packages that depend on `fs` module</span><br><span class="line">    config.node = &#123;</span><br><span class="line">      fs: &apos;empty&apos;,</span><br><span class="line">      module: &apos;empty&apos;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    return config</span><br><span class="line">  &#125;</span><br><span class="line">&#125;))</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> withSass = <span class="built_in">require</span>(<span class="string">'@zeit/next-sass'</span>)</span><br><span class="line"><span class="keyword">const</span> withCSS = <span class="built_in">require</span>(<span class="string">'@zeit/next-css'</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> publicRuntimeConfig = &#123;</span><br><span class="line">  API_END_POINT: process.env.API_END_POINT,</span><br><span class="line">  NODE_ENV: process.env.NODE_ENV,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = withCSS(withSass(&#123;</span><br><span class="line">  publicRuntimeConfig,</span><br><span class="line">  webpack: <span class="function"><span class="params">config</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="comment">// Fixes npm packages that depend on `fs` module</span></span><br><span class="line">    config.node = &#123;</span><br><span class="line">      fs: <span class="string">'empty'</span>,</span><br><span class="line">      <span class="built_in">module</span>: <span class="string">'empty'</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> config</span><br><span class="line">  &#125;</span><br><span class="line">&#125;))</span><br></pre></td></tr></table></figure>
 <ul>
 <li>필요한 process.env 의 값을 <code>publicRuntimeConfig</code> 객체에 담아주고 Next.js 의 옵션 값에 할당해준다.할당해 주게되면, Next.js 의 config 값으로 저장되게 된다.이후 Next.js의 config 값을 불러오는 함수를 추가해준다.</li>
 </ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">import getConfig from &apos;next/config&apos;;</span><br><span class="line"></span><br><span class="line">export const getNodeEnv = () =&gt; &#123;</span><br><span class="line">  const &#123; publicRuntimeConfig &#125; = getConfig();</span><br><span class="line"></span><br><span class="line">  const realNodeEnv = publicRuntimeConfig.NODE_ENV || process.env.NODE_ENV;</span><br><span class="line">  const apiEndPoint = publicRuntimeConfig.API_END_POINT;</span><br><span class="line"></span><br><span class="line">  return &#123; realNodeEnv, apiEndPoint &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> getConfig <span class="keyword">from</span> <span class="string">'next/config'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">const</span> getNodeEnv = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> &#123; publicRuntimeConfig &#125; = getConfig();</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> realNodeEnv = publicRuntimeConfig.NODE_ENV || process.env.NODE_ENV;</span><br><span class="line">  <span class="keyword">const</span> apiEndPoint = publicRuntimeConfig.API_END_POINT;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> &#123; realNodeEnv, apiEndPoint &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 <ul>
 <li>해당 함수는 Next.js의 config에서 publicRuntimeConfig 를 가져와 return 해준다.이제 process.env 환경변수를 사용하고 싶다면, process.env.API_END_POINT 와 같이 직접적으로 사용하는것이 아닌, 해당 함수를 사용해준다.</li>
 </ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">import config from &apos;./config&apos;</span><br><span class="line">import &#123; getNodeEnv &#125; from &apos;@/utils/env&apos;</span><br><span class="line"></span><br><span class="line">const env = getNodeEnv()</span><br><span class="line">const endPoint = env.apiEndPoint || config.apiEndPoint</span><br><span class="line"></span><br><span class="line">export default &#123;</span><br><span class="line">  AUTH_TOKEN: &#123;</span><br><span class="line">    method: &apos;POST&apos;,</span><br><span class="line">    path: () =&gt; `$&#123;endPoint&#125;/auth/authenticate-token`</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-            
-
-        </div>
-    </div>
-    <div id="post-footer" class="post-footer main-content-wrap">
-        
-            <div class="post-footer-tags">
-                <span class="text-color-light text-small">태그</span><br>
-                
-    <a class="tag tag--primary tag--small t-link" href="/tags/Next-js/">Next.js</a> <a class="tag tag--primary tag--small t-link" href="/tags/deploy-Next-js/">deploy Next.js</a> <a class="tag tag--primary tag--small t-link" href="/tags/pm2/">pm2</a> <a class="tag tag--primary tag--small t-link" href="/tags/pm2-ecosystem/">pm2-ecosystem</a>
-
-            </div>
-        
-        
-            <div class="post-actions-wrap">
-    <nav>
-        <ul class="post-actions post-action-nav">
-            <li class="post-action">
-                
-                    
-                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/04/19/리액트-Hooks-1-hooks-란/" data-tooltip="리액트 Hooks: 1. hooks 란?" aria-label="이전: 리액트 Hooks: 1. hooks 란?">
-                
-                    <i class="fa fa-angle-left" aria-hidden="true"></i>
-                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
-                </a>
-            </li>
-            <li class="post-action">
-                
-                    
-                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/04/18/Deep-clone/" data-tooltip="Deep clone" aria-label="다음: Deep clone">
-                
-                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
-                    <i class="fa fa-angle-right" aria-hidden="true"></i>
-                </a>
-            </li>
-        </ul>
-    </nav>
-    <ul class="post-actions post-action-share">
-        <li class="post-action hide-lg hide-md hide-sm">
-            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
-                <i class="fa fa-share-alt" aria-hidden="true"></i>
-            </a>
-        </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2019/04/18/Next-js-with-pm2-ecosystem/" title="Facebook 공유">
-                    <i class="fab fa-facebook" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2019/04/18/Next-js-with-pm2-ecosystem/" title="Twitter 공유">
-                    <i class="fab fa-twitter" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2019/04/18/Next-js-with-pm2-ecosystem/" title="Google+ 공유">
-                    <i class="fab fa-google-plus" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-        
-            
-        
-        <li class="post-action">
-            
-                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
-            
-                <i class="fa fa-list" aria-hidden="true"></i>
-            </a>
-        </li>
-    </ul>
-</div>
-
-
-        
-        
-            
-        
-    </div>
-</article>
-
-
-
-                <footer id="footer" class="main-content-wrap">
-    <span class="copyrights">
-        Copyrights &copy; 2020 kkangil. All Rights Reserved.
-    </span>
-</footer>
-
-            </div>
-            
-                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
-                    <div class="post-actions-wrap">
-    <nav>
-        <ul class="post-actions post-action-nav">
-            <li class="post-action">
-                
-                    
-                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/04/19/리액트-Hooks-1-hooks-란/" data-tooltip="리액트 Hooks: 1. hooks 란?" aria-label="이전: 리액트 Hooks: 1. hooks 란?">
-                
-                    <i class="fa fa-angle-left" aria-hidden="true"></i>
-                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
-                </a>
-            </li>
-            <li class="post-action">
-                
-                    
-                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/04/18/Deep-clone/" data-tooltip="Deep clone" aria-label="다음: Deep clone">
-                
-                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
-                    <i class="fa fa-angle-right" aria-hidden="true"></i>
-                </a>
-            </li>
-        </ul>
-    </nav>
-    <ul class="post-actions post-action-share">
-        <li class="post-action hide-lg hide-md hide-sm">
-            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
-                <i class="fa fa-share-alt" aria-hidden="true"></i>
-            </a>
-        </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2019/04/18/Next-js-with-pm2-ecosystem/" title="Facebook 공유">
-                    <i class="fab fa-facebook" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2019/04/18/Next-js-with-pm2-ecosystem/" title="Twitter 공유">
-                    <i class="fab fa-twitter" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2019/04/18/Next-js-with-pm2-ecosystem/" title="Google+ 공유">
-                    <i class="fab fa-google-plus" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-        
-            
-        
-        <li class="post-action">
-            
-                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
-            
-                <i class="fa fa-list" aria-hidden="true"></i>
-            </a>
-        </li>
-    </ul>
-</div>
-
-
-                </div>
-                
-    <div id="share-options-bar" class="share-options-bar" data-behavior="4">
-        <i id="btn-close-shareoptions" class="fa fa-times"></i>
-        <ul class="share-options">
-            
-                
-                
-                <li class="share-option">
-                    <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2019/04/18/Next-js-with-pm2-ecosystem/">
-                        <i class="fab fa-facebook" aria-hidden="true"></i><span>Facebook 공유</span>
-                    </a>
-                </li>
-            
-                
-                
-                <li class="share-option">
-                    <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2019/04/18/Next-js-with-pm2-ecosystem/">
-                        <i class="fab fa-twitter" aria-hidden="true"></i><span>Twitter 공유</span>
-                    </a>
-                </li>
-            
-                
-                
-                <li class="share-option">
-                    <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2019/04/18/Next-js-with-pm2-ecosystem/">
-                        <i class="fab fa-google-plus" aria-hidden="true"></i><span>Google+ 공유</span>
-                    </a>
-                </li>
-            
-        </ul>
-    </div>
-
-
-            
-        </div>
-        
-
-
-    
-        
-    
-
-<div id="about">
-    <div id="about-card">
-        <div id="about-btn-close">
-            <i class="fa fa-times"></i>
-        </div>
-        
-            <img id="about-card-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
-        
-            <h4 id="about-card-name">kkangil</h4>
-        
-            <div id="about-card-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
-</div>
-        
-        
-            <div id="about-card-job">
-                <i class="fa fa-briefcase"></i>
-                <br>
-                <p>web developer</p>
-
-            </div>
-        
-        
-            <div id="about-card-location">
-                <i class="fa fa-map-marker-alt"></i>
-                <br>
-                Asia/Seoul
-            </div>
-        
-    </div>
-</div>
-
-        
-        
-<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
-        <!--SCRIPTS-->
-<script src="/assets/js/script-dbd16rvloemmuxdzniplmnxxvwoz24eya9wol0b7vvmlokgqsjivmb8dnscy.min.js"></script>
-<!--SCRIPTS END-->
-
-    
-
-
-
-    </body>
-</html>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> config <span class="keyword">from</span> <span class="string">'./config'</span></span><br><span class="line"><span class="keyword">import</span> &#123; getNodeEnv &#125; <span class="keyword">from</span> <span class="string">'@/utils/env'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> env = getNodeEnv()</span><br><span class="line"><span class="keyword">const</span> endPoint = env.apiEndPoint || config.apiEndPoint</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> &#123;</span><br><span class="line">  AUTH_TOKEN: &#123;</span><br><span class="line">    method: <span class="string">'POST'</span>,</span><br><span class="line">    path: <span class="function"><span class="params">()</span> =&gt;</span> <span class="string">`<span class="subst">$&#123;endPoint&#125;</span>/auth/authenticate-token`</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</div><div class="article-tags size-small is-uppercase mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/Next-js/">Next.js</a><a class="link-muted mr-2" rel="tag" href="/tags/deploy-Next-js/">deploy Next.js</a><a class="link-muted mr-2" rel="tag" href="/tags/pm2/">pm2</a><a class="link-muted mr-2" rel="tag" href="/tags/pm2-ecosystem/">pm2-ecosystem</a></div><!--!--></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2019/04/19/%EB%A6%AC%EC%95%A1%ED%8A%B8-Hooks-1-hooks-%EB%9E%80/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">리액트 Hooks: 1. hooks 란?</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2019/04/18/Deep-clone/"><span class="level-item">Deep clone</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--></div><div class="column column-left is-4-tablet is-4-desktop is-4-widescreen  order-1"><div class="card widget"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="" src="/images/blog_logo.png" alt="kkangil"></figure><p class="title is-size-4 is-block line-height-inherit">kkangil</p><p class="is-size-6 is-block">김강일</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>Seoul / South Korea</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">포스트</p><a href="/archives"><p class="title">27</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">카테고리</p><a href="/categories"><p class="title">9</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">태그</p><a href="/tags"><p class="title">79</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://github.com/hdw0903" target="_blank" rel="noopener">팔로우</a></div><div class="level is-mobile"><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Github" href="https://github.com/kkangil"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="StackOverflow" href="http://stackoverflow.com/users/10870848/kkangil"><i class="fab fa-stack-overflow"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="LinkedIn" href="https://www.linkedin.com/in/kangil-kim-31093a169/"><i class="fab fa-linkedin"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Mail" href="/fe.kkangil@gmail.com"><i class="fa fa-envelope"></i></a></div></div></div><!--!--><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">링크</h3><ul class="menu-list"><li><a class="level is-mobile is-mobile" href="https://github.com/hdw0903" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">Github</span></span><span class="level-right"><span class="level-item tag">github.com</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">카테고리</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/Deploy/"><span class="level-start"><span class="level-item">Deploy</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Javascript/"><span class="level-start"><span class="level-item">Javascript</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Jest/"><span class="level-start"><span class="level-item">Jest</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/React/"><span class="level-start"><span class="level-item">React</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Sequelize/"><span class="level-start"><span class="level-item">Sequelize</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/hexo/"><span class="level-start"><span class="level-item">hexo</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%EC%9B%B9-%EC%84%B1%EB%8A%A5-%EC%9D%B4%EC%95%BC%EA%B8%B0/"><span class="level-start"><span class="level-item">웹 성능 이야기</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%ED%85%8C%EC%8A%A4%ED%8A%B8-%EC%BD%94%EB%93%9C/"><span class="level-start"><span class="level-item">테스트 코드</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%ED%95%A8%EC%88%98%ED%98%95-%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D/"><span class="level-start"><span class="level-item">함수형 프로그래밍</span></span><span class="level-end"><span class="level-item tag">9</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">최근 글</h3><article class="media"><div class="media-content size-small"><p><time dateTime="2020-02-23T06:46:45.000Z">2020-02-23</time></p><p class="title is-6"><a class="link-muted" href="/2020/02/23/jest-%EB%A9%94%EC%84%9C%EB%93%9C-toBe/">jest 메서드-toBe</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Jest/">Jest</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2020-02-16T08:07:24.000Z">2020-02-16</time></p><p class="title is-6"><a class="link-muted" href="/2020/02/16/%EB%A0%8C%EB%8D%94%EB%A7%81/">렌더링</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%EC%9B%B9-%EC%84%B1%EB%8A%A5-%EC%9D%B4%EC%95%BC%EA%B8%B0/">웹 성능 이야기</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2020-02-16T05:59:50.000Z">2020-02-16</time></p><p class="title is-6"><a class="link-muted" href="/2020/02/16/jest-%EB%A9%94%EC%84%9C%EB%93%9C-expect/">jest 메서드 - expect</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Jest/">Jest</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2020-02-09T08:01:54.000Z">2020-02-09</time></p><p class="title is-6"><a class="link-muted" href="/2020/02/09/jest-%EB%A9%94%EC%84%9C%EB%93%9C-globals/">jest 메서드 - globals</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Jest/">Jest</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2020-02-09T05:58:17.000Z">2020-02-09</time></p><p class="title is-6"><a class="link-muted" href="/2020/02/09/%EC%84%B1%EB%8A%A5%EC%9D%84-%EB%86%92%EC%9D%B4%EB%8A%94-%EC%BD%94%EB%93%9C-%EC%8A%A4%ED%83%80%EC%9D%BC/">성능을 높이는 코드 스타일</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%EC%9B%B9-%EC%84%B1%EB%8A%A5-%EC%9D%B4%EC%95%BC%EA%B8%B0/">웹 성능 이야기</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">아카이브</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/archives/2020/02/"><span class="level-start"><span class="level-item">2월 2020</span></span><span class="level-end"><span class="level-item tag">7</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2020/01/"><span class="level-start"><span class="level-item">1월 2020</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2019/12/"><span class="level-start"><span class="level-item">12월 2019</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2019/11/"><span class="level-start"><span class="level-item">11월 2019</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2019/10/"><span class="level-start"><span class="level-item">10월 2019</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2019/09/"><span class="level-start"><span class="level-item">9월 2019</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2019/04/"><span class="level-start"><span class="level-item">4월 2019</span></span><span class="level-end"><span class="level-item tag">8</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">태그</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/BDD/"><span class="tag">BDD</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/HTTP-%EC%9A%94%EC%B2%AD-%EC%B5%9C%EC%86%8C%ED%99%94/"><span class="tag">HTTP 요청 최소화</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Hooks/"><span class="tag">Hooks</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Javascript/"><span class="tag">Javascript</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/MySQL/"><span class="tag">MySQL</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Next-js/"><span class="tag">Next.js</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/React/"><span class="tag">React</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/React-Hooks/"><span class="tag">React-Hooks</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Sequelize/"><span class="tag">Sequelize</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/TDD/"><span class="tag">TDD</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/indent/"><span class="tag">_.indent</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/call-apply-arguments-this/"><span class="tag">call, apply, arguments, this</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/compose/"><span class="tag">compose</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/deep-clone/"><span class="tag">deep-clone</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/deploy-Next-js/"><span class="tag">deploy Next.js</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/describe/"><span class="tag">describe</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/expect/"><span class="tag">expect</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/filter/"><span class="tag">filter</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/go/"><span class="tag">go</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/go-%ED%95%A8%EC%88%98/"><span class="tag">go 함수</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/hexo/"><span class="tag">hexo</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/hexo-%EC%8B%9C%EC%9E%91/"><span class="tag">hexo 시작</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/hooks-%EC%82%AC%EC%9A%A9%EB%B0%A9%EB%B2%95/"><span class="tag">hooks 사용방법</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/hooks-%EC%A0%95%EC%9D%98/"><span class="tag">hooks 정의</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/jasmine/"><span class="tag">jasmine</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/javascript/"><span class="tag">javascript</span><span class="tag is-grey-lightest">12</span></a></div><div class="control"><a class="tags has-addons" href="/tags/jest-globals-%EB%A9%94%EC%84%9C%EB%93%9C/"><span class="tag">jest globals 메서드</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/jest-%EB%A9%94%EC%84%9C%EB%93%9C/"><span class="tag">jest 메서드</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/lifecycle/"><span class="tag">lifecycle</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/map/"><span class="tag">map</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/memoization/"><span class="tag">memoization</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/model-%EC%A0%95%EC%9D%98/"><span class="tag">model 정의</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/named-function/"><span class="tag">named function</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/once/"><span class="tag">once</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/partial/"><span class="tag">partial</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/partial-function/"><span class="tag">partial function</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/pipe/"><span class="tag">pipe</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/pipeline/"><span class="tag">pipeline</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/pm2/"><span class="tag">pm2</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/pm2-ecosystem/"><span class="tag">pm2-ecosystem</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/skip/"><span class="tag">skip</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/spy/"><span class="tag">spy</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/syntax/"><span class="tag">syntax</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/test/"><span class="tag">test</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/toBe/"><span class="tag">toBe</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/toEqual/"><span class="tag">toEqual</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/toError/"><span class="tag">toError</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/toHaveBeenCalled/"><span class="tag">toHaveBeenCalled</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/toHaveReturned/"><span class="tag">toHaveReturned</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useCallback/"><span class="tag">useCallback</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useContext/"><span class="tag">useContext</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useEffect/"><span class="tag">useEffect</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useMemo/"><span class="tag">useMemo</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useReducer/"><span class="tag">useReducer</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useRef/"><span class="tag">useRef</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useState/"><span class="tag">useState</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EA%B0%9D%EC%B2%B4/"><span class="tag">객체</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EA%B3%A0%EC%B0%A8-%ED%95%A8%EC%88%98/"><span class="tag">고차 함수</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%84%A4%EB%B9%84%EA%B2%8C%EC%9D%B4%EC%85%98-%ED%83%80%EC%9D%B4%EB%B0%8D/"><span class="tag">네비게이션 타이밍</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%A0%8C%EB%8D%94%EB%A7%81/"><span class="tag">렌더링</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%A0%8C%EB%8D%94%EB%A7%81-%EC%84%B1%EB%8A%A5-%ED%96%A5%EC%83%81/"><span class="tag">렌더링 성능 향상</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%A6%AC%ED%8E%98%EC%9D%B8%ED%8A%B8/"><span class="tag">리페인트</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%A6%AC%ED%94%8C%EB%A1%9C%EC%9A%B0/"><span class="tag">리플로우</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%B3%80%EA%B2%BD-%EC%B5%9C%EC%86%8C%ED%99%94/"><span class="tag">변경 최소화</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%B6%80%EC%88%98-%ED%9A%A8%EA%B3%BC/"><span class="tag">부수 효과</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%B9%84%EB%8F%99%EA%B8%B0%EC%99%80-go/"><span class="tag">비동기와 _.go</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EC%84%B1%EB%8A%A5-%ED%85%8C%EC%8A%A4%ED%8A%B8/"><span class="tag">성능 테스트</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EC%88%9C%EC%88%98-%ED%95%A8%EC%88%98/"><span class="tag">순수 함수</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EC%9B%B9-%EC%82%AC%EC%9D%B4%ED%8A%B8-%EC%B5%9C%EC%A0%81%ED%99%94/"><span class="tag">웹 사이트 최적화</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EC%9D%98%EC%A1%B4%EC%84%B1-%EC%A3%BC%EC%9E%85/"><span class="tag">의존성 주입</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EC%9D%BC%EA%B8%89-%ED%95%A8%EC%88%98/"><span class="tag">일급 함수</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%81%B4%EB%A1%9C%EC%A0%80/"><span class="tag">클로저</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%85%8C%EC%8A%A4%ED%8A%B8-%EC%BD%94%EB%93%9C/"><span class="tag">테스트 코드</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%8C%8C%EC%9D%B4%ED%94%84%EB%9D%BC%EC%9D%B8/"><span class="tag">파이프라인</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%94%84%EB%A1%9C%EC%84%B8%EC%8B%B1-%EB%AA%A8%EB%8D%B8/"><span class="tag">프로세싱 모델</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%95%A8%EC%88%98-%EC%A1%B0%EB%A6%BD/"><span class="tag">함수 조립</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%95%A8%EC%88%98%EC%9D%98-%ED%98%B8%EC%9D%B4%EC%8A%A4%ED%8C%85/"><span class="tag">함수의 호이스팅</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%95%A8%EC%88%98%ED%98%95-%EC%9E%90%EB%B0%94%EC%8A%A4%ED%81%AC%EB%A6%BD%ED%8A%B8%EC%9D%98-%EC%8B%A4%EC%9A%A9%EC%84%B1-2/"><span class="tag">함수형 자바스크립트의 실용성 2</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%95%A8%EC%88%98%ED%98%95-%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D/"><span class="tag">함수형 프로그래밍</span><span class="tag is-grey-lightest">9</span></a></div></div></div></div></div><div class="card widget"><div class="card-content"><div class="notification is-danger">You need to set <code>client_id</code> and <code>slot_id</code> to show this AD unit. Please set it in <code>_config.yml</code>.</div></div></div></div><!--!--></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/">kkangil&#039;s Blog</a><p class="size-small"><span>&copy; 2020 kkangil</span>  Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/ppoffice/hexo-theme-icarus"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script>moment.locale("ko");</script><script>var IcarusThemeSettings = {
+            site: {
+                url: 'https://kkangil.github.io',
+                external_link: {"enable":true,"exclude":[]}
+            },
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script src="/js/animation.js"></script><a id="back-to-top" title="맨 위로" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/js/lightgallery.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><!--!--><script src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="입력 하세요..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"입력 하세요...","untitled":"(Untitled)","posts":"포스트","pages":"Pages","categories":"카테고리","tags":"태그"});
+        });</script></body></html>

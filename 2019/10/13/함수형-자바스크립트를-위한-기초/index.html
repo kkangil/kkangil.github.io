@@ -1,263 +1,9 @@
-
-<!DOCTYPE html>
-<html lang="ko">
-    
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="generator" content="kkangil&#39;s Blog">
-    <title>함수형 자바스크립트를 위한 기초 - kkangil&#39;s Blog</title>
-    <meta name="author" content="kkangil">
-    <link rel="canonical" href="https://kkangil.github.io/2019/10/13/함수형-자바스크립트를-위한-기초/"/>
-    <meta name="google-site-verification" content="6_Smv-rWZw7urNifInu4CE1hyB_GcTbeoXpaJkoFWIo" />
-    <meta name="naver-site-verification" content="b0ce7bc14af00ce2aee96528313654d78c325351" />
-    
-    
-    
-        <link rel="alternate" type="application/atom+xml" title="RSS" href="/rss2.xml">
-    
-    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg"},"articleBody":"함수형 자바스크립트를 잘 익히기 위해서는 무엇보다 함수를 다루는 다양한 방법들을 잘 익히는 것이 중요하다. 함수를 잘 다루려면 함수와 관련된 개념들과 관련된 몇 가지 기능들에 대해 잘 알아야 하는데 이를테면 일급 함수, 클로저, 고차 함수, 콜백 패턴, 부분 적용, arguments 객체 다루기, 함수 객체의 메서드 등이 있다.\n\n일급 함수자바스크립트에서 함수는 일급 객체이자 일급 함수다. 자바스크립트에서 객체는 일급 객체다. 여기서 일급은 값으로 다룰 수 있다는 의미로, 아래와 같은 조건을 만족해야 한다.\n\n변수에 담을 수 있다.\n함수나 메서드의 인자로 넘길 수 있다.\n함수나 메서드에서 리턴할 수 있다.\n\n자바스크립트에서 모든 값은 일급이다. 자바스크립트에서 모든 객체는 일급 객체이며 함수도 객체이자 일급 객체다.일급 함수는 아래와 같은 추가적인 조건을 더 만족한다.\n\n아무 때나(런타임에서도) 선언이 가능하다.\n익명으로 선언할 수 있다.\n익명으로 선언한 함수도 함수나 메서드의 인자로 넘길 수 있다.\n\n12345678910111213function f1() &#123; &#125;var a = typeof f1 === &apos;function&apos; ? f1 : function () &#123; &#125;;function f2() &#123;  return function () &#123; &#125;;&#125;(function (a, b) &#123; return a + b; &#125;)(10, 5);function callAndAdd(a, b) &#123;  return a() + b();&#125;callAndAdd(function () &#123; return 10; &#125;, function () &#123; return 5; &#125;)\n\nf1은 함수를 값으로 다룰 수 있음을 보여준다.\nf2는 함수를 리턴한다.\na와 b를 더하는 익명 함수를 선언하였으며, a와 b에 각각 10, 5를 전달하여 즉시 실행했다.\ncallAndAdd를 실행하면서 익명 함수들을 선언했고 바로 인자로 사용되었다. callAndAdd는 넘겨받은 함수 둘을 실행하여 결과들을 더한다.\n\n클로저스코프에 대한 개념을 잘 알고 있다면 이 글을 읽는 데 더욱 도움이 될 것 이다. 스코프란 변수를 어디에서 어떻게 찾을지를 정한 규칙으로, 여기에서 다루는 스코프는 함수 단위의 변수 참조에 대한 것이다.함수는 변수 참조 범위를 결정하는 중요한 기준이다. 함수가 중첩되어 있다면 스코프들 역시 중첩되어 생겨난다.\n클로저는 자신이 생성될 때의 환경을 기억하는 함수다.\n이 말을 보다 실용적으로 표현해 보면 클로저는 자신의 상위 스코프의 변수를 참조할 수 있다고 할 수 있다.\n클로저는 자신이 생성될 때의 스코프에서 알 수 있었던 변수를 기억하는 함수다.\n자바스크립트의 모든 함수는 글로벌 스코프에 선언되거나 함수 안에서 선언된다. 자바스크립트의 모든 함수는 상위 스코프를 가지며 모든 함수는 자신이 정의되는 순간(정의되는 곳)의 실행 컨텍스트 안에 있다.\n123456789101112131415function parent() &#123;  var a = 5;  function myfn() &#123;    console.log(a);  &#125;&#125;function parent2() &#123;  var a = 5;  function parent1() &#123;    function myfn() &#123;      console.log(a);    &#125;  &#125;&#125;\nparent와 parent2의 myfn에서는 a라는 변수를 선언하지 않았지만 사용하고 있다. parent의 변수 a는 myfn을 생성하는 스코프에서 정의되었고 parent2의 변수 a는 myfn을 생성하는 스코프의 상위 스코프에 정의되었다.\n위와 같은 조건을 충족시키지 않는다면 그 함수가 아무리 함수 안에서 선언되었다고 하더라도 일반 함수와 전혀 다를 바가 없다. 클로저가 기억할 환경이라는 것은 외부의 변수들밖에 없기 때문이다. 또한 자신의 상위 스코프에서 알 수 있는 변수를 자신이 사용하고 있지 않다면 그 환경을 기억해야 할 필요가 없다.글로벌 스코프를 제외한 외부 스코프에 있었던 변수 중 클로저 혹은 다른 누군가가 참조하고 있지 않는 모든 변수는 실행 컨텍스트가 끝난 후 가비지 컬렉션 대상이 된다. 어떤 함수가 외부 스코프의 변수를 사용하지 않았고, 그래서 외부 스코프의 환경이 가비지 컬렉션 대상이 된다면 그렇게 내비려 두는 함수를 클로저라고 보기 어렵다.\n클로저는 자신이 생성될 때의 스코프에서 알 수 있었던 변수 중 언젠가 자신이 실행될 때 사용할 변수들만 기억하여 유지시키는 함수다.\n12345var a = 10;var b = 20;function f1() &#123;  return a + b;&#125;\nf1은 클로저처럼 외부 변수를 참조하여 결과를 만든다. 게다가 상위 스코프의 변수를 사용하고 있으므로 앞서 강조했던 조건을 모두 충족시키고 있다. 그런데 왜 클로저가 아닐까?글로벌 스코프에서 선언된 모든 변수는 그 변수를 사용하는 함수가 있는지 없는지와 관계없이 유지된다. a와 b 변수가 f1에 의해 사라지지 못하는 상황이 아니므로 f1은 클로저가 아니다.그렇다면 클로저는 ‘함수 안에서 함수가 생성될 때’만 생성된다고 할 수 있을까? 그렇지 않다. 웹 브라우저에서는 함수 내부가 아니라면 모두 글로벌 스코프지만, 요즘 자바스크립트에서는 함수 내부가 아니면서 글로벌 스코프도 아닌 경우가 있다.\n123456789101112function f2() &#123;  var a = 10;  var b = 20;  function f3(c, d) &#123;    return c + d;  &#125;  return f3;&#125;var f4 = f2();console.log(f4(5, 7));\n위 코드에서는 클로저가 있을까? 특히 f3처럼 함수 안에서 함수를 리턴하면 클로저처럼 보인다. 하지만 이 코드의 f4에 담긴 f3도 클로저가 아니다. f3은 f2 안에서 생성되었고 f3 바로 위에는 a, b라는 지역 변수도 있다. 하지만 f3 안에서 사용하고 있는 변수는 c,d이고 두 변수는 모두 f3에서 정의되었다. 자신이 생성될 때의 스코프가 알고 있는 변수 a, b는 사용하지 않았다. 그러므로 f3이 기억해야 할 변수는 하나도 없다. 그러므로 f3이 기억해야 할 변수는 하나도 없다. 자신이 스스로 정의한 c, d는 f3이 실행되고 나면 없어진다. 다시 실행되면 c, d를 다시 생성하고 리턴 후에 변수는 사라진다.\n1234567891011function f4() &#123;  var a = 10;  var b = 20;  function f5() &#123;    return a + b;  &#125;  return f5();&#125;console.log(f4());\n그렇다면 위 코드에서는 클로저가 있을까? 정확한 표현은 있었다이다. 결과적으로는 클로저는 없다고 볼 수 있다. f4가 실행되고 a, b가 할당된 후 f5가 정의된다. 그리고 f5에서는 a, b가 사용되고 있으므로 f5는 자신이 생성된 환경을 기억하는 클로저가 된다. 그런데 f4의 마지막 라인을 보면 f5를 실행하여 리턴한다. 결국 f5를 참조하고 있는 곳이 어디에도 없기 때문에 f5는 사라지고, f5가 사라지면 a, b도 결국 사라질 수 있기에 클로저는 f4가 실행되는 사이에만 생겼다가 사라진다.\n123456789101112function f6() &#123;  var a = 10;  function f7(b) &#123;    return a + b;  &#125;  return f7;&#125;var f8 = f6();console.log(f8(20));console.log(f8(10));\n드디어 클로저 코드를 사용했다. f7은 진짜 클로저다. 이제 a는 사라지지 않는다. f7이 a를 사용하기에 a를 기억해야 하고 f7이 f8에 담겼기 때문에 클로저가 되었다. 원래대로라면 f6의 지역 변수는 모두 사라져야 하지만 f6 실행이 끝났어도 f7이 a를 기억하는 클로저가 되었기 때문에 a는 사라지지 않으며, f8을 실행할 때마다 새로운 변수인 b와 함께 사용되어 결과를 만든다.\n혹시 위 상황에 메모리 누수가 있다고 볼 수 있을까? 그렇지 않다. 메모리가 해제되지 않는 것과 메모리 누수는 다르다. 메모리 누수는 메모리가 해제되지 않을 때 일어나는 것은 맞지만, 위 상황을 메모리 누수라고 할 수는 없다. a는 한 번 생겨날 뿐, 계속해서 생겨나거나 하지 않는다. 메모리 누수란 개발자가 의도하지 않았는데 메모리가 해제되지 않고 계속 남는 것을 말하며, 메모리 누수가 지속적으로 반복될 때는 치명적인 문제를 만든다. f8이 아무리 많이 실행되더라도 이미 할당된 a가 그대로 유지되기 때문에 메모리 누수는 일어나지 않는다.\n1234567891011function f9() &#123;  var a = 10;  var f10 = function (c) &#123;    return a + b + c;  &#125;  var b = 20;  return f10;&#125;var f11 = f9();console.log(f11(30));\n위 코드는 에러없이 정상 동작한다. 클로저는 자신이 생성될 때의 스코프에서 알 수 있었던 변수를 기억하는 함수라고 했었는데, 여기서 ‘때’는 생각하는 것보다 조금 길다고 했었다.f10에는 익명 함수를 담았다. f10이 생성되기 딱 이전 시점에는 b가 20으로 초기화되지 않았다. 클로저는 자신이 생성되는 스코프의 모든 라인, 어느곳에서 선언된 변수든지 참조하고 기억할 수 있다. 그리고 그것은 변수이기에 클로저가 생성된 이후 언제라도 그 값은 변경될 수 있다.\n클로저는 자바스크립트에서 절차지향 프로그래밍, 객체지향 프로그래밍, 함수형 프로그매일 모두를 지탱하는 매우 중요한 기능이자 개념이다. 분명 클로저는 메모리 누수 같은 위험성을 가지고 있다. 그러나 메모리 누수나 성능 저하의 문제는 클로저의 단점이나 문제가 아니다.\n고차 함수고차 함수란, 함수를 다루는 함수를 말한다.\n\n함수를 인자를 받아 대신 실행하는 함수\n함수를 리턴하는 함수\n함수를 인자를 받아서 또 다른 함수를 리턴하는 함수\n\n고차 함수을 시작하기전 정의를 보고 클로저와의 차이점이 궁금해져 검색해봤다. \n\n“Closures are also functions. But when a function captures state upon its creation, we call it a closure.”즉, 클로저 역시 함수지만, 함수가 생성될 때 state를 점유하고 있다면 우리는 그것을 클로저라고 합니다.\n\n출처: https://azsha.tistory.com/100 [Azsha’s Forge]\n사실상 함수형 프로그래밍의 절반은 고차 함수를 적극적으로 활용하는 프로그래밍이라고도 할 수 있다.\n1234567891011121314function callWith10(val, func) &#123;  return func(10, val);&#125;function add(a, b) &#123;  return a + b;&#125;function sub(a, b) &#123;  return a - b;&#125;console.log(callWith10(20, add));console.log(callWith10(5, sub));\n여기서 add와 sub는 일반 함수다. 함수를 인자로 받거나 함수를 리턴하지 않기 때문이다. callWith10은 고차 함수다. 함수를 받아 내부에서 대신 실행하기 때문이다.\n12345678910function constant(val) &#123;  return function () &#123;    return val;  &#125;&#125;var always10 = constant(10);console.log(always10()); // 10console.log(always10()); // 10console.log(always10()); // 10\nconstant 함수는 실행 당시 받았던 10이라는 값을 받아 내부에서 익명 함수를 클로저로 만들어 val를 기억하게 만든 수 리턴한다. 리턴된 함수에는 always10 이라는 이름을 지어주었다. always10을 실행하면 항상 10을 리턴한다.\n12345678910function callWith(val1) &#123;  return function (val2, func) &#123;    return func(val1, val2);  &#125;&#125;var callWith10 = callWith(10);console.log(callWith10(20, add)); // 30var callWith5 = callWith(5);console.log(callWith5(5, sub)); // 0\ncallWith는 함수를 리턴하는 함수다. val1을 받아서 val1을 기억하는 함수를 리턴했다. 리턴된 함수는 이후에 val2와 func를 받아 대신 func를 실행해 준다. 함수를 리턴하는 함수를 사옹할 경우 다음처럼 변수에 담지 않고 바로 실행해도 된다.\n12console.log(callWith(30)(20, add));console.log(callWith(5)(5, sub));\n인자는 숫가자 아닌 값도 활용이 가능하다.123456789101112_.get = function (list, index) &#123;  return list[index];&#125;var users = [  &#123; id: 2, name: &quot;HA&quot;, age: 25 &#125;,  &#123; id: 4, name: &quot;PJ&quot;, age: 28 &#125;,  &#123; id: 5, name: &quot;JE&quot;, age: 27 &#125;,];var callWithUsers = callWith(users);console.log(callWithUsers(2, _.get));\n콜백 함수라 잘못 불리는 보조 함수콜백 함수를 받아 자신이 해야 할 일을 모두 끝낸 후 결과를 되돌려 주는 함수도 고차 함수다. 보통은 비동기가 일어나는 상황에서 사용되며 콜백 함수를 통해 다시 원래 위치로 돌아오기 위해 사용되는 패턴이다. 콜백 패턴은 클로저 등과 함께 사용할 수 있는 매우 강력한 표현이자 비동기 프로그래밍에 있어 없어서는 안 될 매우 중요한 패턴이다. 콜백 패턴은 끝이 나면 컨텍스트를 다시 돌려주는 단순한 협업 로직을 가진다.\nbutton.click(function() {})과 같은 코드의 익명 함수도 콜백 함수라고 표현되는 것을 많이 보았지만, 이 익명 함수는 ‘이벤트 리스너’라고 칭하는 것이 적합하다. 함수가 고차 함수에서 쓰이는 역할의 이름으로 불러주면 된다. _.each([1,2,3], function() {})에서의 익명 함수는 callback이 아니라 iteratee이며 _.filter(users, function() {})에서의 익명 함수는 predicate다. callback은 종료가 되었을 때 단 한 번 실행되지만 iteratee나 predicate, listener등은 종료될 때 실행되지 않으며 상황에 따라 여러 번 실행되기도 하고 각각 다른 역할을 한다.\n함수를 리턴하는 함수와 부분 적용앞서 곳곳에서 미리 필요한 인자를 넘겨 두고 그 인자를 기억하는 클로저를 리턴하는 함수들을 확인했다. 클로저로 만들어진 함수가 추가적으로 인자를 받아 로직을 완성해 나가는 패턴을 갖는다. 이와 유사한 기법들로 bind, curry, partial 등이 있다. 이런 기법들을 통틀어 칭하는 특별한 용어는 없지만 다음과 같은 공통점을 갖는다.\n기억하는 인자 혹은 변수가 있는 클로저를 리턴한다.\nbind는 this와 인자들이 부분적으로 적용된 함수를 리턴한다. bind의 경우 인자보다는 주로 함수 안에서 사용될 this를 적용해 두는데 많이 사용한다. 그 이유는 아마 this 적용을 스킵할 수 없다는 점과 인자의 부분 적용을 왼쪽에서 부터 순서대로 할 수 있는 점 때문일 것이다.\n12345function add(a, b) &#123;  return a + b;&#125;var add10 = add.bind(null, 10);console.log(add10(20)); // 30\nbind는 첫 번째 인자로 bind가 리턴할 함수에서 사용될 this를 받는다. 두 번째 인자부터 함수에 미리 적용될 인자들이다. 인자를 미리 적용해 두기 위해 this로 사용될 첫 번째 인자에 null을 넣은 후 10을 넣었다. add10과 같이 this를 사용하지 않는 함수이면서 왼쪽에서 부터 순서대로만 인자를 적용하면 되는 상황에서는 원하는 결과를 얻을 수 있다. bind의 아쉬운 점은 두 가지다. 인자를 왼쪽에서 부터 순서대로만 적용할 수 있다는 점과 bind를 한 번 실행한 함수의 this는 무엇을 적용해 두었든 앞으로 바꿀 수 없다는 점이다.bind는 왼쪽에서 부터 원하는 만큼의 인자를 지정해 둘 수 있지만 원하는 지점을 비워 두고 적용할 수는 없다. 예를 들어 어떤 함수가 필요로 하는 인자가 3개가 있는데 그 중 두 번째 인자만을 적용해 두고 싶다면 bind로는 이것을 할 수 없다. 이러한 점을 개선한 방식이 있는데 바로 partial 이다.\n존 레식의 partial123456789101112131415161718Function.prototype.partial = function () &#123;  var fn = this, args = Array.prototype.slice.call(arguments); // 1  return function () &#123; // 2    var arg = 0;    for (var i = 0; i &lt; args.length &amp;&amp; arg &lt; arguments.length; i++) // 5      if (args[i] === undefined) args[i] = arguments[arg++]; // 6    return fn.apply(this, args);  &#125;&#125;function abc(a, b, c) &#123;  console.log(a, b, c);&#125;var ac = abc.partial(undefined, &apos;b&apos;, undefined); // 3 ac(&apos;a&apos;, &apos;c&apos;); // 4// a, b, c\n\n우선 partial이 실행되면 fn에 자기 자신인 this를 담는다. 여기서 자기 자신은 abc 같은 함수다. args에는 partial이 실행될 때 넘어온 인자들을 배열로 변경하여 args에 담아 둔다.\nfn과 args는 리턴된 익명 함수가 기억하게 되므로 지워지지 않는다.\nabc.partial을 실행할 때 첫 번째 인자와 세 번쩨 인자로 넘긴 undefined 자리는 나중에 ac가 실행될 때 채워질 것이다. \nac를 실행하면서 넘긴 ‘a’와 ‘c’는 \n리턴된 익명 함수의 arguments에 담겨 있다.\nfor를 돌면서 미리 받아 두었던 args에 undefined가 들어 있던 자리를 arguments의 앞에서 부터 꺼내면서 모두 채운다. 다 채우고 나면 미리 받아 두었던 fn을 apply로 실행하면서 인자들을 배열로 넘긴다.\n\n사실 partial은 구현이 잘 된 것은 아니다. 함수의 인자로 undefined를 사용하고 싶을 수도 있는데 undefined가 인자를 비워 두기 우한 구분자로 사용되고 있기 때문에, undefined를 미리 적용하고 싶다면 방법이 없다. 또한 초기에 partial을 실행할 때 나중에 실제로 실행될 함수에서 사용할 인자의 개수만큼 꼭 미리 채워 놓아야만 한다. 이 처럼 partial이 가진 제약은 ‘인자 개수 동적으로 사용하기’나 ‘arguments 객체 활용’과 같은 자바스크립트의 유연함을 반영하지 못한다는 점에서 특히 아쉽다.\n123456789101112131415161718function add() &#123;  var result = 0;  for (var i = 0; i &lt; arguments.length; i++) &#123;    result += arguments[i];  &#125;  return result;&#125;console.log(add(1, 2, 3, 4, 5));var add2 = add.partial(undefined, 2);console.log(add2(1, 3, 4, 5)); // 3var add3 = add.partial(undefined, undefined, 3, undefined, undefined);console.log(add3(1, 2, 4, 5)); // 15console.log(add3(50, 50, 50, 50)); // 15 (bug)console.log(add3(100, 100, 100, 100)); // 15 (bug)\n위 상황에서 add2는 3, 4, 5 인자를 무시하게 된다. add3처럼 하면 1, 2, 4, 5를 모두 사용할 수 있게 되지만 undefined로라도 인자 개수를 채워놔야 해서 코드가 깔끔하지 못하고 partial 이후에는 역시 4개 이상의 인자를 사용할 수 없다는 단점이 생긴다.위 코드에는 치명적인 문제가 있다. 의도한 것인지는 모르겠지만 그가 만든 partial 함수로 만든 함수는 재사용이 사실상 불가능하다. 한번 partial을 통해 만들어진 함수를 실행하고 나면 클로저로 생성된 args의 상태를 직접 변경하기 때문에, 다음번에 다시 실행해도 같은 args를 바라보고 이전에 적용된 인자가 남는다. 결과적으로 partial로 만들어진 함수는 단 한 번만 정상적으로 동작한다.\n1234567891011Function.prototype.partial = function () &#123;  var fn = this, _args = arguments;  return function () &#123;    var args = Array.prototype.slice.call(_args);    var arg = 0;    for (var i = 0; i &lt; args.length &amp;&amp; arg &lt; arguments.length; i++)      if (args[i] === undefined) args[i] = arguments[arg++];    return fn.apply(this, args);  &#125;&#125;\n다음과 같이 두 줄만 변경하면 두 번 이상 실행해도 정상적으로 동작한다. 클로저가 기억할 변수에는 원본을 남기고 리턴된 함수가 실행될 때마다 복사하여 원본을 지키는 방식을 사용한다. \n\n\nConclusion오늘은 본격적인 함수형 프로그래밍 시작에 앞서 기본이 될 기능들을 확인해 봤다. 일급 함수 같은 처음 듣는 용어도 있었고, 고차 함수 같은 경우는 내가 실무에서도 사용하고 있지만 정확한 용어도 모르고 사용하고 있었다. 또한 클로저, callback의 존재?는 알고 있었지만 정확한 개념이 부족했다는 것을 느꼈다. 오늘 내용의 모든 기능들의 대한 설명이 이 포스트로는 부족하지만 실력 향상에 많은 도움이 될 것같다. 기록해 두고 자주 보면서 내 것으로 만들어야 할 것 같다. \npartial 같은 함수를 보고 들었던 생각은 함수형 프로그래밍의 끝은 어디 일까가 궁금해졌다. 정말 나는 생각도 못했던 기능이고 저게 그래서 실무에서 필요할까? 라는 생각을 했다. 하지만 partial과 같은 helper 함수들을 구현해 놓고 사용하면 생산성이 눈에 띄게 좋아질 것 같다고 생각한다.\n이제 1장의 내용이 끝났는데 다음 장의 내용은 함수형 자바스크립트를 위한 문법 다시보기 이다. 이미 알고 있던 내용일 지더라도 기초를 더 다지기 위해 소홀히 보지 않아야겠다. \n참조: 함수형 자바스크립트 프로그래밍\n","dateCreated":"2019-10-13T15:52:02+09:00","dateModified":"2019-12-01T18:41:24+09:00","datePublished":"2019-10-13T15:52:02+09:00","description":"함수형 자바스크립트를 잘 익히기 위해서는 무엇보다 함수를 다루는 다양한 방법들을 잘 익히는 것이 중요하다. 함수를 잘 다루려면 함수와 관련된 개념들과 관련된 몇 가지 기능들에 대해 잘 알아야 하는데 이를테면 일급 함수, 클로저, 고차 함수, 콜백 패턴, 부분 적용, arguments 객체 다루기, 함수 객체의 메서드 등이 있다.","headline":"함수형 자바스크립트를 위한 기초","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"https://kkangil.github.io/2019/10/13/함수형-자바스크립트를-위한-기초/"},"publisher":{"@type":"Organization","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg","logo":{"@type":"ImageObject","url":"profile.jpeg"}},"url":"https://kkangil.github.io/2019/10/13/함수형-자바스크립트를-위한-기초/","keywords":"javascript, 함수형 프로그래밍, 일급 함수, 클로저, 고차 함수, partial function"}</script>
-    <meta name="description" content="함수형 자바스크립트를 잘 익히기 위해서는 무엇보다 함수를 다루는 다양한 방법들을 잘 익히는 것이 중요하다. 함수를 잘 다루려면 함수와 관련된 개념들과 관련된 몇 가지 기능들에 대해 잘 알아야 하는데 이를테면 일급 함수, 클로저, 고차 함수, 콜백 패턴, 부분 적용, arguments 객체 다루기, 함수 객체의 메서드 등이 있다.">
-<meta name="keywords" content="javascript,함수형 프로그래밍,일급 함수,클로저,고차 함수,partial function">
-<meta property="og:type" content="blog">
-<meta property="og:title" content="함수형 자바스크립트를 위한 기초">
-<meta property="og:url" content="https://kkangil.github.io/2019/10/13/함수형-자바스크립트를-위한-기초/index.html">
-<meta property="og:site_name" content="kkangil&#39;s Blog">
-<meta property="og:description" content="함수형 자바스크립트를 잘 익히기 위해서는 무엇보다 함수를 다루는 다양한 방법들을 잘 익히는 것이 중요하다. 함수를 잘 다루려면 함수와 관련된 개념들과 관련된 몇 가지 기능들에 대해 잘 알아야 하는데 이를테면 일급 함수, 클로저, 고차 함수, 콜백 패턴, 부분 적용, arguments 객체 다루기, 함수 객체의 메서드 등이 있다.">
-<meta property="og:locale" content="ko">
-<meta property="og:updated_time" content="2019-12-01T09:41:24.903Z">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="함수형 자바스크립트를 위한 기초">
-<meta name="twitter:description" content="함수형 자바스크립트를 잘 익히기 위해서는 무엇보다 함수를 다루는 다양한 방법들을 잘 익히는 것이 중요하다. 함수를 잘 다루려면 함수와 관련된 개념들과 관련된 몇 가지 기능들에 대해 잘 알아야 하는데 이를테면 일급 함수, 클로저, 고차 함수, 콜백 패턴, 부분 적용, arguments 객체 다루기, 함수 객체의 메서드 등이 있다.">
-    
-    
-        
-    
-    
-        <meta property="og:image" content="https://kkangil.github.io/assets/images/profile.jpeg"/>
-    
-    
-    
-    
-    <!--STYLES-->
-    <link rel="stylesheet" href="/assets/css/style-c4ozcsklz4kht2pebhp44xorvyverh23toayhn7i6ubrpyedak24hv1v0hyd.min.css">
-    <!--STYLES END-->
-    
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-165569140-1"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="generator" content="Hexo 4.2.0"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>함수형 자바스크립트를 위한 기초 - kkangil&#039;s Blog</title><meta description="함수형 자바스크립트를 잘 익히기 위해서는 무엇보다 함수를 다루는 다양한 방법들을 잘 익히는 것이 중요하다. 함수를 잘 다루려면 함수와 관련된 개념들과 관련된 몇 가지 기능들에 대해 잘 알아야 하는데 이를테면 일급 함수, 클로저, 고차 함수, 콜백 패턴, 부분 적용, arguments 객체 다루기, 함수 객체의 메서드 등이 있다."><meta property="og:type" content="blog"><meta property="og:title" content="함수형 자바스크립트를 위한 기초"><meta property="og:url" content="https://kkangil.github.io/2019/10/13/%ED%95%A8%EC%88%98%ED%98%95-%EC%9E%90%EB%B0%94%EC%8A%A4%ED%81%AC%EB%A6%BD%ED%8A%B8%EB%A5%BC-%EC%9C%84%ED%95%9C-%EA%B8%B0%EC%B4%88/"><meta property="og:site_name" content="kkangil&#039;s Blog"><meta property="og:description" content="함수형 자바스크립트를 잘 익히기 위해서는 무엇보다 함수를 다루는 다양한 방법들을 잘 익히는 것이 중요하다. 함수를 잘 다루려면 함수와 관련된 개념들과 관련된 몇 가지 기능들에 대해 잘 알아야 하는데 이를테면 일급 함수, 클로저, 고차 함수, 콜백 패턴, 부분 적용, arguments 객체 다루기, 함수 객체의 메서드 등이 있다."><meta property="og:locale" content="ko_KR"><meta property="og:image" content="https://kkangil.github.io/img/og_image.png"><meta property="article:published_time" content="2019-10-13T06:52:02.000Z"><meta property="article:modified_time" content="2020-05-05T12:29:57.585Z"><meta property="article:author" content="kkangil"><meta property="article:tag" content="javascript"><meta property="article:tag" content="함수형 프로그래밍"><meta property="article:tag" content="일급 함수"><meta property="article:tag" content="클로저"><meta property="article:tag" content="고차 함수"><meta property="article:tag" content="partial function"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/og_image.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://kkangil.github.io/2019/10/13/%ED%95%A8%EC%88%98%ED%98%95-%EC%9E%90%EB%B0%94%EC%8A%A4%ED%81%AC%EB%A6%BD%ED%8A%B8%EB%A5%BC-%EC%9C%84%ED%95%9C-%EA%B8%B0%EC%B4%88/"},"headline":"kkangil's Blog","image":["https://kkangil.github.io/img/og_image.png"],"datePublished":"2019-10-13T06:52:02.000Z","dateModified":"2020-05-05T12:29:57.585Z","author":{"@type":"Person","name":"kkangil"},"description":"함수형 자바스크립트를 잘 익히기 위해서는 무엇보다 함수를 다루는 다양한 방법들을 잘 익히는 것이 중요하다. 함수를 잘 다루려면 함수와 관련된 개념들과 관련된 몇 가지 기능들에 대해 잘 알아야 하는데 이를테면 일급 함수, 클로저, 고차 함수, 콜백 패턴, 부분 적용, arguments 객체 다루기, 함수 객체의 메서드 등이 있다."}</script><meta name="naver-site-verification" content="b0ce7bc14af00ce2aee96528313654d78c325351"><link rel="canonical" href="https://kkangil.github.io/2019/10/13/%ED%95%A8%EC%88%98%ED%98%95-%EC%9E%90%EB%B0%94%EC%8A%A4%ED%81%AC%EB%A6%BD%ED%8A%B8%EB%A5%BC-%EC%9C%84%ED%95%9C-%EA%B8%B0%EC%B4%88/"><link rel="icon" href="/images/coffee-favicon.png"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/tomorrow-night-bright.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><link href="https://fonts.googleapis.com/earlyaccess/jejugothic.css" rel="stylesheet"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/css/justifiedGallery.min.css"><script src="https://www.googletagmanager.com/gtag/js?id=UA-165569140-1" async></script><script>window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-
-        gtag('config', 'UA-165569140-1');
-    </script>
-
-
     
-    <script data-ad-client="ca-pub-5445993070474035" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-</head>
-
-    <body>
-        <div id="blog">
-            <!-- Define author's picture -->
-
-
-    
-        
-            
-        
-    
-
-<header id="header" data-behavior="4">
-    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
-    <div class="header-title">
-        <a class="header-title-link" href="/ ">kkangil&#39;s Blog</a>
-    </div>
-    
-        
-            <a class="header-right-picture " href="#about">
-        
-        
-            <img class="header-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
-        
-        </a>
-    
-</header>
-
-            <!-- Define author's picture -->
-
-
-
-        
-    
-
-<nav id="sidebar" data-behavior="4">
-    <div class="sidebar-container">
-        
-            <div class="sidebar-profile">
-                <a href="/#about">
-                    <img class="sidebar-profile-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
-                </a>
-                <h4 class="sidebar-profile-name">kkangil</h4>
-                
-                    <h5 class="sidebar-profile-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
-</h5>
-                
-            </div>
-        
-        
-            <ul class="sidebar-buttons">
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="/ " title="Home">
-                    
-                        <i class="sidebar-button-icon fa fa-home" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Home</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="/all-categories" title="카테고리">
-                    
-                        <i class="sidebar-button-icon fa fa-bookmark" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">카테고리</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="/all-tags" title="태그">
-                    
-                        <i class="sidebar-button-icon fa fa-tags" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">태그</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="/all-archives" title="기록">
-                    
-                        <i class="sidebar-button-icon fa fa-archive" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">기록</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link open-algolia-search" href="#search" title="검색">
-                    
-                        <i class="sidebar-button-icon fa fa-search" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">검색</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="#about" title="About">
-                    
-                        <i class="sidebar-button-icon fa fa-question" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">About</span>
-                    </a>
-            </li>
-            
-        </ul>
-        
-            <ul class="sidebar-buttons">
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="https://github.com/kkangil" target="_blank" rel="noopener" title="GitHub">
-                    
-                        <i class="sidebar-button-icon fab fa-github" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">GitHub</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="http://stackoverflow.com/users/10870848/kkangil" target="_blank" rel="noopener" title="Stack Overflow">
-                    
-                        <i class="sidebar-button-icon fab fa-stack-overflow" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Stack Overflow</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="https://www.linkedin.com/in/kangil-kim-31093a169/" target="_blank" rel="noopener" title="LinkedIn">
-                    
-                        <i class="sidebar-button-icon fab fa-linkedin" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">LinkedIn</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="/fe.kkangil@gmail.com" title="Mail">
-                    
-                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Mail</span>
-                    </a>
-            </li>
-            
-        </ul>
-        
-            <ul class="sidebar-buttons">
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="/atom.xml" title="RSS">
-                    
-                        <i class="sidebar-button-icon fa fa-rss" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">RSS</span>
-                    </a>
-            </li>
-            
-        </ul>
-        
-    </div>
-</nav>
-
-            
-            <div id="main" data-behavior="4"
-                 class="
-                        hasCoverMetaIn
-                        ">
-                
-<article class="post">
-    
-    
-        <div class="post-header main-content-wrap text-left">
-    
-        <h1 class="post-title">
-            함수형 자바스크립트를 위한 기초
-        </h1>
-    
-    
-        <div class="post-meta">
-    <time datetime="2019-10-13T15:52:02+09:00">
-	
-		    10월 13, 2019
-    	
-    </time>
-    
-        <span>카테고리 </span>
-        
-    <a class="category-link" href="/categories/함수형-프로그래밍/">함수형 프로그래밍</a>
-
-
-    
-</div>
-
-    
-</div>
-
-    
-    <div class="post-content markdown">
-        <div class="main-content-wrap">
-            <p>함수형 자바스크립트를 잘 익히기 위해서는 무엇보다 함수를 다루는 다양한 방법들을 잘 익히는 것이 중요하다. 함수를 잘 다루려면 함수와 관련된 개념들과 관련된 몇 가지 기능들에 대해 잘 알아야 하는데 이를테면 일급 함수, 클로저, 고차 함수, 콜백 패턴, 부분 적용, arguments 객체 다루기, 함수 객체의 메서드 등이 있다.</p>
+        gtag('config', 'UA-165569140-1');</script><!--!--><script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script><script data-ad-client="ca-pub-5445993070474035" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js" async></script></head><body class="is-2-column"><nav class="navbar navbar-main"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/">kkangil&#039;s Blog</a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">Home</a><a class="navbar-item" href="/archives">Archives</a><a class="navbar-item" href="/categories">Categories</a><a class="navbar-item" href="/tags">Tags</a><a class="navbar-item" href="/about">About</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="GitHub Home" href="https://github.com/hdw0903"><i class="fab fa-github"></i></a><a class="navbar-item search" title="검색" href="javascript:;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><span class="level-item">2019년 10월 13일 일요일 오후 3:52</span><span class="level-item"><a class="link-muted" href="/categories/%ED%95%A8%EC%88%98%ED%98%95-%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D/">함수형 프로그래밍</a></span><span class="level-item">36분 읽기 (대략 5403 단어)</span></div></div><h1 class="title is-3 is-size-4-mobile">함수형 자바스크립트를 위한 기초</h1><div class="content"><p>함수형 자바스크립트를 잘 익히기 위해서는 무엇보다 함수를 다루는 다양한 방법들을 잘 익히는 것이 중요하다. 함수를 잘 다루려면 함수와 관련된 개념들과 관련된 몇 가지 기능들에 대해 잘 알아야 하는데 이를테면 일급 함수, 클로저, 고차 함수, 콜백 패턴, 부분 적용, arguments 객체 다루기, 함수 객체의 메서드 등이 있다.</p>
 <a id="more"></a>
 <h2 id="일급-함수"><a href="#일급-함수" class="headerlink" title="일급 함수"></a>일급 함수</h2><p>자바스크립트에서 함수는 일급 객체이자 일급 함수다. 자바스크립트에서 객체는 일급 객체다. 여기서 <code>일급</code>은 값으로 다룰 수 있다는 의미로, 아래와 같은 조건을 만족해야 한다.</p>
 <ul>
@@ -271,7 +17,7 @@
 <li>익명으로 선언할 수 있다.</li>
 <li>익명으로 선언한 함수도 함수나 메서드의 인자로 넘길 수 있다.</li>
 </ul>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">function f1() &#123; &#125;</span><br><span class="line">var a = typeof f1 === &apos;function&apos; ? f1 : function () &#123; &#125;;</span><br><span class="line"></span><br><span class="line">function f2() &#123;</span><br><span class="line">  return function () &#123; &#125;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">(function (a, b) &#123; return a + b; &#125;)(10, 5);</span><br><span class="line"></span><br><span class="line">function callAndAdd(a, b) &#123;</span><br><span class="line">  return a() + b();</span><br><span class="line">&#125;</span><br><span class="line">callAndAdd(function () &#123; return 10; &#125;, function () &#123; return 5; &#125;)</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">f1</span>(<span class="params"></span>) </span>&#123; &#125;</span><br><span class="line"><span class="keyword">var</span> a = <span class="keyword">typeof</span> f1 === <span class="string">'function'</span> ? f1 : <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123; &#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">f2</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123; &#125;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">(<span class="function"><span class="keyword">function</span> (<span class="params">a, b</span>) </span>&#123; <span class="keyword">return</span> a + b; &#125;)(<span class="number">10</span>, <span class="number">5</span>);</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">callAndAdd</span>(<span class="params">a, b</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> a() + b();</span><br><span class="line">&#125;</span><br><span class="line">callAndAdd(<span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123; <span class="keyword">return</span> <span class="number">10</span>; &#125;, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123; <span class="keyword">return</span> <span class="number">5</span>; &#125;)</span><br></pre></td></tr></table></figure>
 <ul>
 <li>f1은 함수를 값으로 다룰 수 있음을 보여준다.</li>
 <li>f2는 함수를 리턴한다.</li>
@@ -283,20 +29,20 @@
 <p>이 말을 보다 실용적으로 표현해 보면 <strong>클로저는 자신의 상위 스코프의 변수를 참조할 수 있다</strong>고 할 수 있다.</p>
 <p><i>클로저는 자신이 생성될 때의 스코프에서 알 수 있었던 변수를 기억하는 함수다.</i></p>
 <p>자바스크립트의 모든 함수는 글로벌 스코프에 선언되거나 함수 안에서 선언된다. 자바스크립트의 모든 함수는 상위 스코프를 가지며 모든 함수는 자신이 정의되는 순간(정의되는 곳)의 실행 컨텍스트 안에 있다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">function parent() &#123;</span><br><span class="line">  var a = 5;</span><br><span class="line">  function myfn() &#123;</span><br><span class="line">    console.log(a);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">function parent2() &#123;</span><br><span class="line">  var a = 5;</span><br><span class="line">  function parent1() &#123;</span><br><span class="line">    function myfn() &#123;</span><br><span class="line">      console.log(a);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">parent</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> a = <span class="number">5</span>;</span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">myfn</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(a);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">parent2</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> a = <span class="number">5</span>;</span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">parent1</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">myfn</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="built_in">console</span>.log(a);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>parent와 parent2의 myfn에서는 a라는 변수를 선언하지 않았지만 사용하고 있다. parent의 변수 a는 myfn을 생성하는 스코프에서 정의되었고 parent2의 변수 a는 myfn을 생성하는 스코프의 상위 스코프에 정의되었다.</p>
 <p>위와 같은 조건을 충족시키지 않는다면 그 함수가 아무리 함수 안에서 선언되었다고 하더라도 일반 함수와 전혀 다를 바가 없다. 클로저가 기억할 환경이라는 것은 외부의 변수들밖에 없기 때문이다. 또한 자신의 상위 스코프에서 알 수 있는 변수를 자신이 사용하고 있지 않다면 그 환경을 기억해야 할 필요가 없다.<br>글로벌 스코프를 제외한 외부 스코프에 있었던 변수 중 클로저 혹은 다른 누군가가 참조하고 있지 않는 모든 변수는 실행 컨텍스트가 끝난 후 가비지 컬렉션 대상이 된다. 어떤 함수가 외부 스코프의 변수를 사용하지 않았고, 그래서 외부 스코프의 환경이 가비지 컬렉션 대상이 된다면 그렇게 내비려 두는 함수를 클로저라고 보기 어렵다.</p>
 <p><i>클로저는 자신이 생성될 때의 스코프에서 알 수 있었던 변수 중 언젠가 자신이 실행될 때 사용할 변수들만 기억하여 유지시키는 함수다.</i></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">var a = 10;</span><br><span class="line">var b = 20;</span><br><span class="line">function f1() &#123;</span><br><span class="line">  return a + b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> a = <span class="number">10</span>;</span><br><span class="line"><span class="keyword">var</span> b = <span class="number">20</span>;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">f1</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> a + b;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>f1은 클로저처럼 외부 변수를 참조하여 결과를 만든다. 게다가 상위 스코프의 변수를 사용하고 있으므로 앞서 강조했던 조건을 모두 충족시키고 있다. 그런데 왜 클로저가 아닐까?<br>글로벌 스코프에서 선언된 모든 변수는 그 변수를 사용하는 함수가 있는지 없는지와 관계없이 유지된다. a와 b 변수가 f1에 의해 사라지지 못하는 상황이 아니므로 f1은 클로저가 아니다.<br>그렇다면 클로저는 ‘함수 안에서 함수가 생성될 때’만 생성된다고 할 수 있을까? 그렇지 않다. 웹 브라우저에서는 함수 내부가 아니라면 모두 글로벌 스코프지만, 요즘 자바스크립트에서는 함수 내부가 아니면서 글로벌 스코프도 아닌 경우가 있다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">function f2() &#123;</span><br><span class="line">  var a = 10;</span><br><span class="line">  var b = 20;</span><br><span class="line">  function f3(c, d) &#123;</span><br><span class="line">    return c + d;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  return f3;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">var f4 = f2();</span><br><span class="line">console.log(f4(5, 7));</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">f2</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> a = <span class="number">10</span>;</span><br><span class="line">  <span class="keyword">var</span> b = <span class="number">20</span>;</span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">f3</span>(<span class="params">c, d</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> c + d;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> f3;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> f4 = f2();</span><br><span class="line"><span class="built_in">console</span>.log(f4(<span class="number">5</span>, <span class="number">7</span>));</span><br></pre></td></tr></table></figure>
 <p>위 코드에서는 클로저가 있을까? 특히 f3처럼 함수 안에서 함수를 리턴하면 클로저처럼 보인다. 하지만 이 코드의 f4에 담긴 f3도 클로저가 아니다. f3은 f2 안에서 생성되었고 f3 바로 위에는 a, b라는 지역 변수도 있다. 하지만 f3 안에서 사용하고 있는 변수는 c,d이고 두 변수는 모두 f3에서 정의되었다. 자신이 생성될 때의 스코프가 알고 있는 변수 a, b는 사용하지 않았다. 그러므로 f3이 기억해야 할 변수는 하나도 없다. 그러므로 f3이 기억해야 할 변수는 하나도 없다. 자신이 스스로 정의한 c, d는 f3이 실행되고 나면 없어진다. 다시 실행되면 c, d를 다시 생성하고 리턴 후에 변수는 사라진다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">function f4() &#123;</span><br><span class="line">  var a = 10;</span><br><span class="line">  var b = 20;</span><br><span class="line">  function f5() &#123;</span><br><span class="line">    return a + b;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  return f5();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">console.log(f4());</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">f4</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> a = <span class="number">10</span>;</span><br><span class="line">  <span class="keyword">var</span> b = <span class="number">20</span>;</span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">f5</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> a + b;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> f5();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(f4());</span><br></pre></td></tr></table></figure>
 <p>그렇다면 위 코드에서는 클로저가 있을까? 정확한 표현은 <code>있었다</code>이다. 결과적으로는 클로저는 없다고 볼 수 있다. f4가 실행되고 a, b가 할당된 후 f5가 정의된다. 그리고 f5에서는 a, b가 사용되고 있으므로 f5는 자신이 생성된 환경을 기억하는 클로저가 된다. 그런데 f4의 마지막 라인을 보면 f5를 실행하여 리턴한다. 결국 f5를 참조하고 있는 곳이 어디에도 없기 때문에 f5는 사라지고, f5가 사라지면 a, b도 결국 사라질 수 있기에 클로저는 f4가 실행되는 사이에만 생겼다가 사라진다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">function f6() &#123;</span><br><span class="line">  var a = 10;</span><br><span class="line">  function f7(b) &#123;</span><br><span class="line">    return a + b;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  return f7;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">var f8 = f6();</span><br><span class="line">console.log(f8(20));</span><br><span class="line">console.log(f8(10));</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">f6</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> a = <span class="number">10</span>;</span><br><span class="line">  <span class="function"><span class="keyword">function</span> <span class="title">f7</span>(<span class="params">b</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> a + b;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> f7;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> f8 = f6();</span><br><span class="line"><span class="built_in">console</span>.log(f8(<span class="number">20</span>));</span><br><span class="line"><span class="built_in">console</span>.log(f8(<span class="number">10</span>));</span><br></pre></td></tr></table></figure>
 <p>드디어 클로저 코드를 사용했다. f7은 진짜 클로저다. 이제 a는 사라지지 않는다. f7이 a를 사용하기에 a를 기억해야 하고 f7이 f8에 담겼기 때문에 클로저가 되었다. 원래대로라면 f6의 지역 변수는 모두 사라져야 하지만 f6 실행이 끝났어도 f7이 a를 기억하는 클로저가 되었기 때문에 a는 사라지지 않으며, f8을 실행할 때마다 새로운 변수인 b와 함께 사용되어 결과를 만든다.</p>
 <p>혹시 위 상황에 메모리 누수가 있다고 볼 수 있을까? 그렇지 않다. 메모리가 해제되지 않는 것과 메모리 누수는 다르다. 메모리 누수는 메모리가 해제되지 않을 때 일어나는 것은 맞지만, 위 상황을 메모리 누수라고 할 수는 없다. a는 한 번 생겨날 뿐, 계속해서 생겨나거나 하지 않는다. 메모리 누수란 개발자가 의도하지 않았는데 메모리가 해제되지 않고 계속 남는 것을 말하며, 메모리 누수가 지속적으로 반복될 때는 치명적인 문제를 만든다. f8이 아무리 많이 실행되더라도 이미 할당된 a가 그대로 유지되기 때문에 메모리 누수는 일어나지 않는다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">function f9() &#123;</span><br><span class="line">  var a = 10;</span><br><span class="line">  var f10 = function (c) &#123;</span><br><span class="line">    return a + b + c;</span><br><span class="line">  &#125;</span><br><span class="line">  var b = 20;</span><br><span class="line">  return f10;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">var f11 = f9();</span><br><span class="line">console.log(f11(30));</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">f9</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> a = <span class="number">10</span>;</span><br><span class="line">  <span class="keyword">var</span> f10 = <span class="function"><span class="keyword">function</span> (<span class="params">c</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> a + b + c;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">var</span> b = <span class="number">20</span>;</span><br><span class="line">  <span class="keyword">return</span> f10;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> f11 = f9();</span><br><span class="line"><span class="built_in">console</span>.log(f11(<span class="number">30</span>));</span><br></pre></td></tr></table></figure>
 <p>위 코드는 에러없이 정상 동작한다. 클로저는 자신이 생성될 때의 스코프에서 알 수 있었던 변수를 기억하는 함수라고 했었는데, 여기서 ‘때’는 생각하는 것보다 조금 길다고 했었다.<br>f10에는 익명 함수를 담았다. f10이 생성되기 딱 이전 시점에는 b가 20으로 초기화되지 않았다. 클로저는 자신이 생성되는 스코프의 모든 라인, 어느곳에서 선언된 변수든지 참조하고 기억할 수 있다. 그리고 그것은 변수이기에 클로저가 생성된 이후 언제라도 그 값은 변경될 수 있다.</p>
 <p>클로저는 자바스크립트에서 절차지향 프로그래밍, 객체지향 프로그래밍, 함수형 프로그매일 모두를 지탱하는 매우 중요한 기능이자 개념이다. 분명 클로저는 메모리 누수 같은 위험성을 가지고 있다. 그러나 메모리 누수나 성능 저하의 문제는 클로저의 단점이나 문제가 아니다.</p>
 <h2 id="고차-함수"><a href="#고차-함수" class="headerlink" title="고차 함수"></a>고차 함수</h2><p>고차 함수란, 함수를 다루는 함수를 말한다.</p>
@@ -309,24 +55,24 @@
 <blockquote>
 <p><i>“Closures are also functions. But when a function captures state upon its creation, we call it a closure.”</i><br>즉, 클로저 역시 함수지만, 함수가 생성될 때 state를 점유하고 있다면 우리는 그것을 클로저라고 합니다.</p>
 </blockquote>
-<p>출처: <a href="https://azsha.tistory.com/100" target="_blank" rel="noopener">https://azsha.tistory.com/100</a> [Azsha’s Forge]</p>
+<p>출처: <a href="https://azsha.tistory.com/100">https://azsha.tistory.com/100</a> [Azsha’s Forge]</p>
 <p>사실상 함수형 프로그래밍의 절반은 고차 함수를 적극적으로 활용하는 프로그래밍이라고도 할 수 있다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">function callWith10(val, func) &#123;</span><br><span class="line">  return func(10, val);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">function add(a, b) &#123;</span><br><span class="line">  return a + b;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">function sub(a, b) &#123;</span><br><span class="line">  return a - b;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">console.log(callWith10(20, add));</span><br><span class="line">console.log(callWith10(5, sub));</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">callWith10</span>(<span class="params">val, func</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> func(<span class="number">10</span>, val);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">add</span>(<span class="params">a, b</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> a + b;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">sub</span>(<span class="params">a, b</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> a - b;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(callWith10(<span class="number">20</span>, add));</span><br><span class="line"><span class="built_in">console</span>.log(callWith10(<span class="number">5</span>, sub));</span><br></pre></td></tr></table></figure>
 <p>여기서 add와 sub는 일반 함수다. 함수를 인자로 받거나 함수를 리턴하지 않기 때문이다. callWith10은 고차 함수다. 함수를 받아 내부에서 대신 실행하기 때문이다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">function constant(val) &#123;</span><br><span class="line">  return function () &#123;</span><br><span class="line">    return val;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">var always10 = constant(10);</span><br><span class="line">console.log(always10()); // 10</span><br><span class="line">console.log(always10()); // 10</span><br><span class="line">console.log(always10()); // 10</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">constant</span>(<span class="params">val</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> val;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> always10 = constant(<span class="number">10</span>);</span><br><span class="line"><span class="built_in">console</span>.log(always10()); <span class="comment">// 10</span></span><br><span class="line"><span class="built_in">console</span>.log(always10()); <span class="comment">// 10</span></span><br><span class="line"><span class="built_in">console</span>.log(always10()); <span class="comment">// 10</span></span><br></pre></td></tr></table></figure>
 <p>constant 함수는 실행 당시 받았던 10이라는 값을 받아 내부에서 익명 함수를 클로저로 만들어 val를 기억하게 만든 수 리턴한다. 리턴된 함수에는 always10 이라는 이름을 지어주었다. always10을 실행하면 항상 10을 리턴한다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">function callWith(val1) &#123;</span><br><span class="line">  return function (val2, func) &#123;</span><br><span class="line">    return func(val1, val2);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">var callWith10 = callWith(10);</span><br><span class="line">console.log(callWith10(20, add)); // 30</span><br><span class="line"></span><br><span class="line">var callWith5 = callWith(5);</span><br><span class="line">console.log(callWith5(5, sub)); // 0</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">callWith</span>(<span class="params">val1</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="function"><span class="keyword">function</span> (<span class="params">val2, func</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> func(val1, val2);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> callWith10 = callWith(<span class="number">10</span>);</span><br><span class="line"><span class="built_in">console</span>.log(callWith10(<span class="number">20</span>, add)); <span class="comment">// 30</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> callWith5 = callWith(<span class="number">5</span>);</span><br><span class="line"><span class="built_in">console</span>.log(callWith5(<span class="number">5</span>, sub)); <span class="comment">// 0</span></span><br></pre></td></tr></table></figure>
 <p>callWith는 함수를 리턴하는 함수다. val1을 받아서 val1을 기억하는 함수를 리턴했다. 리턴된 함수는 이후에 val2와 func를 받아 대신 func를 실행해 준다. 함수를 리턴하는 함수를 사옹할 경우 다음처럼 변수에 담지 않고 바로 실행해도 된다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">console.log(callWith(30)(20, add));</span><br><span class="line">console.log(callWith(5)(5, sub));</span><br></pre></td></tr></table></figure>
-<p>인자는 숫가자 아닌 값도 활용이 가능하다.<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">_.get = function (list, index) &#123;</span><br><span class="line">  return list[index];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">var users = [</span><br><span class="line">  &#123; id: 2, name: &quot;HA&quot;, age: 25 &#125;,</span><br><span class="line">  &#123; id: 4, name: &quot;PJ&quot;, age: 28 &#125;,</span><br><span class="line">  &#123; id: 5, name: &quot;JE&quot;, age: 27 &#125;,</span><br><span class="line">];</span><br><span class="line"></span><br><span class="line">var callWithUsers = callWith(users);</span><br><span class="line">console.log(callWithUsers(2, _.get));</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">console</span>.log(callWith(<span class="number">30</span>)(<span class="number">20</span>, add));</span><br><span class="line"><span class="built_in">console</span>.log(callWith(<span class="number">5</span>)(<span class="number">5</span>, sub));</span><br></pre></td></tr></table></figure>
+<p>인자는 숫가자 아닌 값도 활용이 가능하다.<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">_.get = <span class="function"><span class="keyword">function</span> (<span class="params">list, index</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> list[index];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> users = [</span><br><span class="line">  &#123; <span class="attr">id</span>: <span class="number">2</span>, <span class="attr">name</span>: <span class="string">"HA"</span>, <span class="attr">age</span>: <span class="number">25</span> &#125;,</span><br><span class="line">  &#123; <span class="attr">id</span>: <span class="number">4</span>, <span class="attr">name</span>: <span class="string">"PJ"</span>, <span class="attr">age</span>: <span class="number">28</span> &#125;,</span><br><span class="line">  &#123; <span class="attr">id</span>: <span class="number">5</span>, <span class="attr">name</span>: <span class="string">"JE"</span>, <span class="attr">age</span>: <span class="number">27</span> &#125;,</span><br><span class="line">];</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> callWithUsers = callWith(users);</span><br><span class="line"><span class="built_in">console</span>.log(callWithUsers(<span class="number">2</span>, _.get));</span><br></pre></td></tr></table></figure></p>
 <h2 id="콜백-함수라-잘못-불리는-보조-함수"><a href="#콜백-함수라-잘못-불리는-보조-함수" class="headerlink" title="콜백 함수라 잘못 불리는 보조 함수"></a>콜백 함수라 잘못 불리는 보조 함수</h2><p>콜백 함수를 받아 자신이 해야 할 일을 모두 끝낸 후 결과를 되돌려 주는 함수도 고차 함수다. 보통은 비동기가 일어나는 상황에서 사용되며 콜백 함수를 통해 다시 원래 위치로 돌아오기 위해 사용되는 패턴이다. 콜백 패턴은 클로저 등과 함께 사용할 수 있는 매우 강력한 표현이자 비동기 프로그래밍에 있어 없어서는 안 될 매우 중요한 패턴이다. 콜백 패턴은 끝이 나면 컨텍스트를 다시 돌려주는 단순한 협업 로직을 가진다.</p>
 <p>button.click(function() {})과 같은 코드의 익명 함수도 콜백 함수라고 표현되는 것을 많이 보았지만, 이 익명 함수는 ‘이벤트 리스너’라고 칭하는 것이 적합하다. 함수가 고차 함수에서 쓰이는 역할의 이름으로 불러주면 된다. _.each([1,2,3], function() {})에서의 익명 함수는 callback이 아니라 <code>iteratee</code>이며 _.filter(users, function() {})에서의 익명 함수는 <code>predicate</code>다. callback은 종료가 되었을 때 단 한 번 실행되지만 <code>iteratee</code>나 <code>predicate</code>, <code>listener</code>등은 종료될 때 실행되지 않으며 상황에 따라 여러 번 실행되기도 하고 각각 다른 역할을 한다.</p>
 <h2 id="함수를-리턴하는-함수와-부분-적용"><a href="#함수를-리턴하는-함수와-부분-적용" class="headerlink" title="함수를 리턴하는 함수와 부분 적용"></a>함수를 리턴하는 함수와 부분 적용</h2><p>앞서 곳곳에서 미리 필요한 인자를 넘겨 두고 그 인자를 기억하는 클로저를 리턴하는 함수들을 확인했다. 클로저로 만들어진 함수가 추가적으로 인자를 받아 로직을 완성해 나가는 패턴을 갖는다. 이와 유사한 기법들로 bind, curry, partial 등이 있다. 이런 기법들을 통틀어 칭하는 특별한 용어는 없지만 다음과 같은 공통점을 갖는다.</p>
 <p><i>기억하는 인자 혹은 변수가 있는 클로저를 리턴한다.</i></p>
 <p>bind는 this와 인자들이 부분적으로 적용된 함수를 리턴한다. bind의 경우 인자보다는 주로 함수 안에서 사용될 this를 적용해 두는데 많이 사용한다. 그 이유는 아마 this 적용을 스킵할 수 없다는 점과 인자의 부분 적용을 왼쪽에서 부터 순서대로 할 수 있는 점 때문일 것이다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">function add(a, b) &#123;</span><br><span class="line">  return a + b;</span><br><span class="line">&#125;</span><br><span class="line">var add10 = add.bind(null, 10);</span><br><span class="line">console.log(add10(20)); // 30</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">add</span>(<span class="params">a, b</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> a + b;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">var</span> add10 = add.bind(<span class="literal">null</span>, <span class="number">10</span>);</span><br><span class="line"><span class="built_in">console</span>.log(add10(<span class="number">20</span>)); <span class="comment">// 30</span></span><br></pre></td></tr></table></figure>
 <p>bind는 첫 번째 인자로 bind가 리턴할 함수에서 사용될 this를 받는다. 두 번째 인자부터 함수에 미리 적용될 인자들이다. 인자를 미리 적용해 두기 위해 this로 사용될 첫 번째 인자에 null을 넣은 후 10을 넣었다. add10과 같이 this를 사용하지 않는 함수이면서 왼쪽에서 부터 순서대로만 인자를 적용하면 되는 상황에서는 원하는 결과를 얻을 수 있다. bind의 아쉬운 점은 두 가지다. 인자를 왼쪽에서 부터 순서대로만 적용할 수 있다는 점과 bind를 한 번 실행한 함수의 this는 무엇을 적용해 두었든 앞으로 바꿀 수 없다는 점이다.<br>bind는 왼쪽에서 부터 원하는 만큼의 인자를 지정해 둘 수 있지만 원하는 지점을 비워 두고 적용할 수는 없다. 예를 들어 어떤 함수가 필요로 하는 인자가 3개가 있는데 그 중 두 번째 인자만을 적용해 두고 싶다면 bind로는 이것을 할 수 없다. 이러한 점을 개선한 방식이 있는데 바로 partial 이다.</p>
-<h3 id="존-레식의-partial"><a href="#존-레식의-partial" class="headerlink" title="존 레식의 partial"></a>존 레식의 partial</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">Function.prototype.partial = function () &#123;</span><br><span class="line">  var fn = this, args = Array.prototype.slice.call(arguments); // 1</span><br><span class="line">  return function () &#123; // 2</span><br><span class="line">    var arg = 0;</span><br><span class="line">    for (var i = 0; i &lt; args.length &amp;&amp; arg &lt; arguments.length; i++) // 5</span><br><span class="line">      if (args[i] === undefined) args[i] = arguments[arg++]; // 6</span><br><span class="line"></span><br><span class="line">    return fn.apply(this, args);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">function abc(a, b, c) &#123;</span><br><span class="line">  console.log(a, b, c);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">var ac = abc.partial(undefined, &apos;b&apos;, undefined); // 3 </span><br><span class="line">ac(&apos;a&apos;, &apos;c&apos;); // 4</span><br><span class="line">// a, b, c</span><br></pre></td></tr></table></figure>
+<h3 id="존-레식의-partial"><a href="#존-레식의-partial" class="headerlink" title="존 레식의 partial"></a>존 레식의 partial</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">Function</span>.prototype.partial = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> fn = <span class="keyword">this</span>, args = <span class="built_in">Array</span>.prototype.slice.call(<span class="built_in">arguments</span>); <span class="comment">// 1</span></span><br><span class="line">  <span class="keyword">return</span> <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123; <span class="comment">// 2</span></span><br><span class="line">    <span class="keyword">var</span> arg = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; args.length &amp;&amp; arg &lt; <span class="built_in">arguments</span>.length; i++) <span class="comment">// 5</span></span><br><span class="line">      <span class="keyword">if</span> (args[i] === <span class="literal">undefined</span>) args[i] = <span class="built_in">arguments</span>[arg++]; <span class="comment">// 6</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> fn.apply(<span class="keyword">this</span>, args);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">abc</span>(<span class="params">a, b, c</span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(a, b, c);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> ac = abc.partial(<span class="literal">undefined</span>, <span class="string">'b'</span>, <span class="literal">undefined</span>); <span class="comment">// 3 </span></span><br><span class="line">ac(<span class="string">'a'</span>, <span class="string">'c'</span>); <span class="comment">// 4</span></span><br><span class="line"><span class="comment">// a, b, c</span></span><br></pre></td></tr></table></figure>
 <ol>
 <li>우선 <code>partial</code>이 실행되면 fn에 자기 자신인 this를 담는다. 여기서 자기 자신은 abc 같은 함수다. args에는 partial이 실행될 때 넘어온 인자들을 배열로 변경하여 args에 담아 둔다.</li>
 <li>fn과 args는 리턴된 익명 함수가 기억하게 되므로 지워지지 않는다.</li>
@@ -336,269 +82,37 @@
 <li>for를 돌면서 미리 받아 두었던 args에 undefined가 들어 있던 자리를 arguments의 앞에서 부터 꺼내면서 모두 채운다. 다 채우고 나면 미리 받아 두었던 fn을 apply로 실행하면서 인자들을 배열로 넘긴다.</li>
 </ol>
 <p>사실 partial은 구현이 잘 된 것은 아니다. 함수의 인자로 undefined를 사용하고 싶을 수도 있는데 undefined가 인자를 비워 두기 우한 구분자로 사용되고 있기 때문에, undefined를 미리 적용하고 싶다면 방법이 없다. 또한 초기에 partial을 실행할 때 나중에 실제로 실행될 함수에서 사용할 인자의 개수만큼 꼭 미리 채워 놓아야만 한다. 이 처럼 partial이 가진 제약은 ‘인자 개수 동적으로 사용하기’나 ‘arguments 객체 활용’과 같은 자바스크립트의 유연함을 반영하지 못한다는 점에서 특히 아쉽다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">function add() &#123;</span><br><span class="line">  var result = 0;</span><br><span class="line">  for (var i = 0; i &lt; arguments.length; i++) &#123;</span><br><span class="line">    result += arguments[i];</span><br><span class="line">  &#125;</span><br><span class="line">  return result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">console.log(add(1, 2, 3, 4, 5));</span><br><span class="line"></span><br><span class="line">var add2 = add.partial(undefined, 2);</span><br><span class="line">console.log(add2(1, 3, 4, 5)); // 3</span><br><span class="line"></span><br><span class="line">var add3 = add.partial(undefined, undefined, 3, undefined, undefined);</span><br><span class="line">console.log(add3(1, 2, 4, 5)); // 15</span><br><span class="line"></span><br><span class="line">console.log(add3(50, 50, 50, 50)); // 15 (bug)</span><br><span class="line">console.log(add3(100, 100, 100, 100)); // 15 (bug)</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">add</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> result = <span class="number">0</span>;</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; <span class="built_in">arguments</span>.length; i++) &#123;</span><br><span class="line">    result += <span class="built_in">arguments</span>[i];</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(add(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>));</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> add2 = add.partial(<span class="literal">undefined</span>, <span class="number">2</span>);</span><br><span class="line"><span class="built_in">console</span>.log(add2(<span class="number">1</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>)); <span class="comment">// 3</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> add3 = add.partial(<span class="literal">undefined</span>, <span class="literal">undefined</span>, <span class="number">3</span>, <span class="literal">undefined</span>, <span class="literal">undefined</span>);</span><br><span class="line"><span class="built_in">console</span>.log(add3(<span class="number">1</span>, <span class="number">2</span>, <span class="number">4</span>, <span class="number">5</span>)); <span class="comment">// 15</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(add3(<span class="number">50</span>, <span class="number">50</span>, <span class="number">50</span>, <span class="number">50</span>)); <span class="comment">// 15 (bug)</span></span><br><span class="line"><span class="built_in">console</span>.log(add3(<span class="number">100</span>, <span class="number">100</span>, <span class="number">100</span>, <span class="number">100</span>)); <span class="comment">// 15 (bug)</span></span><br></pre></td></tr></table></figure>
 <p>위 상황에서 add2는 3, 4, 5 인자를 무시하게 된다. add3처럼 하면 1, 2, 4, 5를 모두 사용할 수 있게 되지만 undefined로라도 인자 개수를 채워놔야 해서 코드가 깔끔하지 못하고 partial 이후에는 역시 4개 이상의 인자를 사용할 수 없다는 단점이 생긴다.<br>위 코드에는 치명적인 문제가 있다. 의도한 것인지는 모르겠지만 그가 만든 partial 함수로 만든 함수는 재사용이 사실상 불가능하다. 한번 partial을 통해 만들어진 함수를 실행하고 나면 클로저로 생성된 args의 상태를 직접 변경하기 때문에, 다음번에 다시 실행해도 같은 args를 바라보고 이전에 적용된 인자가 남는다. 결과적으로 partial로 만들어진 함수는 단 한 번만 정상적으로 동작한다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Function.prototype.partial = function () &#123;</span><br><span class="line">  var fn = this, _args = arguments;</span><br><span class="line">  return function () &#123;</span><br><span class="line">    var args = Array.prototype.slice.call(_args);</span><br><span class="line">    var arg = 0;</span><br><span class="line">    for (var i = 0; i &lt; args.length &amp;&amp; arg &lt; arguments.length; i++)</span><br><span class="line">      if (args[i] === undefined) args[i] = arguments[arg++];</span><br><span class="line"></span><br><span class="line">    return fn.apply(this, args);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">Function</span>.prototype.partial = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> fn = <span class="keyword">this</span>, _args = <span class="built_in">arguments</span>;</span><br><span class="line">  <span class="keyword">return</span> <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">var</span> args = <span class="built_in">Array</span>.prototype.slice.call(_args);</span><br><span class="line">    <span class="keyword">var</span> arg = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>; i &lt; args.length &amp;&amp; arg &lt; <span class="built_in">arguments</span>.length; i++)</span><br><span class="line">      <span class="keyword">if</span> (args[i] === <span class="literal">undefined</span>) args[i] = <span class="built_in">arguments</span>[arg++];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> fn.apply(<span class="keyword">this</span>, args);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>다음과 같이 두 줄만 변경하면 두 번 이상 실행해도 정상적으로 동작한다. 클로저가 기억할 변수에는 원본을 남기고 리턴된 함수가 실행될 때마다 복사하여 원본을 지키는 방식을 사용한다. </p>
-<hr>
+<hr/>
 
 <h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>오늘은 본격적인 함수형 프로그래밍 시작에 앞서 기본이 될 기능들을 확인해 봤다. 일급 함수 같은 처음 듣는 용어도 있었고, 고차 함수 같은 경우는 내가 실무에서도 사용하고 있지만 정확한 용어도 모르고 사용하고 있었다. 또한 클로저, callback의 존재?는 알고 있었지만 정확한 개념이 부족했다는 것을 느꼈다. 오늘 내용의 모든 기능들의 대한 설명이 이 포스트로는 부족하지만 실력 향상에 많은 도움이 될 것같다. 기록해 두고 자주 보면서 내 것으로 만들어야 할 것 같다. </p>
 <p>partial 같은 함수를 보고 들었던 생각은 함수형 프로그래밍의 끝은 어디 일까가 궁금해졌다. 정말 나는 생각도 못했던 기능이고 저게 그래서 실무에서 필요할까? 라는 생각을 했다. 하지만 partial과 같은 helper 함수들을 구현해 놓고 사용하면 생산성이 눈에 띄게 좋아질 것 같다고 생각한다.</p>
 <p>이제 1장의 내용이 끝났는데 다음 장의 내용은 함수형 자바스크립트를 위한 문법 다시보기 이다. 이미 알고 있던 내용일 지더라도 기초를 더 다지기 위해 소홀히 보지 않아야겠다. </p>
-<p>참조: <a href="http://www.yes24.com/Product/Goods/56885507" target="_blank" rel="noopener">함수형 자바스크립트 프로그래밍</a></p>
-
-            
-
-        </div>
-    </div>
-    <div id="post-footer" class="post-footer main-content-wrap">
-        
-            <div class="post-footer-tags">
-                <span class="text-color-light text-small">태그</span><br>
-                
-    <a class="tag tag--primary tag--small t-link" href="/tags/javascript/">javascript</a> <a class="tag tag--primary tag--small t-link" href="/tags/partial-function/">partial function</a> <a class="tag tag--primary tag--small t-link" href="/tags/고차-함수/">고차 함수</a> <a class="tag tag--primary tag--small t-link" href="/tags/일급-함수/">일급 함수</a> <a class="tag tag--primary tag--small t-link" href="/tags/클로저/">클로저</a> <a class="tag tag--primary tag--small t-link" href="/tags/함수형-프로그래밍/">함수형 프로그래밍</a>
-
-            </div>
-        
-        
-            <div class="post-actions-wrap">
-    <nav>
-        <ul class="post-actions post-action-nav">
-            <li class="post-action">
-                
-                    
-                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/10/20/함수형-자바스크립트를-위한-문법-다시-보기/" data-tooltip="함수형 자바스크립트를 위한 문법 다시 보기" aria-label="이전: 함수형 자바스크립트를 위한 문법 다시 보기">
-                
-                    <i class="fa fa-angle-left" aria-hidden="true"></i>
-                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
-                </a>
-            </li>
-            <li class="post-action">
-                
-                    
-                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/09/29/함수형-프로그래밍-시작2/" data-tooltip="함수형 프로그래밍 - 시작2" aria-label="다음: 함수형 프로그래밍 - 시작2">
-                
-                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
-                    <i class="fa fa-angle-right" aria-hidden="true"></i>
-                </a>
-            </li>
-        </ul>
-    </nav>
-    <ul class="post-actions post-action-share">
-        <li class="post-action hide-lg hide-md hide-sm">
-            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
-                <i class="fa fa-share-alt" aria-hidden="true"></i>
-            </a>
-        </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2019/10/13/함수형-자바스크립트를-위한-기초/" title="Facebook 공유">
-                    <i class="fab fa-facebook" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2019/10/13/함수형-자바스크립트를-위한-기초/" title="Twitter 공유">
-                    <i class="fab fa-twitter" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2019/10/13/함수형-자바스크립트를-위한-기초/" title="Google+ 공유">
-                    <i class="fab fa-google-plus" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-        
-            
-        
-        <li class="post-action">
-            
-                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
-            
-                <i class="fa fa-list" aria-hidden="true"></i>
-            </a>
-        </li>
-    </ul>
-</div>
-
-
-        
-        
-            
-        
-    </div>
-</article>
-
-
-
-                <footer id="footer" class="main-content-wrap">
-    <span class="copyrights">
-        Copyrights &copy; 2020 kkangil. All Rights Reserved.
-    </span>
-</footer>
-
-            </div>
-            
-                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
-                    <div class="post-actions-wrap">
-    <nav>
-        <ul class="post-actions post-action-nav">
-            <li class="post-action">
-                
-                    
-                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/10/20/함수형-자바스크립트를-위한-문법-다시-보기/" data-tooltip="함수형 자바스크립트를 위한 문법 다시 보기" aria-label="이전: 함수형 자바스크립트를 위한 문법 다시 보기">
-                
-                    <i class="fa fa-angle-left" aria-hidden="true"></i>
-                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
-                </a>
-            </li>
-            <li class="post-action">
-                
-                    
-                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/09/29/함수형-프로그래밍-시작2/" data-tooltip="함수형 프로그래밍 - 시작2" aria-label="다음: 함수형 프로그래밍 - 시작2">
-                
-                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
-                    <i class="fa fa-angle-right" aria-hidden="true"></i>
-                </a>
-            </li>
-        </ul>
-    </nav>
-    <ul class="post-actions post-action-share">
-        <li class="post-action hide-lg hide-md hide-sm">
-            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
-                <i class="fa fa-share-alt" aria-hidden="true"></i>
-            </a>
-        </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2019/10/13/함수형-자바스크립트를-위한-기초/" title="Facebook 공유">
-                    <i class="fab fa-facebook" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2019/10/13/함수형-자바스크립트를-위한-기초/" title="Twitter 공유">
-                    <i class="fab fa-twitter" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2019/10/13/함수형-자바스크립트를-위한-기초/" title="Google+ 공유">
-                    <i class="fab fa-google-plus" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-        
-            
-        
-        <li class="post-action">
-            
-                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
-            
-                <i class="fa fa-list" aria-hidden="true"></i>
-            </a>
-        </li>
-    </ul>
-</div>
-
-
-                </div>
-                
-    <div id="share-options-bar" class="share-options-bar" data-behavior="4">
-        <i id="btn-close-shareoptions" class="fa fa-times"></i>
-        <ul class="share-options">
-            
-                
-                
-                <li class="share-option">
-                    <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2019/10/13/함수형-자바스크립트를-위한-기초/">
-                        <i class="fab fa-facebook" aria-hidden="true"></i><span>Facebook 공유</span>
-                    </a>
-                </li>
-            
-                
-                
-                <li class="share-option">
-                    <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2019/10/13/함수형-자바스크립트를-위한-기초/">
-                        <i class="fab fa-twitter" aria-hidden="true"></i><span>Twitter 공유</span>
-                    </a>
-                </li>
-            
-                
-                
-                <li class="share-option">
-                    <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2019/10/13/함수형-자바스크립트를-위한-기초/">
-                        <i class="fab fa-google-plus" aria-hidden="true"></i><span>Google+ 공유</span>
-                    </a>
-                </li>
-            
-        </ul>
-    </div>
-
-
-            
-        </div>
-        
-
-
-    
-        
-    
-
-<div id="about">
-    <div id="about-card">
-        <div id="about-btn-close">
-            <i class="fa fa-times"></i>
-        </div>
-        
-            <img id="about-card-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
-        
-            <h4 id="about-card-name">kkangil</h4>
-        
-            <div id="about-card-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
-</div>
-        
-        
-            <div id="about-card-job">
-                <i class="fa fa-briefcase"></i>
-                <br>
-                <p>web developer</p>
-
-            </div>
-        
-        
-            <div id="about-card-location">
-                <i class="fa fa-map-marker-alt"></i>
-                <br>
-                Asia/Seoul
-            </div>
-        
-    </div>
-</div>
-
-        
-        
-<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
-        <!--SCRIPTS-->
-<script src="/assets/js/script-dbd16rvloemmuxdzniplmnxxvwoz24eya9wol0b7vvmlokgqsjivmb8dnscy.min.js"></script>
-<!--SCRIPTS END-->
-
-    
-
-
-
-    </body>
-</html>
+<p>참조: <a href="http://www.yes24.com/Product/Goods/56885507">함수형 자바스크립트 프로그래밍</a></p>
+</div><div class="article-tags size-small is-uppercase mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/javascript/">javascript</a><a class="link-muted mr-2" rel="tag" href="/tags/%ED%95%A8%EC%88%98%ED%98%95-%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D/">함수형 프로그래밍</a><a class="link-muted mr-2" rel="tag" href="/tags/%EC%9D%BC%EA%B8%89-%ED%95%A8%EC%88%98/">일급 함수</a><a class="link-muted mr-2" rel="tag" href="/tags/%ED%81%B4%EB%A1%9C%EC%A0%80/">클로저</a><a class="link-muted mr-2" rel="tag" href="/tags/%EA%B3%A0%EC%B0%A8-%ED%95%A8%EC%88%98/">고차 함수</a><a class="link-muted mr-2" rel="tag" href="/tags/partial-function/">partial function</a></div><!--!--></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2019/10/20/%ED%95%A8%EC%88%98%ED%98%95-%EC%9E%90%EB%B0%94%EC%8A%A4%ED%81%AC%EB%A6%BD%ED%8A%B8%EB%A5%BC-%EC%9C%84%ED%95%9C-%EB%AC%B8%EB%B2%95-%EB%8B%A4%EC%8B%9C-%EB%B3%B4%EA%B8%B0/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">함수형 자바스크립트를 위한 문법 다시 보기</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2019/09/29/%ED%95%A8%EC%88%98%ED%98%95-%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D-%EC%8B%9C%EC%9E%912/"><span class="level-item">함수형 프로그래밍 - 시작2</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--></div><div class="column column-left is-4-tablet is-4-desktop is-4-widescreen  order-1"><div class="card widget"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="" src="/images/blog_logo.png" alt="kkangil"></figure><p class="title is-size-4 is-block line-height-inherit">kkangil</p><p class="is-size-6 is-block">김강일</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>Seoul / South Korea</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">포스트</p><a href="/archives"><p class="title">27</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">카테고리</p><a href="/categories"><p class="title">9</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">태그</p><a href="/tags"><p class="title">79</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://github.com/hdw0903" target="_blank" rel="noopener">팔로우</a></div><div class="level is-mobile"><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Github" href="https://github.com/kkangil"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="StackOverflow" href="http://stackoverflow.com/users/10870848/kkangil"><i class="fab fa-stack-overflow"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="LinkedIn" href="https://www.linkedin.com/in/kangil-kim-31093a169/"><i class="fab fa-linkedin"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="noopener" title="Mail" href="/fe.kkangil@gmail.com"><i class="fa fa-envelope"></i></a></div></div></div><!--!--><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">링크</h3><ul class="menu-list"><li><a class="level is-mobile is-mobile" href="https://github.com/hdw0903" target="_blank" rel="noopener"><span class="level-left"><span class="level-item">Github</span></span><span class="level-right"><span class="level-item tag">github.com</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">카테고리</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/Deploy/"><span class="level-start"><span class="level-item">Deploy</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Javascript/"><span class="level-start"><span class="level-item">Javascript</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Jest/"><span class="level-start"><span class="level-item">Jest</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/React/"><span class="level-start"><span class="level-item">React</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Sequelize/"><span class="level-start"><span class="level-item">Sequelize</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/hexo/"><span class="level-start"><span class="level-item">hexo</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%EC%9B%B9-%EC%84%B1%EB%8A%A5-%EC%9D%B4%EC%95%BC%EA%B8%B0/"><span class="level-start"><span class="level-item">웹 성능 이야기</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%ED%85%8C%EC%8A%A4%ED%8A%B8-%EC%BD%94%EB%93%9C/"><span class="level-start"><span class="level-item">테스트 코드</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%ED%95%A8%EC%88%98%ED%98%95-%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D/"><span class="level-start"><span class="level-item">함수형 프로그래밍</span></span><span class="level-end"><span class="level-item tag">9</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><h3 class="menu-label">최근 글</h3><article class="media"><div class="media-content size-small"><p><time dateTime="2020-02-23T06:46:45.000Z">2020-02-23</time></p><p class="title is-6"><a class="link-muted" href="/2020/02/23/jest-%EB%A9%94%EC%84%9C%EB%93%9C-toBe/">jest 메서드-toBe</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Jest/">Jest</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2020-02-16T08:07:24.000Z">2020-02-16</time></p><p class="title is-6"><a class="link-muted" href="/2020/02/16/%EB%A0%8C%EB%8D%94%EB%A7%81/">렌더링</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%EC%9B%B9-%EC%84%B1%EB%8A%A5-%EC%9D%B4%EC%95%BC%EA%B8%B0/">웹 성능 이야기</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2020-02-16T05:59:50.000Z">2020-02-16</time></p><p class="title is-6"><a class="link-muted" href="/2020/02/16/jest-%EB%A9%94%EC%84%9C%EB%93%9C-expect/">jest 메서드 - expect</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Jest/">Jest</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2020-02-09T08:01:54.000Z">2020-02-09</time></p><p class="title is-6"><a class="link-muted" href="/2020/02/09/jest-%EB%A9%94%EC%84%9C%EB%93%9C-globals/">jest 메서드 - globals</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/Jest/">Jest</a></p></div></article><article class="media"><div class="media-content size-small"><p><time dateTime="2020-02-09T05:58:17.000Z">2020-02-09</time></p><p class="title is-6"><a class="link-muted" href="/2020/02/09/%EC%84%B1%EB%8A%A5%EC%9D%84-%EB%86%92%EC%9D%B4%EB%8A%94-%EC%BD%94%EB%93%9C-%EC%8A%A4%ED%83%80%EC%9D%BC/">성능을 높이는 코드 스타일</a></p><p class="is-uppercase"><a class="link-muted" href="/categories/%EC%9B%B9-%EC%84%B1%EB%8A%A5-%EC%9D%B4%EC%95%BC%EA%B8%B0/">웹 성능 이야기</a></p></div></article></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">아카이브</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/archives/2020/02/"><span class="level-start"><span class="level-item">2월 2020</span></span><span class="level-end"><span class="level-item tag">7</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2020/01/"><span class="level-start"><span class="level-item">1월 2020</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2019/12/"><span class="level-start"><span class="level-item">12월 2019</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2019/11/"><span class="level-start"><span class="level-item">11월 2019</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2019/10/"><span class="level-start"><span class="level-item">10월 2019</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2019/09/"><span class="level-start"><span class="level-item">9월 2019</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile is-marginless" href="/archives/2019/04/"><span class="level-start"><span class="level-item">4월 2019</span></span><span class="level-end"><span class="level-item tag">8</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">태그</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/BDD/"><span class="tag">BDD</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/HTTP-%EC%9A%94%EC%B2%AD-%EC%B5%9C%EC%86%8C%ED%99%94/"><span class="tag">HTTP 요청 최소화</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Hooks/"><span class="tag">Hooks</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Javascript/"><span class="tag">Javascript</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/MySQL/"><span class="tag">MySQL</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Next-js/"><span class="tag">Next.js</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/React/"><span class="tag">React</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/React-Hooks/"><span class="tag">React-Hooks</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Sequelize/"><span class="tag">Sequelize</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/TDD/"><span class="tag">TDD</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/indent/"><span class="tag">_.indent</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/call-apply-arguments-this/"><span class="tag">call, apply, arguments, this</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/compose/"><span class="tag">compose</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/deep-clone/"><span class="tag">deep-clone</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/deploy-Next-js/"><span class="tag">deploy Next.js</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/describe/"><span class="tag">describe</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/expect/"><span class="tag">expect</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/filter/"><span class="tag">filter</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/go/"><span class="tag">go</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/go-%ED%95%A8%EC%88%98/"><span class="tag">go 함수</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/hexo/"><span class="tag">hexo</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/hexo-%EC%8B%9C%EC%9E%91/"><span class="tag">hexo 시작</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/hooks-%EC%82%AC%EC%9A%A9%EB%B0%A9%EB%B2%95/"><span class="tag">hooks 사용방법</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/hooks-%EC%A0%95%EC%9D%98/"><span class="tag">hooks 정의</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/jasmine/"><span class="tag">jasmine</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/javascript/"><span class="tag">javascript</span><span class="tag is-grey-lightest">12</span></a></div><div class="control"><a class="tags has-addons" href="/tags/jest-globals-%EB%A9%94%EC%84%9C%EB%93%9C/"><span class="tag">jest globals 메서드</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/jest-%EB%A9%94%EC%84%9C%EB%93%9C/"><span class="tag">jest 메서드</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/lifecycle/"><span class="tag">lifecycle</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/map/"><span class="tag">map</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/memoization/"><span class="tag">memoization</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/model-%EC%A0%95%EC%9D%98/"><span class="tag">model 정의</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/named-function/"><span class="tag">named function</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/once/"><span class="tag">once</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/partial/"><span class="tag">partial</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/partial-function/"><span class="tag">partial function</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/pipe/"><span class="tag">pipe</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/pipeline/"><span class="tag">pipeline</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/pm2/"><span class="tag">pm2</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/pm2-ecosystem/"><span class="tag">pm2-ecosystem</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/skip/"><span class="tag">skip</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/spy/"><span class="tag">spy</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/syntax/"><span class="tag">syntax</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/test/"><span class="tag">test</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/toBe/"><span class="tag">toBe</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/toEqual/"><span class="tag">toEqual</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/toError/"><span class="tag">toError</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/toHaveBeenCalled/"><span class="tag">toHaveBeenCalled</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/toHaveReturned/"><span class="tag">toHaveReturned</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useCallback/"><span class="tag">useCallback</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useContext/"><span class="tag">useContext</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useEffect/"><span class="tag">useEffect</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useMemo/"><span class="tag">useMemo</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useReducer/"><span class="tag">useReducer</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useRef/"><span class="tag">useRef</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useState/"><span class="tag">useState</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EA%B0%9D%EC%B2%B4/"><span class="tag">객체</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EA%B3%A0%EC%B0%A8-%ED%95%A8%EC%88%98/"><span class="tag">고차 함수</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%84%A4%EB%B9%84%EA%B2%8C%EC%9D%B4%EC%85%98-%ED%83%80%EC%9D%B4%EB%B0%8D/"><span class="tag">네비게이션 타이밍</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%A0%8C%EB%8D%94%EB%A7%81/"><span class="tag">렌더링</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%A0%8C%EB%8D%94%EB%A7%81-%EC%84%B1%EB%8A%A5-%ED%96%A5%EC%83%81/"><span class="tag">렌더링 성능 향상</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%A6%AC%ED%8E%98%EC%9D%B8%ED%8A%B8/"><span class="tag">리페인트</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%A6%AC%ED%94%8C%EB%A1%9C%EC%9A%B0/"><span class="tag">리플로우</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%B3%80%EA%B2%BD-%EC%B5%9C%EC%86%8C%ED%99%94/"><span class="tag">변경 최소화</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%B6%80%EC%88%98-%ED%9A%A8%EA%B3%BC/"><span class="tag">부수 효과</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%B9%84%EB%8F%99%EA%B8%B0%EC%99%80-go/"><span class="tag">비동기와 _.go</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EC%84%B1%EB%8A%A5-%ED%85%8C%EC%8A%A4%ED%8A%B8/"><span class="tag">성능 테스트</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EC%88%9C%EC%88%98-%ED%95%A8%EC%88%98/"><span class="tag">순수 함수</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EC%9B%B9-%EC%82%AC%EC%9D%B4%ED%8A%B8-%EC%B5%9C%EC%A0%81%ED%99%94/"><span class="tag">웹 사이트 최적화</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EC%9D%98%EC%A1%B4%EC%84%B1-%EC%A3%BC%EC%9E%85/"><span class="tag">의존성 주입</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EC%9D%BC%EA%B8%89-%ED%95%A8%EC%88%98/"><span class="tag">일급 함수</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%81%B4%EB%A1%9C%EC%A0%80/"><span class="tag">클로저</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%85%8C%EC%8A%A4%ED%8A%B8-%EC%BD%94%EB%93%9C/"><span class="tag">테스트 코드</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%8C%8C%EC%9D%B4%ED%94%84%EB%9D%BC%EC%9D%B8/"><span class="tag">파이프라인</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%94%84%EB%A1%9C%EC%84%B8%EC%8B%B1-%EB%AA%A8%EB%8D%B8/"><span class="tag">프로세싱 모델</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%95%A8%EC%88%98-%EC%A1%B0%EB%A6%BD/"><span class="tag">함수 조립</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%95%A8%EC%88%98%EC%9D%98-%ED%98%B8%EC%9D%B4%EC%8A%A4%ED%8C%85/"><span class="tag">함수의 호이스팅</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%95%A8%EC%88%98%ED%98%95-%EC%9E%90%EB%B0%94%EC%8A%A4%ED%81%AC%EB%A6%BD%ED%8A%B8%EC%9D%98-%EC%8B%A4%EC%9A%A9%EC%84%B1-2/"><span class="tag">함수형 자바스크립트의 실용성 2</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%95%A8%EC%88%98%ED%98%95-%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D/"><span class="tag">함수형 프로그래밍</span><span class="tag is-grey-lightest">9</span></a></div></div></div></div></div><div class="card widget"><div class="card-content"><div class="notification is-danger">You need to set <code>client_id</code> and <code>slot_id</code> to show this AD unit. Please set it in <code>_config.yml</code>.</div></div></div></div><!--!--></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/">kkangil&#039;s Blog</a><p class="size-small"><span>&copy; 2020 kkangil</span>  Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/ppoffice/hexo-theme-icarus"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script>moment.locale("ko");</script><script>var IcarusThemeSettings = {
+            site: {
+                url: 'https://kkangil.github.io',
+                external_link: {"enable":true,"exclude":[]}
+            },
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script src="/js/animation.js"></script><a id="back-to-top" title="맨 위로" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/js/lightgallery.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><!--!--><script src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="입력 하세요..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"입력 하세요...","untitled":"(Untitled)","posts":"포스트","pages":"Pages","categories":"카테고리","tags":"태그"});
+        });</script></body></html>
