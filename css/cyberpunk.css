@@ -10824,6 +10824,9 @@ article.article .content .message.message-immersive .message-body {
   width: 100%;
   height: 100%;
 }
+.level img {
+  height: 100%;
+}
 .navbar-main {
   box-shadow: none;
 }
