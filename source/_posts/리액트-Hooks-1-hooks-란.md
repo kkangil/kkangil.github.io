@@ -7,6 +7,19 @@ tags:
   - React-Hooks
   - Hooks
   - hooks 정의
+  
+toc: true
+widgets:
+  - type: toc
+    position: right
+  - type: categories
+    position: right
+  - type: tags
+    position: right
+  - type: adsense
+    position: right
+    client_id: ca-pub-5445993070474035
+    slot_id: ''
 ---
 
 리액트 16.8 버전에서 `Hooks` 라는 새로운 기능이 추가 되었다.

@@ -1,545 +1,72 @@
-
-<!DOCTYPE html>
-<html lang="ko">
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="generator" content="Hexo 4.2.0"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>jest 메서드 - expect - kkangil&#039;s Blog</title><meta description="expect(value)expect 함수는 값을 테스트 하고 싶을 때 사용한다. 드물게 expect 함수만 사용해서 테스트를 할 수 있지만 값을 테스트하기 위해 matcher 함수를 함께 사용한다. expect.extend(matchers)expect.extend 함수를 사용하여 Jest 에서 제공하는 matcher 가 아닌 직접 만들어서 사용할 수 있다."><meta property="og:type" content="blog"><meta property="og:title" content="jest 메서드 - expect"><meta property="og:url" content="https://kkangil.github.io/2020/02/16/jest-%EB%A9%94%EC%84%9C%EB%93%9C-expect/"><meta property="og:site_name" content="kkangil&#039;s Blog"><meta property="og:description" content="expect(value)expect 함수는 값을 테스트 하고 싶을 때 사용한다. 드물게 expect 함수만 사용해서 테스트를 할 수 있지만 값을 테스트하기 위해 matcher 함수를 함께 사용한다. expect.extend(matchers)expect.extend 함수를 사용하여 Jest 에서 제공하는 matcher 가 아닌 직접 만들어서 사용할 수 있다."><meta property="og:locale" content="ko_KR"><meta property="og:image" content="https://kkangil.github.io/img/og_image.png"><meta property="article:published_time" content="2020-02-16T05:59:50.000Z"><meta property="article:modified_time" content="2020-05-05T13:05:41.595Z"><meta property="article:author" content="kkangil"><meta property="article:tag" content="jest 메서드"><meta property="article:tag" content="expect"><meta property="article:tag" content="test"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/og_image.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://kkangil.github.io/2020/02/16/jest-%EB%A9%94%EC%84%9C%EB%93%9C-expect/"},"headline":"kkangil's Blog","image":["https://kkangil.github.io/img/og_image.png"],"datePublished":"2020-02-16T05:59:50.000Z","dateModified":"2020-05-05T13:05:41.595Z","author":{"@type":"Person","name":"kkangil"},"description":"expect(value)expect 함수는 값을 테스트 하고 싶을 때 사용한다. 드물게 expect 함수만 사용해서 테스트를 할 수 있지만 값을 테스트하기 위해 matcher 함수를 함께 사용한다. expect.extend(matchers)expect.extend 함수를 사용하여 Jest 에서 제공하는 matcher 가 아닌 직접 만들어서 사용할 수 있다."}</script><meta name="naver-site-verification" content="b0ce7bc14af00ce2aee96528313654d78c325351"><link rel="canonical" href="https://kkangil.github.io/2020/02/16/jest-%EB%A9%94%EC%84%9C%EB%93%9C-expect/"><link rel="icon" href="/images/coffee-favicon.png"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/tomorrow-night-bright.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><link href="https://fonts.googleapis.com/earlyaccess/jejugothic.css" rel="stylesheet"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/css/justifiedGallery.min.css"><script src="https://www.googletagmanager.com/gtag/js?id=UA-165569140-1" async></script><script>window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
     
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="generator" content="kkangil&#39;s Blog">
-    <title>jest 메서드 - expect - kkangil&#39;s Blog</title>
-    <meta name="author" content="kkangil">
-    
-    
-    
-        <link rel="alternate" type="application/atom+xml" title="RSS" href="/atom.xml">
-    
-    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg"},"articleBody":"expect(value)expect 함수는 값을 테스트 하고 싶을 때 사용한다. 드물게 expect 함수만 사용해서 테스트를 할 수 있지만 값을 테스트하기 위해 matcher 함수를 함께 사용한다.\nexpect.extend(matchers)expect.extend 함수를 사용하여 Jest 에서 제공하는 matcher 가 아닌 직접 만들어서 사용할 수 있다.\n\n123456789101112131415161718192021222324252627expect.extend(&#123;  toBeWithinRange(received, floor, ceiling) &#123;    const pass = received &gt;= floor &amp;&amp; received &lt;= ceiling;    if (pass) &#123;      return &#123;        message: () =&gt;          `expected $&#123;received&#125; not to be within range $&#123;floor&#125; - $&#123;ceiling&#125;`,        pass: true,      &#125;;    &#125; else &#123;      return &#123;        message: () =&gt;          `expected $&#123;received&#125; to be within range $&#123;floor&#125; - $&#123;ceiling&#125;`,        pass: false,      &#125;;    &#125;  &#125;,&#125;);test(&apos;numeric ranges&apos;, () =&gt; &#123;  expect(100).toBeWithinRange(90, 110);  expect(101).not.toBeWithinRange(0, 100);  expect(&#123; apples: 6, bananas: 3 &#125;).toEqual(&#123;    apples: expect.toBeWithinRange(1, 10),    bananas: expect.not.toBeWithinRange(11, 20),  &#125;);&#125;);\ntoBeWithinRange 라는 matcher 를 만드는 방법이다. expect 의 값이 첫번째 인자로 넘어간다. 성공 했을경우 성공 사유 message 와 pass를 true로 return 해준다. 살패 했을경우는 반대로 실패 사유 message 와 pass 를 false 로 return 해준다.\nexpect.extend 는 비동기 함수 호출도 지원한다.\n123456789101112131415161718192021222324expect.extend(&#123;  async toBeDivisibleByExternalValue(received) &#123;    const externalValue = await getExternalValueFromRemoteSource();    const pass = received % externalValue == 0;    if (pass) &#123;      return &#123;        message: () =&gt;          `expected $&#123;received&#125; not to be divisible by $&#123;externalValue&#125;`,        pass: true,      &#125;;    &#125; else &#123;      return &#123;        message: () =&gt;          `expected $&#123;received&#125; to be divisible by $&#123;externalValue&#125;`,        pass: false,      &#125;;    &#125;  &#125;,&#125;);test(&apos;is divisible by external value&apos;, async () =&gt; &#123;  await expect(100).toBeDivisibleByExternalValue();  await expect(101).not.toBeDivisibleByExternalValue();&#125;);\nCustom Matchers APIMacher 들은 항상 두개의 key 를 포함하고 있는 객체를 리턴해야한다. pass 는 성공/실패 여부이고 message 는 테스트가 실패 했을 경우 보여진다. .not() 메서드를 사용하면 실패 했을때 pass: true 의 message 가 보여진다.\nexpect.anythingnull 과 undefined 을 제외한 모든 값들과 일치한다. 즉, null 과 undefined 외의 모든 값들은 동일하다.\n12345test(&apos;map calls its argument with a non-null argument&apos;, () =&gt; &#123;  const mock = jest.fn();  [1].map(x =&gt; mock(x));  expect(mock).toBeCalledWith(1);&#125;);\n위의 테스트 코드는 성공할 것이다. 하지만 expect(mock).toBeCalledWith(2); 로 바꾸게 된다면 배열의 length 가 1 이므로 실패할 것이다. 만약 mock() 함수가 몇번 실행이 되는지 상관없이 테스트 케이스를 성공 처리 하고 싶을때 anything 을 사용하는 것이다.\n1expect(mock).toBeCalledWith(expect.anything());\nexpect.any(constructor)expect.any(constructor) matches anything that was created with the given constructor\nexpect.any 는 주어진 생성자와 값이 해당 생성자에 일치하는 지를 테스트 한다. toEqual 과 toBeCalledWith 함수에 값대신 해당 메서드를 사용할 수 있다.\nrandocall 함수의 return 값이 Number 인지 테스트하는 코드다.\n123456789function randocall(fn) &#123;  return fn(Math.floor(Math.random() * 6 + 1));&#125;test(&apos;randocall calls its callback with a number&apos;, () =&gt; &#123;  const mock = jest.fn();  randocall(mock);  expect(mock).toBeCalledWith(expect.any(Number));&#125;);\nexpect.arrayContaining(array)기대값이 expect.arrayContaining(array) 메서드에 주어지는 배열의 요소를 모두 포함하고 있는지 확인할 때 사용하는 메서드이다. toEqual 과 toBeCalledWith 함수에 사용할 수 있다.\n12345678910describe(&apos;arrayContaining&apos;, () =&gt; &#123;  const expected = [&apos;Alice&apos;, &apos;Bob&apos;];  it(&apos;matches even if received contains additional elements&apos;, () =&gt; &#123;    expect([&apos;Alice&apos;, &apos;Bob&apos;, &apos;Eve&apos;]).toEqual(expect.arrayContaining(expected));  &#125;);  it(&apos;does not match if received does not contain expected elements&apos;, () =&gt; &#123;    expect([&apos;Bob&apos;, &apos;Eve&apos;]).not.toEqual(expect.arrayContaining(expected));  &#125;);  expect([&apos;Alice&apos;, &apos;Alice&apos;, &apos;Bob&apos;, &apos;Eve&apos;]).toEqual(expect.arrayContaining(expected));&#125;);\n첫번째 테스트의 경우 기대값 요소에 ‘Alice’, ‘Bob’ 이 포함되어 있기 때문에 성공한다. 두번째의 경우는 ‘Alice’ 를 포함하고 있지 않기 때문에 실패한다. 세번째 테스트 경우처럼 배열 요소에 중복이 있어도 상관없이 테스트는 성공한다.\nexpect.not.arrayContaining(array) 메서드도 사용 가능하다.\n12345678describe(&apos;not.arrayContaining&apos;, () =&gt; &#123;  const expected = [&apos;Samantha&apos;];  it(&apos;matches if the actual array does not contain the expected elements&apos;, () =&gt; &#123;    expect([&apos;Alice&apos;, &apos;Bob&apos;, &apos;Eve&apos;]).toEqual(      expect.not.arrayContaining(expected),    );  &#125;);&#125;);\nexpect.objectContaining(object)객체의 key 와 value 를 포함하고 있는지 테스트할때 사용한다.\n1234567describe(&apos;objectContaining&apos;, () =&gt; &#123;  const expected = &#123; foo: &apos;bar&apos; &#125;;  it(&apos;matches if the actual object does contain expected key: value pairs&apos;, () =&gt; &#123;    expect(&#123; bar: &apos;baz&apos; &#125;).toEqual(expect.objectContaining(expected));  &#125;);&#125;);\nfoo 라는 key 가 없어서 위 테스트는 실패한다. 만약 { bar: ‘baz’ } 를 { foo: ‘baz’ } 객체로 변경해서 테스트 해보면 실패하는것을 확인할 수 있다. objectContaining 는 key/value 쌍으로 동일해야 성공한다. \n12345678910test(&apos;onPress gets called with the right thing&apos;, () =&gt; &#123;  const onPress = jest.fn();  simulatePresses(onPress);  expect(onPress).toBeCalledWith(    expect.objectContaining(&#123;      x: expect.any(Number),      y: expect.any(Number),    &#125;),  );&#125;);\nobjectContaining 객체의 value 에 특정한 값이 아니라 any, anything 도 사용할 수 있다. expect.not.objectContaining(object) 메서드도 사용 가능하다.\nexpect.stringContaining(string)expect.stringContaining(string) 은 주어지는 문자를 포함하고 있는지 테스트한다.\n1234567describe(&apos;stringContaining&apos;, () =&gt; &#123;  const expected = &apos;Hello world!&apos;;  it(&apos;matches if the received value does contain the expected substring&apos;, () =&gt; &#123;    expect(&apos;Hello world!&apos;).toEqual(expect.stringContaining(expected));  &#125;);&#125;);\nexpect.not.stringContaining(string) 도 사용 가능하다.\nexpect.stringMatching(string | regexp)주어진 string 이나 정규식에 일치하는지 테스트할 때 사용한다. string 이 주어지는 경우 완전하게 일치 해야하며 정규식을 사용하는 경우는 해당 정규식에 일치하면 된다.\n12345678910111213141516describe(&apos;stringMatching in arrayContaining&apos;, () =&gt; &#123;  const expected = [    expect.stringMatching(/^Alic/),    expect.stringMatching(/^[BR]ob/),  ];  it(&apos;matches even if received contains additional elements&apos;, () =&gt; &#123;    expect([&apos;Alicia&apos;, &apos;Roberto&apos;, &apos;Evelina&apos;]).toEqual(      expect.arrayContaining(expected),    );  &#125;);  it(&apos;does not match if received does not contain expected elements&apos;, () =&gt; &#123;    expect([&apos;Roberto&apos;, &apos;Evelina&apos;]).not.toEqual(      expect.arrayContaining(expected),    );  &#125;);&#125;);\nexpect.assertions(number)test 함수의 callback 함수 내부에서 테스트가 몇번이 일어나는지 확인하는 메서드이다.\n12345test(&apos;assertions count&apos;, () =&gt; &#123;  expect.assertions(2);  expect(true).toBeTruthy();  expect(null).toBeFalsy();&#125;);\n위 테스트코드에서 expect.assertions 을 제외하고 두개의 테스트를 하고있다.\nexpect.hasAssertions()expect.hasAssertions() 함수는 test 함수의 callback 함수 내부에서 테스트가 최소 한번 실행되고 있는지 테스트하는 함수다.\n1234test(&apos;has assertions&apos;, () =&gt; &#123;  expect.hasAssertions();  expect(null).toBeFalsy();&#125;);\nresolves성공된 Promise 의 value 를 가져올때 사용한다. resolves 를 사용하지 않으면 received value 는 {} 가 된다.\n123test(&apos;resolves to lemon&apos;, () =&gt; &#123;  expect(Promise.resolve(&apos;lemon&apos;)).resolves.toBe(&apos;lemon&apos;);&#125;);\nasync/await 과도 사용할 수 있다.\n1234test(&apos;async/await resolves to lemon&apos;, async () =&gt; &#123;  await expect(Promise.resolve(&apos;lemon&apos;)).resolves.toBe(&apos;lemon&apos;);  await expect(Promise.resolve(&apos;lemon&apos;)).resolves.not.toBe(&apos;octopus&apos;);&#125;);\nrejectsrejects 는 resolves 와는 반대로 실패된 Promise 의 reason 을 가져올 때 사용한다.\n12345678910test(&apos;rejects to octopus&apos;, () =&gt; &#123;  // make sure to add a return statement  return expect(Promise.reject(new Error(&apos;octopus&apos;))).rejects.toThrow(    &apos;octopus&apos;,  );&#125;);test(&apos;rejects to octopus&apos;, async () =&gt; &#123;  await expect(Promise.reject(new Error(&apos;octopus&apos;))).rejects.toThrow(&apos;octopus&apos;);&#125;);\n참조: Jest 공식 문서\n","dateCreated":"2020-02-16T14:59:50+09:00","dateModified":"2020-02-16T17:08:20+09:00","datePublished":"2020-02-16T14:59:50+09:00","description":"expect(value)expect 함수는 값을 테스트 하고 싶을 때 사용한다. 드물게 expect 함수만 사용해서 테스트를 할 수 있지만 값을 테스트하기 위해 matcher 함수를 함께 사용한다.\nexpect.extend(matchers)expect.extend 함수를 사용하여 Jest 에서 제공하는 matcher 가 아닌 직접 만들어서 사용할 수 있다.","headline":"jest 메서드 - expect","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"https://kkangil.github.io/2020/02/16/jest-메서드-expect/"},"publisher":{"@type":"Organization","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg","logo":{"@type":"ImageObject","url":"profile.jpeg"}},"url":"https://kkangil.github.io/2020/02/16/jest-메서드-expect/","keywords":"test, jest 메서드, expect"}</script>
-    <meta name="description" content="expect(value)expect 함수는 값을 테스트 하고 싶을 때 사용한다. 드물게 expect 함수만 사용해서 테스트를 할 수 있지만 값을 테스트하기 위해 matcher 함수를 함께 사용한다. expect.extend(matchers)expect.extend 함수를 사용하여 Jest 에서 제공하는 matcher 가 아닌 직접 만들어서 사용할 수 있다.">
-<meta name="keywords" content="test,jest 메서드,expect">
-<meta property="og:type" content="blog">
-<meta property="og:title" content="jest 메서드 - expect">
-<meta property="og:url" content="https://kkangil.github.io/2020/02/16/jest-메서드-expect/index.html">
-<meta property="og:site_name" content="kkangil&#39;s Blog">
-<meta property="og:description" content="expect(value)expect 함수는 값을 테스트 하고 싶을 때 사용한다. 드물게 expect 함수만 사용해서 테스트를 할 수 있지만 값을 테스트하기 위해 matcher 함수를 함께 사용한다. expect.extend(matchers)expect.extend 함수를 사용하여 Jest 에서 제공하는 matcher 가 아닌 직접 만들어서 사용할 수 있다.">
-<meta property="og:locale" content="ko">
-<meta property="og:updated_time" content="2020-02-16T08:08:20.423Z">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="jest 메서드 - expect">
-<meta name="twitter:description" content="expect(value)expect 함수는 값을 테스트 하고 싶을 때 사용한다. 드물게 expect 함수만 사용해서 테스트를 할 수 있지만 값을 테스트하기 위해 matcher 함수를 함께 사용한다. expect.extend(matchers)expect.extend 함수를 사용하여 Jest 에서 제공하는 matcher 가 아닌 직접 만들어서 사용할 수 있다.">
-    
-    
-        
-    
-    
-        <meta property="og:image" content="https://kkangil.github.io/assets/images/profile.jpeg"/>
-    
-    
-    
-    
-    <!--STYLES-->
-    <link rel="stylesheet" href="/assets/css/style-c4ozcsklz4kht2pebhp44xorvyverh23toayhn7i6ubrpyedak24hv1v0hyd.min.css">
-    <!--STYLES END-->
-    
-
-    
-</head>
-
-    <body>
-        <div id="blog">
-            <!-- Define author's picture -->
-
-
-    
-        
-            
-        
-    
-
-<header id="header" data-behavior="4">
-    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
-    <div class="header-title">
-        <a class="header-title-link" href="/ ">kkangil&#39;s Blog</a>
-    </div>
-    
-        
-            <a class="header-right-picture " href="#about">
-        
-        
-            <img class="header-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
-        
-        </a>
-    
-</header>
-
-            <!-- Define author's picture -->
-
-
-
-        
-    
-
-<nav id="sidebar" data-behavior="4">
-    <div class="sidebar-container">
-        
-            <div class="sidebar-profile">
-                <a href="/#about">
-                    <img class="sidebar-profile-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
-                </a>
-                <h4 class="sidebar-profile-name">kkangil</h4>
-                
-                    <h5 class="sidebar-profile-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
-</h5>
-                
-            </div>
-        
-        
-            <ul class="sidebar-buttons">
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="/ " title="Home">
-                    
-                        <i class="sidebar-button-icon fa fa-home" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Home</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="/all-categories" title="카테고리">
-                    
-                        <i class="sidebar-button-icon fa fa-bookmark" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">카테고리</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="/all-tags" title="태그">
-                    
-                        <i class="sidebar-button-icon fa fa-tags" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">태그</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="/all-archives" title="기록">
-                    
-                        <i class="sidebar-button-icon fa fa-archive" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">기록</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link open-algolia-search" href="#search" title="검색">
-                    
-                        <i class="sidebar-button-icon fa fa-search" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">검색</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="#about" title="About">
-                    
-                        <i class="sidebar-button-icon fa fa-question" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">About</span>
-                    </a>
-            </li>
-            
-        </ul>
-        
-            <ul class="sidebar-buttons">
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="https://github.com/kkangil" target="_blank" rel="noopener" title="GitHub">
-                    
-                        <i class="sidebar-button-icon fab fa-github" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">GitHub</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="http://stackoverflow.com/users/10870848/kkangil" target="_blank" rel="noopener" title="Stack Overflow">
-                    
-                        <i class="sidebar-button-icon fab fa-stack-overflow" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Stack Overflow</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="https://www.linkedin.com/in/kangil-kim-31093a169/" target="_blank" rel="noopener" title="LinkedIn">
-                    
-                        <i class="sidebar-button-icon fab fa-linkedin" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">LinkedIn</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="/fe.kkangil@gmail.com" title="Mail">
-                    
-                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Mail</span>
-                    </a>
-            </li>
-            
-        </ul>
-        
-            <ul class="sidebar-buttons">
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="/atom.xml" title="RSS">
-                    
-                        <i class="sidebar-button-icon fa fa-rss" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">RSS</span>
-                    </a>
-            </li>
-            
-        </ul>
-        
-    </div>
-</nav>
-
-            
-            <div id="main" data-behavior="4"
-                 class="
-                        hasCoverMetaIn
-                        ">
-                
-<article class="post">
-    
-    
-        <div class="post-header main-content-wrap text-left">
-    
-        <h1 class="post-title">
-            jest 메서드 - expect
-        </h1>
-    
-    
-        <div class="post-meta">
-    <time datetime="2020-02-16T14:59:50+09:00">
-	
-		    2월 16, 2020
-    	
-    </time>
-    
-        <span>카테고리 </span>
-        
-    <a class="category-link" href="/categories/Jest/">Jest</a>
-
-
-    
-</div>
-
-    
-</div>
-
-    
-    <div class="post-content markdown">
-        <div class="main-content-wrap">
-            <h3 id="expect-value"><a href="#expect-value" class="headerlink" title="expect(value)"></a>expect(value)</h3><p>expect 함수는 값을 테스트 하고 싶을 때 사용한다. 드물게 expect 함수만 사용해서 테스트를 할 수 있지만 값을 테스트하기 위해 <code>matcher</code> 함수를 함께 사용한다.</p>
+        gtag('config', 'UA-165569140-1');</script><!--!--><script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script><script data-ad-client="ca-pub-5445993070474035" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js" async></script></head><body class="is-2-column"><nav class="navbar navbar-main"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/">kkangil&#039;s Blog</a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">Home</a><a class="navbar-item" href="/archives">Archives</a><a class="navbar-item" href="/categories">Categories</a><a class="navbar-item" href="/tags">Tags</a><a class="navbar-item" href="/about">About</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="GitHub Home" href="https://github.com/kkangil"><i class="fab fa-github"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="카탈로그" href="javascript:;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="검색" href="javascript:;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><span class="level-item">2020년 2월 16일 일요일 오후 2:59</span><span class="level-item"><a class="link-muted" href="/categories/Jest/">Jest</a></span><span class="level-item">10분 읽기 (대략 1504 단어)</span></div></div><h1 class="title is-3 is-size-4-mobile">jest 메서드 - expect</h1><div class="content"><h3 id="expect-value"><a href="#expect-value" class="headerlink" title="expect(value)"></a>expect(value)</h3><p>expect 함수는 값을 테스트 하고 싶을 때 사용한다. 드물게 expect 함수만 사용해서 테스트를 할 수 있지만 값을 테스트하기 위해 <code>matcher</code> 함수를 함께 사용한다.</p>
 <h3 id="expect-extend-matchers"><a href="#expect-extend-matchers" class="headerlink" title="expect.extend(matchers)"></a>expect.extend(matchers)</h3><p>expect.extend 함수를 사용하여 Jest 에서 제공하는 matcher 가 아닌 직접 만들어서 사용할 수 있다.</p>
 <a id="more"></a>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">expect.extend(&#123;</span><br><span class="line">  toBeWithinRange(received, floor, ceiling) &#123;</span><br><span class="line">    const pass = received &gt;= floor &amp;&amp; received &lt;= ceiling;</span><br><span class="line">    if (pass) &#123;</span><br><span class="line">      return &#123;</span><br><span class="line">        message: () =&gt;</span><br><span class="line">          `expected $&#123;received&#125; not to be within range $&#123;floor&#125; - $&#123;ceiling&#125;`,</span><br><span class="line">        pass: true,</span><br><span class="line">      &#125;;</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">      return &#123;</span><br><span class="line">        message: () =&gt;</span><br><span class="line">          `expected $&#123;received&#125; to be within range $&#123;floor&#125; - $&#123;ceiling&#125;`,</span><br><span class="line">        pass: false,</span><br><span class="line">      &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">test(&apos;numeric ranges&apos;, () =&gt; &#123;</span><br><span class="line">  expect(100).toBeWithinRange(90, 110);</span><br><span class="line">  expect(101).not.toBeWithinRange(0, 100);</span><br><span class="line">  expect(&#123; apples: 6, bananas: 3 &#125;).toEqual(&#123;</span><br><span class="line">    apples: expect.toBeWithinRange(1, 10),</span><br><span class="line">    bananas: expect.not.toBeWithinRange(11, 20),</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">expect.extend(&#123;</span><br><span class="line">  toBeWithinRange(received, floor, ceiling) &#123;</span><br><span class="line">    <span class="keyword">const</span> pass = received &gt;= floor &amp;&amp; received &lt;= ceiling;</span><br><span class="line">    <span class="keyword">if</span> (pass) &#123;</span><br><span class="line">      <span class="keyword">return</span> &#123;</span><br><span class="line">        message: <span class="function"><span class="params">()</span> =&gt;</span></span><br><span class="line">          <span class="string">`expected <span class="subst">$&#123;received&#125;</span> not to be within range <span class="subst">$&#123;floor&#125;</span> - <span class="subst">$&#123;ceiling&#125;</span>`</span>,</span><br><span class="line">        pass: <span class="literal">true</span>,</span><br><span class="line">      &#125;;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">return</span> &#123;</span><br><span class="line">        message: <span class="function"><span class="params">()</span> =&gt;</span></span><br><span class="line">          <span class="string">`expected <span class="subst">$&#123;received&#125;</span> to be within range <span class="subst">$&#123;floor&#125;</span> - <span class="subst">$&#123;ceiling&#125;</span>`</span>,</span><br><span class="line">        pass: <span class="literal">false</span>,</span><br><span class="line">      &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">test(<span class="string">'numeric ranges'</span>, () =&gt; &#123;</span><br><span class="line">  expect(<span class="number">100</span>).toBeWithinRange(<span class="number">90</span>, <span class="number">110</span>);</span><br><span class="line">  expect(<span class="number">101</span>).not.toBeWithinRange(<span class="number">0</span>, <span class="number">100</span>);</span><br><span class="line">  expect(&#123; <span class="attr">apples</span>: <span class="number">6</span>, <span class="attr">bananas</span>: <span class="number">3</span> &#125;).toEqual(&#123;</span><br><span class="line">    apples: expect.toBeWithinRange(<span class="number">1</span>, <span class="number">10</span>),</span><br><span class="line">    bananas: expect.not.toBeWithinRange(<span class="number">11</span>, <span class="number">20</span>),</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 <p><code>toBeWithinRange</code> 라는 matcher 를 만드는 방법이다. expect 의 값이 첫번째 인자로 넘어간다. 성공 했을경우 성공 사유 message 와 pass를 true로 return 해준다. 살패 했을경우는 반대로 실패 사유 message 와 pass 를 false 로 return 해준다.</p>
 <p>expect.extend 는 비동기 함수 호출도 지원한다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">expect.extend(&#123;</span><br><span class="line">  async toBeDivisibleByExternalValue(received) &#123;</span><br><span class="line">    const externalValue = await getExternalValueFromRemoteSource();</span><br><span class="line">    const pass = received % externalValue == 0;</span><br><span class="line">    if (pass) &#123;</span><br><span class="line">      return &#123;</span><br><span class="line">        message: () =&gt;</span><br><span class="line">          `expected $&#123;received&#125; not to be divisible by $&#123;externalValue&#125;`,</span><br><span class="line">        pass: true,</span><br><span class="line">      &#125;;</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">      return &#123;</span><br><span class="line">        message: () =&gt;</span><br><span class="line">          `expected $&#123;received&#125; to be divisible by $&#123;externalValue&#125;`,</span><br><span class="line">        pass: false,</span><br><span class="line">      &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">test(&apos;is divisible by external value&apos;, async () =&gt; &#123;</span><br><span class="line">  await expect(100).toBeDivisibleByExternalValue();</span><br><span class="line">  await expect(101).not.toBeDivisibleByExternalValue();</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">expect.extend(&#123;</span><br><span class="line">  <span class="keyword">async</span> toBeDivisibleByExternalValue(received) &#123;</span><br><span class="line">    <span class="keyword">const</span> externalValue = <span class="keyword">await</span> getExternalValueFromRemoteSource();</span><br><span class="line">    <span class="keyword">const</span> pass = received % externalValue == <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">if</span> (pass) &#123;</span><br><span class="line">      <span class="keyword">return</span> &#123;</span><br><span class="line">        message: <span class="function"><span class="params">()</span> =&gt;</span></span><br><span class="line">          <span class="string">`expected <span class="subst">$&#123;received&#125;</span> not to be divisible by <span class="subst">$&#123;externalValue&#125;</span>`</span>,</span><br><span class="line">        pass: <span class="literal">true</span>,</span><br><span class="line">      &#125;;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="keyword">return</span> &#123;</span><br><span class="line">        message: <span class="function"><span class="params">()</span> =&gt;</span></span><br><span class="line">          <span class="string">`expected <span class="subst">$&#123;received&#125;</span> to be divisible by <span class="subst">$&#123;externalValue&#125;</span>`</span>,</span><br><span class="line">        pass: <span class="literal">false</span>,</span><br><span class="line">      &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">test(<span class="string">'is divisible by external value'</span>, <span class="keyword">async</span> () =&gt; &#123;</span><br><span class="line">  <span class="keyword">await</span> expect(<span class="number">100</span>).toBeDivisibleByExternalValue();</span><br><span class="line">  <span class="keyword">await</span> expect(<span class="number">101</span>).not.toBeDivisibleByExternalValue();</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 <h4 id="Custom-Matchers-API"><a href="#Custom-Matchers-API" class="headerlink" title="Custom Matchers API"></a>Custom Matchers API</h4><p>Macher 들은 항상 두개의 key 를 포함하고 있는 객체를 리턴해야한다. pass 는 성공/실패 여부이고 message 는 테스트가 실패 했을 경우 보여진다. .not() 메서드를 사용하면 실패 했을때 pass: true 의 message 가 보여진다.</p>
 <h3 id="expect-anything"><a href="#expect-anything" class="headerlink" title="expect.anything"></a>expect.anything</h3><p>null 과 undefined 을 제외한 모든 값들과 일치한다. 즉, null 과 undefined 외의 모든 값들은 동일하다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">test(&apos;map calls its argument with a non-null argument&apos;, () =&gt; &#123;</span><br><span class="line">  const mock = jest.fn();</span><br><span class="line">  [1].map(x =&gt; mock(x));</span><br><span class="line">  expect(mock).toBeCalledWith(1);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">test(<span class="string">'map calls its argument with a non-null argument'</span>, () =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> mock = jest.fn();</span><br><span class="line">  [<span class="number">1</span>].map(<span class="function"><span class="params">x</span> =&gt;</span> mock(x));</span><br><span class="line">  expect(mock).toBeCalledWith(<span class="number">1</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 <p>위의 테스트 코드는 성공할 것이다. 하지만 <code>expect(mock).toBeCalledWith(2);</code> 로 바꾸게 된다면 배열의 length 가 1 이므로 실패할 것이다. 만약 mock() 함수가 몇번 실행이 되는지 상관없이 테스트 케이스를 성공 처리 하고 싶을때 anything 을 사용하는 것이다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">expect(mock).toBeCalledWith(expect.anything());</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">expect(mock).toBeCalledWith(expect.anything());</span><br></pre></td></tr></table></figure>
 <h3 id="expect-any-constructor"><a href="#expect-any-constructor" class="headerlink" title="expect.any(constructor)"></a>expect.any(constructor)</h3><p>expect.any(constructor) matches anything that was created with the given constructor</p>
 <p>expect.any 는 주어진 생성자와 값이 해당 생성자에 일치하는 지를 테스트 한다. <code>toEqual</code> 과 <code>toBeCalledWith</code> 함수에 값대신 해당 메서드를 사용할 수 있다.</p>
 <p>randocall 함수의 return 값이 Number 인지 테스트하는 코드다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">function randocall(fn) &#123;</span><br><span class="line">  return fn(Math.floor(Math.random() * 6 + 1));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">test(&apos;randocall calls its callback with a number&apos;, () =&gt; &#123;</span><br><span class="line">  const mock = jest.fn();</span><br><span class="line">  randocall(mock);</span><br><span class="line">  expect(mock).toBeCalledWith(expect.any(Number));</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">randocall</span>(<span class="params">fn</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> fn(<span class="built_in">Math</span>.floor(<span class="built_in">Math</span>.random() * <span class="number">6</span> + <span class="number">1</span>));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">test(<span class="string">'randocall calls its callback with a number'</span>, () =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> mock = jest.fn();</span><br><span class="line">  randocall(mock);</span><br><span class="line">  expect(mock).toBeCalledWith(expect.any(<span class="built_in">Number</span>));</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 <h3 id="expect-arrayContaining-array"><a href="#expect-arrayContaining-array" class="headerlink" title="expect.arrayContaining(array)"></a>expect.arrayContaining(array)</h3><p>기대값이 expect.arrayContaining(array) 메서드에 주어지는 배열의 요소를 모두 포함하고 있는지 확인할 때 사용하는 메서드이다. <code>toEqual</code> 과 <code>toBeCalledWith</code> 함수에 사용할 수 있다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">describe(&apos;arrayContaining&apos;, () =&gt; &#123;</span><br><span class="line">  const expected = [&apos;Alice&apos;, &apos;Bob&apos;];</span><br><span class="line">  it(&apos;matches even if received contains additional elements&apos;, () =&gt; &#123;</span><br><span class="line">    expect([&apos;Alice&apos;, &apos;Bob&apos;, &apos;Eve&apos;]).toEqual(expect.arrayContaining(expected));</span><br><span class="line">  &#125;);</span><br><span class="line">  it(&apos;does not match if received does not contain expected elements&apos;, () =&gt; &#123;</span><br><span class="line">    expect([&apos;Bob&apos;, &apos;Eve&apos;]).not.toEqual(expect.arrayContaining(expected));</span><br><span class="line">  &#125;);</span><br><span class="line">  expect([&apos;Alice&apos;, &apos;Alice&apos;, &apos;Bob&apos;, &apos;Eve&apos;]).toEqual(expect.arrayContaining(expected));</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">describe(<span class="string">'arrayContaining'</span>, () =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> expected = [<span class="string">'Alice'</span>, <span class="string">'Bob'</span>];</span><br><span class="line">  it(<span class="string">'matches even if received contains additional elements'</span>, () =&gt; &#123;</span><br><span class="line">    expect([<span class="string">'Alice'</span>, <span class="string">'Bob'</span>, <span class="string">'Eve'</span>]).toEqual(expect.arrayContaining(expected));</span><br><span class="line">  &#125;);</span><br><span class="line">  it(<span class="string">'does not match if received does not contain expected elements'</span>, () =&gt; &#123;</span><br><span class="line">    expect([<span class="string">'Bob'</span>, <span class="string">'Eve'</span>]).not.toEqual(expect.arrayContaining(expected));</span><br><span class="line">  &#125;);</span><br><span class="line">  expect([<span class="string">'Alice'</span>, <span class="string">'Alice'</span>, <span class="string">'Bob'</span>, <span class="string">'Eve'</span>]).toEqual(expect.arrayContaining(expected));</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 <p>첫번째 테스트의 경우 기대값 요소에 ‘Alice’, ‘Bob’ 이 포함되어 있기 때문에 성공한다. 두번째의 경우는 ‘Alice’ 를 포함하고 있지 않기 때문에 실패한다. 세번째 테스트 경우처럼 배열 요소에 중복이 있어도 상관없이 테스트는 성공한다.</p>
 <p>expect.not.arrayContaining(array) 메서드도 사용 가능하다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">describe(&apos;not.arrayContaining&apos;, () =&gt; &#123;</span><br><span class="line">  const expected = [&apos;Samantha&apos;];</span><br><span class="line">  it(&apos;matches if the actual array does not contain the expected elements&apos;, () =&gt; &#123;</span><br><span class="line">    expect([&apos;Alice&apos;, &apos;Bob&apos;, &apos;Eve&apos;]).toEqual(</span><br><span class="line">      expect.not.arrayContaining(expected),</span><br><span class="line">    );</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">describe(<span class="string">'not.arrayContaining'</span>, () =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> expected = [<span class="string">'Samantha'</span>];</span><br><span class="line">  it(<span class="string">'matches if the actual array does not contain the expected elements'</span>, () =&gt; &#123;</span><br><span class="line">    expect([<span class="string">'Alice'</span>, <span class="string">'Bob'</span>, <span class="string">'Eve'</span>]).toEqual(</span><br><span class="line">      expect.not.arrayContaining(expected),</span><br><span class="line">    );</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 <h3 id="expect-objectContaining-object"><a href="#expect-objectContaining-object" class="headerlink" title="expect.objectContaining(object)"></a>expect.objectContaining(object)</h3><p>객체의 key 와 value 를 포함하고 있는지 테스트할때 사용한다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">describe(&apos;objectContaining&apos;, () =&gt; &#123;</span><br><span class="line">  const expected = &#123; foo: &apos;bar&apos; &#125;;</span><br><span class="line"></span><br><span class="line">  it(&apos;matches if the actual object does contain expected key: value pairs&apos;, () =&gt; &#123;</span><br><span class="line">    expect(&#123; bar: &apos;baz&apos; &#125;).toEqual(expect.objectContaining(expected));</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">describe(<span class="string">'objectContaining'</span>, () =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> expected = &#123; <span class="attr">foo</span>: <span class="string">'bar'</span> &#125;;</span><br><span class="line"></span><br><span class="line">  it(<span class="string">'matches if the actual object does contain expected key: value pairs'</span>, () =&gt; &#123;</span><br><span class="line">    expect(&#123; <span class="attr">bar</span>: <span class="string">'baz'</span> &#125;).toEqual(expect.objectContaining(expected));</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 <p><code>foo</code> 라는 key 가 없어서 위 테스트는 실패한다. 만약 { bar: ‘baz’ } 를 { foo: ‘baz’ } 객체로 변경해서 테스트 해보면 실패하는것을 확인할 수 있다. objectContaining 는 key/value 쌍으로 동일해야 성공한다. </p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">test(&apos;onPress gets called with the right thing&apos;, () =&gt; &#123;</span><br><span class="line">  const onPress = jest.fn();</span><br><span class="line">  simulatePresses(onPress);</span><br><span class="line">  expect(onPress).toBeCalledWith(</span><br><span class="line">    expect.objectContaining(&#123;</span><br><span class="line">      x: expect.any(Number),</span><br><span class="line">      y: expect.any(Number),</span><br><span class="line">    &#125;),</span><br><span class="line">  );</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">test(<span class="string">'onPress gets called with the right thing'</span>, () =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> onPress = jest.fn();</span><br><span class="line">  simulatePresses(onPress);</span><br><span class="line">  expect(onPress).toBeCalledWith(</span><br><span class="line">    expect.objectContaining(&#123;</span><br><span class="line">      x: expect.any(<span class="built_in">Number</span>),</span><br><span class="line">      y: expect.any(<span class="built_in">Number</span>),</span><br><span class="line">    &#125;),</span><br><span class="line">  );</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 <p>objectContaining 객체의 value 에 특정한 값이 아니라 any, anything 도 사용할 수 있다. expect.not.objectContaining(object) 메서드도 사용 가능하다.</p>
 <h3 id="expect-stringContaining-string"><a href="#expect-stringContaining-string" class="headerlink" title="expect.stringContaining(string)"></a>expect.stringContaining(string)</h3><p>expect.stringContaining(string) 은 주어지는 문자를 포함하고 있는지 테스트한다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">describe(&apos;stringContaining&apos;, () =&gt; &#123;</span><br><span class="line">  const expected = &apos;Hello world!&apos;;</span><br><span class="line"></span><br><span class="line">  it(&apos;matches if the received value does contain the expected substring&apos;, () =&gt; &#123;</span><br><span class="line">    expect(&apos;Hello world!&apos;).toEqual(expect.stringContaining(expected));</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">describe(<span class="string">'stringContaining'</span>, () =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> expected = <span class="string">'Hello world!'</span>;</span><br><span class="line"></span><br><span class="line">  it(<span class="string">'matches if the received value does contain the expected substring'</span>, () =&gt; &#123;</span><br><span class="line">    expect(<span class="string">'Hello world!'</span>).toEqual(expect.stringContaining(expected));</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 <p>expect.not.stringContaining(string) 도 사용 가능하다.</p>
 <h3 id="expect-stringMatching-string-regexp"><a href="#expect-stringMatching-string-regexp" class="headerlink" title="expect.stringMatching(string | regexp)"></a>expect.stringMatching(string | regexp)</h3><p>주어진 string 이나 정규식에 일치하는지 테스트할 때 사용한다. string 이 주어지는 경우 완전하게 일치 해야하며 정규식을 사용하는 경우는 해당 정규식에 일치하면 된다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">describe(&apos;stringMatching in arrayContaining&apos;, () =&gt; &#123;</span><br><span class="line">  const expected = [</span><br><span class="line">    expect.stringMatching(/^Alic/),</span><br><span class="line">    expect.stringMatching(/^[BR]ob/),</span><br><span class="line">  ];</span><br><span class="line">  it(&apos;matches even if received contains additional elements&apos;, () =&gt; &#123;</span><br><span class="line">    expect([&apos;Alicia&apos;, &apos;Roberto&apos;, &apos;Evelina&apos;]).toEqual(</span><br><span class="line">      expect.arrayContaining(expected),</span><br><span class="line">    );</span><br><span class="line">  &#125;);</span><br><span class="line">  it(&apos;does not match if received does not contain expected elements&apos;, () =&gt; &#123;</span><br><span class="line">    expect([&apos;Roberto&apos;, &apos;Evelina&apos;]).not.toEqual(</span><br><span class="line">      expect.arrayContaining(expected),</span><br><span class="line">    );</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">describe(<span class="string">'stringMatching in arrayContaining'</span>, () =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> expected = [</span><br><span class="line">    expect.stringMatching(<span class="regexp">/^Alic/</span>),</span><br><span class="line">    expect.stringMatching(<span class="regexp">/^[BR]ob/</span>),</span><br><span class="line">  ];</span><br><span class="line">  it(<span class="string">'matches even if received contains additional elements'</span>, () =&gt; &#123;</span><br><span class="line">    expect([<span class="string">'Alicia'</span>, <span class="string">'Roberto'</span>, <span class="string">'Evelina'</span>]).toEqual(</span><br><span class="line">      expect.arrayContaining(expected),</span><br><span class="line">    );</span><br><span class="line">  &#125;);</span><br><span class="line">  it(<span class="string">'does not match if received does not contain expected elements'</span>, () =&gt; &#123;</span><br><span class="line">    expect([<span class="string">'Roberto'</span>, <span class="string">'Evelina'</span>]).not.toEqual(</span><br><span class="line">      expect.arrayContaining(expected),</span><br><span class="line">    );</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 <h3 id="expect-assertions-number"><a href="#expect-assertions-number" class="headerlink" title="expect.assertions(number)"></a>expect.assertions(number)</h3><p>test 함수의 callback 함수 내부에서 테스트가 몇번이 일어나는지 확인하는 메서드이다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">test(&apos;assertions count&apos;, () =&gt; &#123;</span><br><span class="line">  expect.assertions(2);</span><br><span class="line">  expect(true).toBeTruthy();</span><br><span class="line">  expect(null).toBeFalsy();</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">test(<span class="string">'assertions count'</span>, () =&gt; &#123;</span><br><span class="line">  expect.assertions(<span class="number">2</span>);</span><br><span class="line">  expect(<span class="literal">true</span>).toBeTruthy();</span><br><span class="line">  expect(<span class="literal">null</span>).toBeFalsy();</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 <p>위 테스트코드에서 expect.assertions 을 제외하고 두개의 테스트를 하고있다.</p>
 <h3 id="expect-hasAssertions"><a href="#expect-hasAssertions" class="headerlink" title="expect.hasAssertions()"></a>expect.hasAssertions()</h3><p>expect.hasAssertions() 함수는 test 함수의 callback 함수 내부에서 테스트가 최소 한번 실행되고 있는지 테스트하는 함수다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">test(&apos;has assertions&apos;, () =&gt; &#123;</span><br><span class="line">  expect.hasAssertions();</span><br><span class="line">  expect(null).toBeFalsy();</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">test(<span class="string">'has assertions'</span>, () =&gt; &#123;</span><br><span class="line">  expect.hasAssertions();</span><br><span class="line">  expect(<span class="literal">null</span>).toBeFalsy();</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 <h3 id="resolves"><a href="#resolves" class="headerlink" title="resolves"></a>resolves</h3><p>성공된 Promise 의 value 를 가져올때 사용한다. resolves 를 사용하지 않으면 received value 는 {} 가 된다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">test(&apos;resolves to lemon&apos;, () =&gt; &#123;</span><br><span class="line">  expect(Promise.resolve(&apos;lemon&apos;)).resolves.toBe(&apos;lemon&apos;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">test(<span class="string">'resolves to lemon'</span>, () =&gt; &#123;</span><br><span class="line">  expect(<span class="built_in">Promise</span>.resolve(<span class="string">'lemon'</span>)).resolves.toBe(<span class="string">'lemon'</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 <p>async/await 과도 사용할 수 있다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">test(&apos;async/await resolves to lemon&apos;, async () =&gt; &#123;</span><br><span class="line">  await expect(Promise.resolve(&apos;lemon&apos;)).resolves.toBe(&apos;lemon&apos;);</span><br><span class="line">  await expect(Promise.resolve(&apos;lemon&apos;)).resolves.not.toBe(&apos;octopus&apos;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">test(<span class="string">'async/await resolves to lemon'</span>, <span class="keyword">async</span> () =&gt; &#123;</span><br><span class="line">  <span class="keyword">await</span> expect(<span class="built_in">Promise</span>.resolve(<span class="string">'lemon'</span>)).resolves.toBe(<span class="string">'lemon'</span>);</span><br><span class="line">  <span class="keyword">await</span> expect(<span class="built_in">Promise</span>.resolve(<span class="string">'lemon'</span>)).resolves.not.toBe(<span class="string">'octopus'</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 <h3 id="rejects"><a href="#rejects" class="headerlink" title="rejects"></a>rejects</h3><p>rejects 는 resolves 와는 반대로 실패된 Promise 의 reason 을 가져올 때 사용한다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">test(&apos;rejects to octopus&apos;, () =&gt; &#123;</span><br><span class="line">  // make sure to add a return statement</span><br><span class="line">  return expect(Promise.reject(new Error(&apos;octopus&apos;))).rejects.toThrow(</span><br><span class="line">    &apos;octopus&apos;,</span><br><span class="line">  );</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">test(&apos;rejects to octopus&apos;, async () =&gt; &#123;</span><br><span class="line">  await expect(Promise.reject(new Error(&apos;octopus&apos;))).rejects.toThrow(&apos;octopus&apos;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
-<p>참조: <a href="https://jestjs.io/docs/en/expect" target="_blank" rel="noopener">Jest 공식 문서</a></p>
-
-            
-
-        </div>
-    </div>
-    <div id="post-footer" class="post-footer main-content-wrap">
-        
-            <div class="post-footer-tags">
-                <span class="text-color-light text-small">태그</span><br>
-                
-    <a class="tag tag--primary tag--small t-link" href="/tags/expect/">expect</a> <a class="tag tag--primary tag--small t-link" href="/tags/jest-메서드/">jest 메서드</a> <a class="tag tag--primary tag--small t-link" href="/tags/test/">test</a>
-
-            </div>
-        
-        
-            <div class="post-actions-wrap">
-    <nav>
-        <ul class="post-actions post-action-nav">
-            <li class="post-action">
-                
-                    
-                    <a class="post-action-btn btn btn--default tooltip--top" href="/2020/02/16/렌더링/" data-tooltip="렌더링" aria-label="이전: 렌더링">
-                
-                    <i class="fa fa-angle-left" aria-hidden="true"></i>
-                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
-                </a>
-            </li>
-            <li class="post-action">
-                
-                    
-                    <a class="post-action-btn btn btn--default tooltip--top" href="/2020/02/09/jest-메서드-globals/" data-tooltip="jest 메서드 - globals" aria-label="다음: jest 메서드 - globals">
-                
-                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
-                    <i class="fa fa-angle-right" aria-hidden="true"></i>
-                </a>
-            </li>
-        </ul>
-    </nav>
-    <ul class="post-actions post-action-share">
-        <li class="post-action hide-lg hide-md hide-sm">
-            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
-                <i class="fa fa-share-alt" aria-hidden="true"></i>
-            </a>
-        </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2020/02/16/jest-메서드-expect/" title="Facebook 공유">
-                    <i class="fab fa-facebook" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2020/02/16/jest-메서드-expect/" title="Twitter 공유">
-                    <i class="fab fa-twitter" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2020/02/16/jest-메서드-expect/" title="Google+ 공유">
-                    <i class="fab fa-google-plus" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-        
-            
-        
-        <li class="post-action">
-            
-                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
-            
-                <i class="fa fa-list" aria-hidden="true"></i>
-            </a>
-        </li>
-    </ul>
-</div>
-
-
-        
-        
-            
-        
-    </div>
-</article>
-
-
-
-                <footer id="footer" class="main-content-wrap">
-    <span class="copyrights">
-        Copyrights &copy; 2020 kkangil. All Rights Reserved.
-    </span>
-</footer>
-
-            </div>
-            
-                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
-                    <div class="post-actions-wrap">
-    <nav>
-        <ul class="post-actions post-action-nav">
-            <li class="post-action">
-                
-                    
-                    <a class="post-action-btn btn btn--default tooltip--top" href="/2020/02/16/렌더링/" data-tooltip="렌더링" aria-label="이전: 렌더링">
-                
-                    <i class="fa fa-angle-left" aria-hidden="true"></i>
-                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
-                </a>
-            </li>
-            <li class="post-action">
-                
-                    
-                    <a class="post-action-btn btn btn--default tooltip--top" href="/2020/02/09/jest-메서드-globals/" data-tooltip="jest 메서드 - globals" aria-label="다음: jest 메서드 - globals">
-                
-                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
-                    <i class="fa fa-angle-right" aria-hidden="true"></i>
-                </a>
-            </li>
-        </ul>
-    </nav>
-    <ul class="post-actions post-action-share">
-        <li class="post-action hide-lg hide-md hide-sm">
-            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
-                <i class="fa fa-share-alt" aria-hidden="true"></i>
-            </a>
-        </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2020/02/16/jest-메서드-expect/" title="Facebook 공유">
-                    <i class="fab fa-facebook" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2020/02/16/jest-메서드-expect/" title="Twitter 공유">
-                    <i class="fab fa-twitter" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2020/02/16/jest-메서드-expect/" title="Google+ 공유">
-                    <i class="fab fa-google-plus" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-        
-            
-        
-        <li class="post-action">
-            
-                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
-            
-                <i class="fa fa-list" aria-hidden="true"></i>
-            </a>
-        </li>
-    </ul>
-</div>
-
-
-                </div>
-                
-    <div id="share-options-bar" class="share-options-bar" data-behavior="4">
-        <i id="btn-close-shareoptions" class="fa fa-times"></i>
-        <ul class="share-options">
-            
-                
-                
-                <li class="share-option">
-                    <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2020/02/16/jest-메서드-expect/">
-                        <i class="fab fa-facebook" aria-hidden="true"></i><span>Facebook 공유</span>
-                    </a>
-                </li>
-            
-                
-                
-                <li class="share-option">
-                    <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2020/02/16/jest-메서드-expect/">
-                        <i class="fab fa-twitter" aria-hidden="true"></i><span>Twitter 공유</span>
-                    </a>
-                </li>
-            
-                
-                
-                <li class="share-option">
-                    <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2020/02/16/jest-메서드-expect/">
-                        <i class="fab fa-google-plus" aria-hidden="true"></i><span>Google+ 공유</span>
-                    </a>
-                </li>
-            
-        </ul>
-    </div>
-
-
-            
-        </div>
-        
-
-
-    
-        
-    
-
-<div id="about">
-    <div id="about-card">
-        <div id="about-btn-close">
-            <i class="fa fa-times"></i>
-        </div>
-        
-            <img id="about-card-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
-        
-            <h4 id="about-card-name">kkangil</h4>
-        
-            <div id="about-card-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
-</div>
-        
-        
-            <div id="about-card-job">
-                <i class="fa fa-briefcase"></i>
-                <br>
-                <p>web developer</p>
-
-            </div>
-        
-        
-            <div id="about-card-location">
-                <i class="fa fa-map-marker-alt"></i>
-                <br>
-                Asia/Seoul
-            </div>
-        
-    </div>
-</div>
-
-        
-        
-<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
-        <!--SCRIPTS-->
-<script src="/assets/js/script-dbd16rvloemmuxdzniplmnxxvwoz24eya9wol0b7vvmlokgqsjivmb8dnscy.min.js"></script>
-<!--SCRIPTS END-->
-
-    
-
-
-
-    </body>
-</html>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">test(<span class="string">'rejects to octopus'</span>, () =&gt; &#123;</span><br><span class="line">  <span class="comment">// make sure to add a return statement</span></span><br><span class="line">  <span class="keyword">return</span> expect(<span class="built_in">Promise</span>.reject(<span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'octopus'</span>))).rejects.toThrow(</span><br><span class="line">    <span class="string">'octopus'</span>,</span><br><span class="line">  );</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">test(<span class="string">'rejects to octopus'</span>, <span class="keyword">async</span> () =&gt; &#123;</span><br><span class="line">  <span class="keyword">await</span> expect(<span class="built_in">Promise</span>.reject(<span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'octopus'</span>))).rejects.toThrow(<span class="string">'octopus'</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>참조: <a href="https://jestjs.io/docs/en/expect">Jest 공식 문서</a></p>
+</div><div class="article-tags size-small is-uppercase mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/jest-%EB%A9%94%EC%84%9C%EB%93%9C/">jest 메서드</a><a class="link-muted mr-2" rel="tag" href="/tags/expect/">expect</a><a class="link-muted mr-2" rel="tag" href="/tags/test/">test</a></div><!--!--></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2020/02/16/%EB%A0%8C%EB%8D%94%EB%A7%81/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">렌더링</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2020/02/09/jest-%EB%A9%94%EC%84%9C%EB%93%9C-globals/"><span class="level-item">jest 메서드 - globals</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--></div><!--!--><div class="column column-right is-4-tablet is-4-desktop is-4-widescreen  order-3 is-sticky"><div class="card widget" id="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">카탈로그</h3><ul class="menu-list"><li><a class="is-flex" href="#expect-value"><span class="mr-2">1</span><span>expect(value)</span></a></li><li><a class="is-flex" href="#expect-extend-matchers"><span class="mr-2">2</span><span>expect.extend(matchers)</span></a><ul class="menu-list"><li><a class="is-flex" href="#Custom-Matchers-API"><span class="mr-2">2.1</span><span>Custom Matchers API</span></a></li></ul></li><li><a class="is-flex" href="#expect-anything"><span class="mr-2">3</span><span>expect.anything</span></a></li><li><a class="is-flex" href="#expect-any-constructor"><span class="mr-2">4</span><span>expect.any(constructor)</span></a></li><li><a class="is-flex" href="#expect-arrayContaining-array"><span class="mr-2">5</span><span>expect.arrayContaining(array)</span></a></li><li><a class="is-flex" href="#expect-objectContaining-object"><span class="mr-2">6</span><span>expect.objectContaining(object)</span></a></li><li><a class="is-flex" href="#expect-stringContaining-string"><span class="mr-2">7</span><span>expect.stringContaining(string)</span></a></li><li><a class="is-flex" href="#expect-stringMatching-string-regexp"><span class="mr-2">8</span><span>expect.stringMatching(string | regexp)</span></a></li><li><a class="is-flex" href="#expect-assertions-number"><span class="mr-2">9</span><span>expect.assertions(number)</span></a></li><li><a class="is-flex" href="#expect-hasAssertions"><span class="mr-2">10</span><span>expect.hasAssertions()</span></a></li><li><a class="is-flex" href="#resolves"><span class="mr-2">11</span><span>resolves</span></a></li><li><a class="is-flex" href="#rejects"><span class="mr-2">12</span><span>rejects</span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">카테고리</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/Deploy/"><span class="level-start"><span class="level-item">Deploy</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Javascript/"><span class="level-start"><span class="level-item">Javascript</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Jest/"><span class="level-start"><span class="level-item">Jest</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/React/"><span class="level-start"><span class="level-item">React</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Sequelize/"><span class="level-start"><span class="level-item">Sequelize</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/hexo/"><span class="level-start"><span class="level-item">hexo</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%EC%9B%B9-%EC%84%B1%EB%8A%A5-%EC%9D%B4%EC%95%BC%EA%B8%B0/"><span class="level-start"><span class="level-item">웹 성능 이야기</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%ED%85%8C%EC%8A%A4%ED%8A%B8-%EC%BD%94%EB%93%9C/"><span class="level-start"><span class="level-item">테스트 코드</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%ED%95%A8%EC%88%98%ED%98%95-%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D/"><span class="level-start"><span class="level-item">함수형 프로그래밍</span></span><span class="level-end"><span class="level-item tag">9</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">태그</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/BDD/"><span class="tag">BDD</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/HTTP-%EC%9A%94%EC%B2%AD-%EC%B5%9C%EC%86%8C%ED%99%94/"><span class="tag">HTTP 요청 최소화</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Hooks/"><span class="tag">Hooks</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Javascript/"><span class="tag">Javascript</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/MySQL/"><span class="tag">MySQL</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Next-js/"><span class="tag">Next.js</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/React/"><span class="tag">React</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/React-Hooks/"><span class="tag">React-Hooks</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Sequelize/"><span class="tag">Sequelize</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/TDD/"><span class="tag">TDD</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/indent/"><span class="tag">_.indent</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/call-apply-arguments-this/"><span class="tag">call, apply, arguments, this</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/compose/"><span class="tag">compose</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/deep-clone/"><span class="tag">deep-clone</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/deploy-Next-js/"><span class="tag">deploy Next.js</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/describe/"><span class="tag">describe</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/expect/"><span class="tag">expect</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/filter/"><span class="tag">filter</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/go/"><span class="tag">go</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/go-%ED%95%A8%EC%88%98/"><span class="tag">go 함수</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/hexo/"><span class="tag">hexo</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/hexo-%EC%8B%9C%EC%9E%91/"><span class="tag">hexo 시작</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/hooks-%EC%82%AC%EC%9A%A9%EB%B0%A9%EB%B2%95/"><span class="tag">hooks 사용방법</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/hooks-%EC%A0%95%EC%9D%98/"><span class="tag">hooks 정의</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/jasmine/"><span class="tag">jasmine</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/javascript/"><span class="tag">javascript</span><span class="tag is-grey-lightest">12</span></a></div><div class="control"><a class="tags has-addons" href="/tags/jest-globals-%EB%A9%94%EC%84%9C%EB%93%9C/"><span class="tag">jest globals 메서드</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/jest-%EB%A9%94%EC%84%9C%EB%93%9C/"><span class="tag">jest 메서드</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/lifecycle/"><span class="tag">lifecycle</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/map/"><span class="tag">map</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/memoization/"><span class="tag">memoization</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/model-%EC%A0%95%EC%9D%98/"><span class="tag">model 정의</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/named-function/"><span class="tag">named function</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/once/"><span class="tag">once</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/partial/"><span class="tag">partial</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/partial-function/"><span class="tag">partial function</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/pipe/"><span class="tag">pipe</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/pipeline/"><span class="tag">pipeline</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/pm2/"><span class="tag">pm2</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/pm2-ecosystem/"><span class="tag">pm2-ecosystem</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/skip/"><span class="tag">skip</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/spy/"><span class="tag">spy</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/syntax/"><span class="tag">syntax</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/test/"><span class="tag">test</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/toBe/"><span class="tag">toBe</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/toEqual/"><span class="tag">toEqual</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/toError/"><span class="tag">toError</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/toHaveBeenCalled/"><span class="tag">toHaveBeenCalled</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/toHaveReturned/"><span class="tag">toHaveReturned</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useCallback/"><span class="tag">useCallback</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useContext/"><span class="tag">useContext</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useEffect/"><span class="tag">useEffect</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useMemo/"><span class="tag">useMemo</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useReducer/"><span class="tag">useReducer</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useRef/"><span class="tag">useRef</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useState/"><span class="tag">useState</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EA%B0%9D%EC%B2%B4/"><span class="tag">객체</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EA%B3%A0%EC%B0%A8-%ED%95%A8%EC%88%98/"><span class="tag">고차 함수</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%84%A4%EB%B9%84%EA%B2%8C%EC%9D%B4%EC%85%98-%ED%83%80%EC%9D%B4%EB%B0%8D/"><span class="tag">네비게이션 타이밍</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%A0%8C%EB%8D%94%EB%A7%81/"><span class="tag">렌더링</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%A0%8C%EB%8D%94%EB%A7%81-%EC%84%B1%EB%8A%A5-%ED%96%A5%EC%83%81/"><span class="tag">렌더링 성능 향상</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%A6%AC%ED%8E%98%EC%9D%B8%ED%8A%B8/"><span class="tag">리페인트</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%A6%AC%ED%94%8C%EB%A1%9C%EC%9A%B0/"><span class="tag">리플로우</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%B3%80%EA%B2%BD-%EC%B5%9C%EC%86%8C%ED%99%94/"><span class="tag">변경 최소화</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%B6%80%EC%88%98-%ED%9A%A8%EA%B3%BC/"><span class="tag">부수 효과</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%B9%84%EB%8F%99%EA%B8%B0%EC%99%80-go/"><span class="tag">비동기와 _.go</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EC%84%B1%EB%8A%A5-%ED%85%8C%EC%8A%A4%ED%8A%B8/"><span class="tag">성능 테스트</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EC%88%9C%EC%88%98-%ED%95%A8%EC%88%98/"><span class="tag">순수 함수</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EC%9B%B9-%EC%82%AC%EC%9D%B4%ED%8A%B8-%EC%B5%9C%EC%A0%81%ED%99%94/"><span class="tag">웹 사이트 최적화</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EC%9D%98%EC%A1%B4%EC%84%B1-%EC%A3%BC%EC%9E%85/"><span class="tag">의존성 주입</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EC%9D%BC%EA%B8%89-%ED%95%A8%EC%88%98/"><span class="tag">일급 함수</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%81%B4%EB%A1%9C%EC%A0%80/"><span class="tag">클로저</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%85%8C%EC%8A%A4%ED%8A%B8-%EC%BD%94%EB%93%9C/"><span class="tag">테스트 코드</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%8C%8C%EC%9D%B4%ED%94%84%EB%9D%BC%EC%9D%B8/"><span class="tag">파이프라인</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%94%84%EB%A1%9C%EC%84%B8%EC%8B%B1-%EB%AA%A8%EB%8D%B8/"><span class="tag">프로세싱 모델</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%95%A8%EC%88%98-%EC%A1%B0%EB%A6%BD/"><span class="tag">함수 조립</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%95%A8%EC%88%98%EC%9D%98-%ED%98%B8%EC%9D%B4%EC%8A%A4%ED%8C%85/"><span class="tag">함수의 호이스팅</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%95%A8%EC%88%98%ED%98%95-%EC%9E%90%EB%B0%94%EC%8A%A4%ED%81%AC%EB%A6%BD%ED%8A%B8%EC%9D%98-%EC%8B%A4%EC%9A%A9%EC%84%B1-2/"><span class="tag">함수형 자바스크립트의 실용성 2</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%95%A8%EC%88%98%ED%98%95-%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D/"><span class="tag">함수형 프로그래밍</span><span class="tag is-grey-lightest">9</span></a></div></div></div></div></div><div class="card widget"><div class="card-content"><div class="notification is-danger">You need to set <code>client_id</code> and <code>slot_id</code> to show this AD unit. Please set it in <code>_config.yml</code>.</div></div></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/">kkangil&#039;s Blog</a><p class="size-small"><span>&copy; 2020 kkangil</span>  Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/ppoffice/hexo-theme-icarus"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script>moment.locale("ko");</script><script>var IcarusThemeSettings = {
+            site: {
+                url: 'https://kkangil.github.io',
+                external_link: {"enable":true,"exclude":[]}
+            },
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script src="/js/animation.js"></script><a id="back-to-top" title="맨 위로" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/js/lightgallery.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><!--!--><script src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="입력 하세요..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"입력 하세요...","untitled":"(Untitled)","posts":"포스트","pages":"Pages","categories":"카테고리","tags":"태그"});
+        });</script></body></html>

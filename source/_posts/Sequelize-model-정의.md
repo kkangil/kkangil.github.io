@@ -7,11 +7,24 @@ tags:
   - Sequelize
   - MySQL
   - model 정의
+  
+toc: true
+widgets:
+  - type: toc
+    position: right
+  - type: categories
+    position: right
+  - type: tags
+    position: right
+  - type: adsense
+    position: right
+    client_id: ca-pub-5445993070474035
+    slot_id: ''
 ---
 ## sequelize model 정의
 - sesquelize model 을 정의하는 방법은 여러가지 있지만, sequelize 의 `define` 메소드를 이용해 정의하고자 한다.
 - model이란 데이터베이스의 테이블에 해당되며, 객체내의 key 값은 컬럼으로 생성된다.
-```
+```javascript
 return sequelize.define(
   "User",
   {
@@ -45,7 +58,7 @@ return sequelize.define(
 
 ## Getters & setters
 - 컬럼 option에 getter와 setter를 추가해 줄 수 있다.
-```
+```javascript
 return sequelize.define(
   "User",
   {
@@ -76,7 +89,7 @@ const userSample = async () => {
 - `getDataValue` 를 사용하여 자신의 컬럼 뿐만 아니라 테이블의 컬럼 데이터도 가져올 수 있다.
 - `setDataValue` 를 사용하여 생성이나 수정 시 데이터 값을 수정, 변경할 수 있다. 
 - 컬럼 객체 내부에 설정해 주지 않고, `define` 함수의 세번째 파라미터로도 사용이 가능하다.
-```
+```javascript
 return sequelize.define(
   "User",
   {
@@ -100,7 +113,7 @@ return sequelize.define(
 
 ## validate column
 - 데이터 타입 이외에도 `validate` 를 사용해서 유효성 확인 후 에러를 반환해 줄 수 있다.
-```
+```javascript
 return sequelize.define(
   "Foo",
   {
@@ -130,7 +143,7 @@ return sequelize.define(
 ```
 
 - 제공되는 `validate` 가 아닌 직접 만들어서 사용하는 기능도 제공한다.
-```
+```javascript
 bar: {
   type: DataTypes.INTEGER,
   validate: {
@@ -144,7 +157,7 @@ bar: {
 ```
 - throw new Error의 메시지가 에러로 리턴된다.
 - 직접 만들어서 사용하지 않아도 메시지를 설정해 줄 수 있다.
-```
+```javascript
 bar: {
   type: DataTypes.INTEGER,
   validate: {
@@ -160,7 +173,7 @@ bar: {
 ```
 - `allowNull` 을 사용한다면 `notNull` 의 `msg`를 설정해주면 에러메시지로 사용가능하다.
 
-```
+```javascript
 return sequelize.define(
   "User",
   {
@@ -189,7 +202,7 @@ return sequelize.define(
 
 ## model configuration
 - `define` 함수의 세번째 파라미터 객체의 설정값
-```
+```javascript
 return sequelize.define(
   ..., {
     modelName: 'bar', // 모델 이름 설정

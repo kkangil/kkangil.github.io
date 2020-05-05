@@ -7,6 +7,19 @@ tags:
   - jest 메서드
   - expect
   - test
+  
+toc: true
+widgets:
+  - type: toc
+    position: right
+  - type: categories
+    position: right
+  - type: tags
+    position: right
+  - type: adsense
+    position: right
+    client_id: ca-pub-5445993070474035
+    slot_id: ''
 ---
 
 ### expect(value)
@@ -19,7 +32,7 @@ expect.extend 함수를 사용하여 Jest 에서 제공하는 matcher 가 아닌
 
 <!-- more -->
 
-```
+```javascript
 expect.extend({
   toBeWithinRange(received, floor, ceiling) {
     const pass = received >= floor && received <= ceiling;
@@ -53,7 +66,7 @@ test('numeric ranges', () => {
 
 expect.extend 는 비동기 함수 호출도 지원한다.
 
-```
+```javascript
 expect.extend({
   async toBeDivisibleByExternalValue(received) {
     const externalValue = await getExternalValueFromRemoteSource();
@@ -88,7 +101,7 @@ Macher 들은 항상 두개의 key 를 포함하고 있는 객체를 리턴해�
 
 null 과 undefined 을 제외한 모든 값들과 일치한다. 즉, null 과 undefined 외의 모든 값들은 동일하다.
 
-```
+```javascript
 test('map calls its argument with a non-null argument', () => {
   const mock = jest.fn();
   [1].map(x => mock(x));
@@ -98,7 +111,7 @@ test('map calls its argument with a non-null argument', () => {
 
 위의 테스트 코드는 성공할 것이다. 하지만 `expect(mock).toBeCalledWith(2);` 로 바꾸게 된다면 배열의 length 가 1 이므로 실패할 것이다. 만약 mock() 함수가 몇번 실행이 되는지 상관없이 테스트 케이스를 성공 처리 하고 싶을때 anything 을 사용하는 것이다.
 
-```
+```javascript
 expect(mock).toBeCalledWith(expect.anything());
 ```
 
@@ -110,7 +123,7 @@ expect.any 는 주어진 생성자와 값이 해당 생성자에 일치하는 �
 
 randocall 함수의 return 값이 Number 인지 테스트하는 코드다.
 
-```
+```javascript
 function randocall(fn) {
   return fn(Math.floor(Math.random() * 6 + 1));
 }
@@ -126,7 +139,7 @@ test('randocall calls its callback with a number', () => {
 
 기대값이 expect.arrayContaining(array) 메서드에 주어지는 배열의 요소를 모두 포함하고 있는지 확인할 때 사용하는 메서드이다. `toEqual` 과 `toBeCalledWith` 함수에 사용할 수 있다.
 
-```
+```javascript
 describe('arrayContaining', () => {
   const expected = ['Alice', 'Bob'];
   it('matches even if received contains additional elements', () => {
@@ -144,7 +157,7 @@ describe('arrayContaining', () => {
 expect.not.arrayContaining(array) 메서드도 사용 가능하다.
 
 
-```
+```javascript
 describe('not.arrayContaining', () => {
   const expected = ['Samantha'];
   it('matches if the actual array does not contain the expected elements', () => {
@@ -159,7 +172,7 @@ describe('not.arrayContaining', () => {
 
 객체의 key 와 value 를 포함하고 있는지 테스트할때 사용한다.
 
-```
+```javascript
 describe('objectContaining', () => {
   const expected = { foo: 'bar' };
 
@@ -171,7 +184,7 @@ describe('objectContaining', () => {
 
 `foo` 라는 key 가 없어서 위 테스트는 실패한다. 만약 { bar: 'baz' } 를 { foo: 'baz' } 객체로 변경해서 테스트 해보면 실패하는것을 확인할 수 있다. objectContaining 는 key/value 쌍으로 동일해야 성공한다. 
 
-```
+```javascript
 test('onPress gets called with the right thing', () => {
   const onPress = jest.fn();
   simulatePresses(onPress);
@@ -190,7 +203,7 @@ objectContaining 객체의 value 에 특정한 값이 아니라 any, anything �
 
 expect.stringContaining(string) 은 주어지는 문자를 포함하고 있는지 테스트한다.
 
-```
+```javascript
 describe('stringContaining', () => {
   const expected = 'Hello world!';
 
@@ -206,7 +219,7 @@ expect.not.stringContaining(string) 도 사용 가능하다.
 
 주어진 string 이나 정규식에 일치하는지 테스트할 때 사용한다. string 이 주어지는 경우 완전하게 일치 해야하며 정규식을 사용하는 경우는 해당 정규식에 일치하면 된다.
 
-```
+```javascript
 describe('stringMatching in arrayContaining', () => {
   const expected = [
     expect.stringMatching(/^Alic/),
@@ -230,7 +243,7 @@ describe('stringMatching in arrayContaining', () => {
 
 test 함수의 callback 함수 내부에서 테스트가 몇번이 일어나는지 확인하는 메서드이다.
 
-```
+```javascript
 test('assertions count', () => {
   expect.assertions(2);
   expect(true).toBeTruthy();
@@ -244,7 +257,7 @@ test('assertions count', () => {
 
 expect.hasAssertions() 함수는 test 함수의 callback 함수 내부에서 테스트가 최소 한번 실행되고 있는지 테스트하는 함수다.
 
-```
+```javascript
 test('has assertions', () => {
   expect.hasAssertions();
   expect(null).toBeFalsy();
@@ -255,7 +268,7 @@ test('has assertions', () => {
 
 성공된 Promise 의 value 를 가져올때 사용한다. resolves 를 사용하지 않으면 received value 는 {} 가 된다.
 
-```
+```javascript
 test('resolves to lemon', () => {
   expect(Promise.resolve('lemon')).resolves.toBe('lemon');
 });
@@ -263,7 +276,7 @@ test('resolves to lemon', () => {
 
 async/await 과도 사용할 수 있다.
 
-```
+```javascript
 test('async/await resolves to lemon', async () => {
   await expect(Promise.resolve('lemon')).resolves.toBe('lemon');
   await expect(Promise.resolve('lemon')).resolves.not.toBe('octopus');
@@ -274,7 +287,7 @@ test('async/await resolves to lemon', async () => {
 
 rejects 는 resolves 와는 반대로 실패된 Promise 의 reason 을 가져올 때 사용한다.
 
-```
+```javascript
 test('rejects to octopus', () => {
   // make sure to add a return statement
   return expect(Promise.reject(new Error('octopus'))).rejects.toThrow(

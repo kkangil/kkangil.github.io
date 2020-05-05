@@ -1,543 +1,70 @@
-
-<!DOCTYPE html>
-<html lang="ko">
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="generator" content="Hexo 4.2.0"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>값에 대해 - kkangil&#039;s Blog</title><meta description="함수로 협업하는 가장 좋은 방법은 인자와 리턴값으로만 소통하는 것이다. 순수하게 인자와 리턴값에만 의존하면 누가 만든 함수든 어떤 라이브러리로 만든 함수든 조립할 수 있게 된다. 이때 함수에서 다루는 값으로 자바스크립트의 기본 객체를 사용하거나 아주 보편적으로 약속된 객체만 사용하면 함수들 간의 조합성이 더욱 좋아진다."><meta property="og:type" content="blog"><meta property="og:title" content="값에 대해"><meta property="og:url" content="https://kkangil.github.io/2019/12/29/%EA%B0%92%EC%97%90-%EB%8C%80%ED%95%B4/"><meta property="og:site_name" content="kkangil&#039;s Blog"><meta property="og:description" content="함수로 협업하는 가장 좋은 방법은 인자와 리턴값으로만 소통하는 것이다. 순수하게 인자와 리턴값에만 의존하면 누가 만든 함수든 어떤 라이브러리로 만든 함수든 조립할 수 있게 된다. 이때 함수에서 다루는 값으로 자바스크립트의 기본 객체를 사용하거나 아주 보편적으로 약속된 객체만 사용하면 함수들 간의 조합성이 더욱 좋아진다."><meta property="og:locale" content="ko_KR"><meta property="og:image" content="https://kkangil.github.io/img/og_image.png"><meta property="article:published_time" content="2019-12-29T07:35:45.000Z"><meta property="article:modified_time" content="2020-05-05T13:07:46.764Z"><meta property="article:author" content="kkangil"><meta property="article:tag" content="javascript"><meta property="article:tag" content="함수형 프로그래밍"><meta property="article:tag" content="순수 함수"><meta property="article:tag" content="부수 효과"><meta property="article:tag" content="변경 최소화"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/og_image.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://kkangil.github.io/2019/12/29/%EA%B0%92%EC%97%90-%EB%8C%80%ED%95%B4/"},"headline":"kkangil's Blog","image":["https://kkangil.github.io/img/og_image.png"],"datePublished":"2019-12-29T07:35:45.000Z","dateModified":"2020-05-05T13:07:46.764Z","author":{"@type":"Person","name":"kkangil"},"description":"함수로 협업하는 가장 좋은 방법은 인자와 리턴값으로만 소통하는 것이다. 순수하게 인자와 리턴값에만 의존하면 누가 만든 함수든 어떤 라이브러리로 만든 함수든 조립할 수 있게 된다. 이때 함수에서 다루는 값으로 자바스크립트의 기본 객체를 사용하거나 아주 보편적으로 약속된 객체만 사용하면 함수들 간의 조합성이 더욱 좋아진다."}</script><meta name="naver-site-verification" content="b0ce7bc14af00ce2aee96528313654d78c325351"><link rel="canonical" href="https://kkangil.github.io/2019/12/29/%EA%B0%92%EC%97%90-%EB%8C%80%ED%95%B4/"><link rel="icon" href="/images/coffee-favicon.png"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/tomorrow-night-bright.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><link href="https://fonts.googleapis.com/earlyaccess/jejugothic.css" rel="stylesheet"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/css/justifiedGallery.min.css"><script src="https://www.googletagmanager.com/gtag/js?id=UA-165569140-1" async></script><script>window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
     
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="generator" content="kkangil&#39;s Blog">
-    <title>값에 대해 - kkangil&#39;s Blog</title>
-    <meta name="author" content="kkangil">
-    
-    
-    
-        <link rel="alternate" type="application/atom+xml" title="RSS" href="/atom.xml">
-    
-    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg"},"articleBody":"함수로 협업하는 가장 좋은 방법은 인자와 리턴값으로만 소통하는 것이다. 순수하게 인자와 리턴값에만 의존하면 누가 만든 함수든 어떤 라이브러리로 만든 함수든 조립할 수 있게 된다. 이때 함수에서 다루는 값으로 자바스크립트의 기본 객체를 사용하거나 아주 보편적으로 약속된 객체만 사용하면 함수들 간의 조합성이 더욱 좋아진다.\n\n여기서 말하는 기본 객체란 Array, Object, String, Number, Boolean, Null, Undefined 등의 자바스크립트 기본 객체를 말하며, 브라우저의 DOM 같은 것들도 범주 안에 들어올 수 있다. 어떤 프로퍼티와 어떤 메서드를 가지고 있는지 충분히 약속되고 보장된 값들을 말한다. 약속된 스펙을 가진 값들만 사용하는 함수들은 언제나 어떤 환경에서나 사용하기 편하다.\n순수 함수순수 함수와 부수 효과순수 함수는 동일한 인자가 들어오면 항상 동일한 값을 리턴하는 함수다. 메서드가 자신이 가진 내부의 상태에 따라 다른 결과를 만든다면, 순수 함수는 들어온 인자와 상수만 사용하여 항상 동일한 결과를 리턴한다.또 하나 중요한 특징이 있는데, 바로 외부의 상태를 변경하지 않는다는 점이다. 함수에게 들어온 인자를 포함하여, 외부와 공유되고 있는 값 중 함수가 참조할 수 있는 어떤 값도 변경하지 않는 것을 말한다. 함수가 외부 상태를 변경하면, 외부 상태와 연관이 있는 다른 부분에도 영향이 있고 이것을 부수 효과(Side effect)라고 한다.\n부수 효과 문제는 특히 동시성이 생길 때 더욱 취약하다. 브라우저나 Node.js는 다양한 작업을 동시에 처리한다. 이렇게 동시성이 생기는 상황에서는 여러 곳에서 공유되도 있는 값이 변경되는 것은 위험하다. 부수 효과는 단지 동시성에서만의 이슈가 아니다. 예를 들면 사용자가 오랫동안 인터랙션을 해서 상태를 지속적으로 관리해야 하는 웹 페이지나 앱의 코드들에서 부수 효과 문제가 생기는 경우가 많다.\n순수 함수의 정의를 아는 것보다 중요한 점은 여기에 담긴 목적과 전략이다. 순수 함수에 담긴 전략은 그 이름처럼 간단 명료하다. 상태 변화를 최소화하고, 다음 단계로 넘어갈 때마다 새로운 값으로 출발하는 식으로 코딩하는 것이다. 이렇게 하면 문제가 쉬워진다. 문제가 단순해지면 해결책 역시 쉬워지고 오류를 만들 가능성도 줄어든다. 작은 순수 함수들을 모아 만든 소프트웨어는 유지 보수와 기획 변경에 유연하게 대응한다.\n순수 함수와 순수 함수가 아닌 함수1234567891011121314151617181920// 순수 함수function add(a, b) &#123;  return a + b;&#125;// 순수 함수가 아닌 함수function add2(obj, value) &#123;  obj.value = obj.value + value;  return obj.value;&#125;// 작은 차이지만 순수 함수function add3(obj, value) &#123;  return obj.value + value;&#125;// 작은 차이지만 순수 함수 2function add4(obj, value) &#123;  return &#123; value: obj.value + value &#125;;&#125;\nadd는 인자를 받아 새로운 값을 리턴했고 add2는 obj의 상태를 변경한다. add는 인자가 같으면 항상 결과가 같고 부수 효과가 없다. add2는 obj.value의 상태에 따라 결과가 달라진다. 이런 점 자체가 문제를 만들지는 않지만 만일 obj.value를 사용하는 코드가 add2 외에 다른 곳에도 있다면 반드시 obj.value가 변경될 수 있다는 점과 변경될 시점 등을 정확히 인지하고 제어해야 할 것이다.\nadd3과 add4는 작은 차이가 있지만 순수 함수다. obj.value를 참조만 하고 있기 때문이다. 순수 함수를 만들기 위해 항상 모든 값을 새로 만들어야 하는 것은 아니다. 조회 자체는 부수 효과를 일으키지 않는다.\n순수 함수로 프로그래밍을 한다면 add 같은 작은 기능의 함수만 만들어지는 게 아닌가 하는 생각이 들 수 있다. 클래스나 객체처럼 풍부한 기능을 가진 모듈을 만들 수 없을 것만 같을 수 있다. 하지만 인자로 함수를 사용하거나 고차 함수를 이용한 함수 조합을 통해 순수 함수의 조건을 따르면서 보다 풍부한 변화를 불러오는 함수들을 만들 수 있다.\n변경 최소화와 불변 객체직접 변경하는 대신, 변경된 새로운 값을 만드는 전략대부분 이미 확인한 함수들이지만 이번에는 값과 값을 변경해 나가는 것에 초점을 두고 설명하고자 한다.\n123456789101112131415161718192021var users1 = [  &#123; name: &quot;ID&quot;, age: 32 &#125;,  &#123; name: &quot;HA&quot;, age: 25 &#125;,  &#123; name: &quot;BJ&quot;, age: 32 &#125;,  &#123; name: &quot;PJ&quot;, age: 28 &#125;,  &#123; name: &quot;JE&quot;, age: 27 &#125;,];var comparator = function (a, b) &#123;  if (a.age &lt; b.age) return -1;  if (a.age &gt; b.age) return 1;  return 0;&#125;;var sortedUsers1 = users1.sort(comparator) // 1console.log(users1 === sortedUsers1) // 2 trueconsole.log(_.pluck(sortedUsers1, &apos;age&apos;)); // 3 [25, 27, 28, 32, 32]console.log(_.pluck(users1, &apos;age&apos;)); // 4 [25, 27, 28, 32, 32]\nusers1을 나이순으로 정렬하는 예제다. Array.prototype.sort는 자기 자신을 정렬하는 함수다. 2의 결과가 true라는 것은 둘이 완전히 같은 객체라는 뜻이다. 동일한 값을 가진 객체가 아닌 완전히 같은 객체라는 것이다. 1의 .sort() 메서드는 자기 자신을 바꾸고 자기 자신을 리턴한다. 3 _.pluck 를 통해 age 값만 꺼내보면 둘다 동일하게 정렬이 된 것을 확인할 수 있는데, users1과 sortedUsers1이 완전히 같은 값이어서 동일한 결과가 출력된 것이다.\n1234567891011121314151617var users2 = [  &#123; name: &quot;ID&quot;, age: 32 &#125;,  &#123; name: &quot;HA&quot;, age: 25 &#125;,  &#123; name: &quot;BJ&quot;, age: 32 &#125;,  &#123; name: &quot;PJ&quot;, age: 28 &#125;,  &#123; name: &quot;JE&quot;, age: 27 &#125;,];var sortedUsers2 = _.sortBy(users2, &apos;age&apos;) // 1console.log(users2 === sortedUsers2) // 2 falseconsole.log(_.pluck(sortedUsers2, &apos;age&apos;)) // 3 [25, 27, 28, 32, 32]console.log(_.pluck(users2, &apos;age&apos;)) // 4 [32, 25, 32, 28, 27]console.log(users2[1] === sortedUsers2[0]); // 5 true\n이번에는 _.sortBy 함수를 이용하여 정렬을 해 보았다. 2를 확인해 보면 false가 나온다. 1에서 리턴된 sortedUser2는 새로운 객체다. 3,4 를 확인해 보면 sortedUsers2는 나이순으로 정렬이 되었는데, users2 는 원본 그대로임을 알 수 있다. 다른 곳에 users2의 순서에 의존하여 동작하고 있는 코드가 있다면, sortedUsers2 처럼 새로운 객체를 만들어 정렬을 하는 방식이 부수 효과가 없고 유리하다.\nsortedUser2는 새로운 값이다. 그렇다면 배열 안의 값들도 새로운 값일까? 서로 다르게 정렬이 되어 있지만, 두 배열 안에 있는 모든 값은 새로운 값이 아닌 기존의 값이다. 항상 배열 내의 모든 값을 새롭게 만든다면 메모리 사용량이 매우 높아질 것이다. _.sortBy는 내부의 값은 기존의 값을 그대로 활용하면서 배열만 새로 만들어 정렬한다.\nUndescore.js의 콘셉트 중에는 이러한 중요한 전략이 있다. 이 전략을 잘 따르면 부수 효과를 줄이면서도 메모리 사용량 증가는 최소화하는 좋은 함수들을 만들 수 있다. 그것은 바로 그함수가 변경할 영역에 대해서만 새 값을 만드는 전략이다. 예를 들어 자신의 역할이 정렬이라면 정렬과 연관 있는 부분만 새 값으로 만들고 나머지 값들은 재활용하는 식이다. 이 전략을 대부분의 함수적 함수에 적용된다.\n1234567var rejectedUsers2 = _.reject(users2, function (user) &#123; return user.age &lt; 30; &#125;);console.log(rejectedUsers2);// [&#123;name: &quot;ID&quot;, age: 32&#125;, &#123;name: &quot;BJ&quot;, age: 32&#125;]console.log(rejectedUsers2 === users2) // falseconsole.log(rejectedUsers2.length, users2.length); // 2 5 console.log(rejectedUsers2[0] === users2[0]) // true\n배열 내부의 값 중 특정 조건의 값들을 제외하는 _.reject 같은 함수도 배열 내부의 값들을 지우는 것이 아니라 값들이 지워진 새로운 배열을 만드는 것이다. _.reject도 결국 같은 전략을 따른 것이다. _.reject 함수의 역할은 값을 제외하는 것이고 달라지는 영역은 배열이기에 배열을 새로 만드는 것이다.\nusers2에서 30세 미만인 사람들을 제외했다. 더 정확히 말하면 30세 미만인 사람들이 제외된 새로운 배열을 만들어 리턴했다. rejectedUsers2는 users2가 아니며, users2.length도 그대로이고, 배열 내부의 값들도 기존의 값 그대로다. users2를 다루면서 새로 정렬하고 배열 내부의 값도 지웠지만, users2는 원래 상태 그대로이다.\n123456789101112131415//  1console.log(  _.pluck(_.reject(users2, function (user) &#123; return user.age &gt;= 30; &#125;), &apos;name&apos;))// [&quot;HA&quot;, &quot;PJ&quot;, &quot;JE&quot;]// 2console.log(  _.pluck(users2, &apos;name&apos;))// [&quot;ID&quot;, &quot;HA&quot;, &quot;BJ&quot;, &quot;PJ&quot;, &quot;JE&quot;]// 3console.log(users2)// 원본 그대로\n1 users에서는 _.reject로 30세 이상의 user를 제외한 새 배열을 만든 후, _.pluck을 통해 이름만 추출한 새 배열을 만들어 로그를 남겼다. _.reject를 이용해 users2의 상태를 변경하지 않으면서 필터링을 했고, _.pluck 를 통해 역시 원본 소스들을 건들지 않고 name이 추출된 새로운 배열을 만들었다. 따라서 원본 데이터에는 아무런 영향을 끼치지 않았다. 그 덕분에 2에서는 어려움 없이 원본에 있는 모든 이름을 출력할 수 있다. 2가 실행된 후에도 3 users는 역시 변경되지 않는다.\n123456789var b1 = [1, 2, 3, 4, 5];var b2 = _.initial(b1, 2); // 뒤에서 2개 제거한 새로운 배열 리턴console.log(b1 === b2, b1, b2);// false (5) [1, 2, 3, 4, 5] (3) [1, 2, 3]var b3 = _.without(b1, 1, 5); // 1과 5를 제거한 새로운 배열 리턴var b4 = _.without(b3, 2); // 2를 제거한 새로운 배열 리턴console.log(b1 === b3, b3 === b4, b3, b4);// false false (3) [2, 3, 4] (2) [3, 4]\n맨 마지막에 b4를 만들 때, b3 에서 2를 제거했지만 b3에는 여전히 2가 남아있다.\n_.clone 으로 복사하기_.clone은 배열이나 객체를 받아 복사하는 함수다.\n123456789101112131415161718192021var product1 = &#123;  name: &quot;AB 반팔티&quot;,  price: 10000,  sizes: [&quot;M&quot;, &quot;L&quot;, &quot;XL&quot;],  colors: [&quot;Black&quot;, &quot;White&quot;, &quot;Blue&quot;]&#125;;var product2 = _.clone(product1);console.log(product2);// &#123;//   name: &quot;AB 반팔티&quot;,//   price: 10000,//   sizes: [&quot;M&quot;, &quot;L&quot;, &quot;XL&quot;],//   colors: [&quot;Black&quot;, &quot;White&quot;, &quot;Blue&quot;]// &#125;console.log(product1 === product2); // falseproduct2.name = &quot;ABCD 반팔티&quot;;console.log(product1.name, product2.name);// AB 반팔티 ABCD 반팔티\nproduct1을 _.clone 함수를 통해 복사했다. 동일한 내용이 들어 있는 새로운 객체가 리턴되어, 출력해 보면 내용은 같지만 비교하면 false가 나온다. product2.name 을 변경해도 product1에는 영향을 끼치지 않는다. product2를 마음 편히 다룰 수 있다.그런데 _.clone을 정확히 다루려면 _.clone이 객체를 복하는 범위에 대해 제대로 알아야 한다. _.clone이 객체를 복사하는 것은 맞지만 객체 내부의 모든 값들까지 복사하는 것은 아니다.\n123456product2.sizes.push(&quot;2XL&quot;);console.log(product2.sizes);// [&quot;M&quot;, &quot;L&quot;, &quot;XL&quot;, &quot;2XL&quot;]console.log(product1.sizes);// [&quot;M&quot;, &quot;L&quot;, &quot;XL&quot;, &quot;2XL&quot;]console.log(product1.sizes === product2.sizes); // true\n_.clone은 동일한 key들을 가진 새로운 객체를 만들면서 각 key에 기존의 key에 해당하는 value를 할당한다. 때문에 내부의 값이 객체라면 같은 객체를 바라보게 된다.\n1234567891011121314151617181920212223_.clone = function (obj) &#123;  var cloned = _.isArray(obj) ? [] : &#123;&#125;;  var keys = _.keys(obj);  _.each(keys, function (key) &#123;    cloned[key] = obj[key]; // Array일때는 key가 숫자  &#125;);  return cloned;&#125;var obj1 = &#123; a: 1, b: 2, c: &#123; d: 3 &#125; &#125;;var obj2 = _.clone(obj1);obj2.b = 22;console.log(obj2);// &#123; a: 1, b: 22, c: &#123; d: 3 &#125; &#125;;console.log(obj1);// &#123; a: 1, b: 2, c: &#123; d: 3 &#125; &#125;;console.log(obj1 === obj2); // falseconsole.log(obj1.c === obj2.c); // trueobj2.c.d = 33;console.log(obj1.c.d) // 33 obj1도 같이 변경\n그렇다면 객체 안의 객체를 변경하고 싶은 경우에는 어떻게 해야 원본에 영향을 주지 않으면서 값을 변경할 수 있을까?\n12345678910111213141516171819202122var product1 = &#123;  name: &quot;AB 반팔티&quot;,  price: 10000,  sizes: [&quot;M&quot;, &quot;L&quot;, &quot;XL&quot;],  colors: [&quot;Black&quot;, &quot;White&quot;, &quot;Blue&quot;]&#125;;var product2 = _.clone(product1);product2.sizes = _.clone(product2.sizes); // 내부도 clone 후 push를 하거나product2.sizes.push(&quot;2XL&quot;)console.log(product2.sizes);// [&quot;M&quot;, &quot;L&quot;, &quot;XL&quot;, &quot;2XL&quot;]console.log(product1.sizes);// [&quot;M&quot;, &quot;L&quot;, &quot;XL&quot;]console.log(product1.sizes === product2.sizes); // falseproduct2.colors = product2.colors.concat(&quot;Yellow&quot;) // 아니면 concat으로 한번에console.log(product2.colors);// [&quot;Black&quot;, &quot;White&quot;, &quot;Blue&quot;, &quot;Yellow&quot;]console.log(product1.colors);// [&quot;Black&quot;, &quot;White&quot;, &quot;Blue&quot;]console.log(product1.colors === product2.colors); // false\n위와 같이 하면 된다. 어차피 내부의 값도 복사하는 식으로 값을 다뤄야 한다면 왜 굳이 객체의 첫 번째 깊이만 복사하느냐고 생각할 수 있다. 값 복사 후 항상 내부의 모든 값을 변경할 것이 아니기에, 객체 내부의 객체는 공유하는 것이 메모리 사용에 유리하고, 복사 수행 처리 시간이라는 측면에서도 이점이 많다.\n_.extend, _.defaults로 복사하기_.extend나 _.defaults를 이용하면 값 복사와 변경을 좀 더 간결하게 할 수 있다.\n123456789101112131415161718192021222324252627282930313233343536373839404142434445464748var product1 = &#123;  name: &quot;AB 반팔티&quot;,  price: 10000,  sizes: [&quot;M&quot;, &quot;L&quot;, &quot;XL&quot;],  colors: [&quot;Black&quot;, &quot;White&quot;, &quot;Blue&quot;]&#125;;// 1var product2 = _.extend(&#123;&#125;, product1, &#123;  name: &quot;AB 긴팔티&quot;,  price: 15000&#125;);// 2var product3 = _.defaults(&#123;  name: &quot;AB 후드티&quot;,  price: 15000&#125;, product1);console.log(product2);// &#123;//   name: &quot;AB 긴팔티&quot;,//   price: 15000,//   sizes: [&quot;M&quot;, &quot;L&quot;, &quot;XL&quot;],//   colors: [&quot;Black&quot;, &quot;White&quot;, &quot;Blue&quot;]// &#125;;console.log(product3);// &#123;//   name: &quot;AB 후드티&quot;,//   price: 15000,//   sizes: [&quot;M&quot;, &quot;L&quot;, &quot;XL&quot;],//   colors: [&quot;Black&quot;, &quot;White&quot;, &quot;Blue&quot;]// &#125;;// 3var product4 = _.extend(&#123;&#125;, product3, &#123;  colors: product3.colors.concat(&quot;Purple&quot;)&#125;);var product5 = _.defaults(&#123;  colors: product4.colors.concat(&quot;Red&quot;)&#125;, product4);console.log(product3.colors);// [&quot;Black&quot;, &quot;White&quot;, &quot;Blue&quot;]console.log(product4.colors);// [&quot;Black&quot;, &quot;White&quot;, &quot;Blue&quot;, &quot;Purple&quot;]console.log(product5.colors);// [&quot;Black&quot;, &quot;White&quot;, &quot;Blue&quot;, &quot;Purple&quot;, &quot;Red&quot;]\n\nproduct2는 값 복사를 위해 새로운 객체인 {} 를 _.extend의 첫 번째 인자로 넣었다.\n어차피 {name: “AB 후드티”, price: 12000}도 새 객체이므로 product3처럼 _.defaults를 이용하는 것이 객체를 적게 생성해서 더 효율적이다. _.extend의 경우, 왼쪽 객체에 없는 key/value는 확장하고, 왼쪽 객체에 있던 key/value는 덮어 쓴다. _.defaults는 왼쪽에 없는 key/value만 확장한다.\n1, 2를 보면 _.clone 없이 복사와 변경을 동시에 하여 간결해졌지만, colors 처럼 깊은 값을 변경해야 할 경우에는 직접 다뤄줘야 한다. _.extend와 _.defaults 역시 변경이 필요 없는 값은 이전의 값을 공유한다.\n\n참조: 함수형 자바스크립트 프로그래밍\n","dateCreated":"2019-12-29T16:35:45+09:00","dateModified":"2019-12-29T18:10:00+09:00","datePublished":"2019-12-29T16:35:45+09:00","description":"함수로 협업하는 가장 좋은 방법은 인자와 리턴값으로만 소통하는 것이다. 순수하게 인자와 리턴값에만 의존하면 누가 만든 함수든 어떤 라이브러리로 만든 함수든 조립할 수 있게 된다. 이때 함수에서 다루는 값으로 자바스크립트의 기본 객체를 사용하거나 아주 보편적으로 약속된 객체만 사용하면 함수들 간의 조합성이 더욱 좋아진다.","headline":"값에 대해","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"https://kkangil.github.io/2019/12/29/값에-대해/"},"publisher":{"@type":"Organization","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg","logo":{"@type":"ImageObject","url":"profile.jpeg"}},"url":"https://kkangil.github.io/2019/12/29/값에-대해/","keywords":"javascript, 함수형 프로그래밍, 순수 함수, 부수 효과, 변경 최소화"}</script>
-    <meta name="description" content="함수로 협업하는 가장 좋은 방법은 인자와 리턴값으로만 소통하는 것이다. 순수하게 인자와 리턴값에만 의존하면 누가 만든 함수든 어떤 라이브러리로 만든 함수든 조립할 수 있게 된다. 이때 함수에서 다루는 값으로 자바스크립트의 기본 객체를 사용하거나 아주 보편적으로 약속된 객체만 사용하면 함수들 간의 조합성이 더욱 좋아진다.">
-<meta name="keywords" content="javascript,함수형 프로그래밍,순수 함수,부수 효과,변경 최소화">
-<meta property="og:type" content="blog">
-<meta property="og:title" content="값에 대해">
-<meta property="og:url" content="https://kkangil.github.io/2019/12/29/값에-대해/index.html">
-<meta property="og:site_name" content="kkangil&#39;s Blog">
-<meta property="og:description" content="함수로 협업하는 가장 좋은 방법은 인자와 리턴값으로만 소통하는 것이다. 순수하게 인자와 리턴값에만 의존하면 누가 만든 함수든 어떤 라이브러리로 만든 함수든 조립할 수 있게 된다. 이때 함수에서 다루는 값으로 자바스크립트의 기본 객체를 사용하거나 아주 보편적으로 약속된 객체만 사용하면 함수들 간의 조합성이 더욱 좋아진다.">
-<meta property="og:locale" content="ko">
-<meta property="og:updated_time" content="2019-12-29T09:10:00.896Z">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="값에 대해">
-<meta name="twitter:description" content="함수로 협업하는 가장 좋은 방법은 인자와 리턴값으로만 소통하는 것이다. 순수하게 인자와 리턴값에만 의존하면 누가 만든 함수든 어떤 라이브러리로 만든 함수든 조립할 수 있게 된다. 이때 함수에서 다루는 값으로 자바스크립트의 기본 객체를 사용하거나 아주 보편적으로 약속된 객체만 사용하면 함수들 간의 조합성이 더욱 좋아진다.">
-    
-    
-        
-    
-    
-        <meta property="og:image" content="https://kkangil.github.io/assets/images/profile.jpeg"/>
-    
-    
-    
-    
-    <!--STYLES-->
-    <link rel="stylesheet" href="/assets/css/style-c4ozcsklz4kht2pebhp44xorvyverh23toayhn7i6ubrpyedak24hv1v0hyd.min.css">
-    <!--STYLES END-->
-    
-
-    
-</head>
-
-    <body>
-        <div id="blog">
-            <!-- Define author's picture -->
-
-
-    
-        
-            
-        
-    
-
-<header id="header" data-behavior="4">
-    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
-    <div class="header-title">
-        <a class="header-title-link" href="/ ">kkangil&#39;s Blog</a>
-    </div>
-    
-        
-            <a class="header-right-picture " href="#about">
-        
-        
-            <img class="header-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
-        
-        </a>
-    
-</header>
-
-            <!-- Define author's picture -->
-
-
-
-        
-    
-
-<nav id="sidebar" data-behavior="4">
-    <div class="sidebar-container">
-        
-            <div class="sidebar-profile">
-                <a href="/#about">
-                    <img class="sidebar-profile-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
-                </a>
-                <h4 class="sidebar-profile-name">kkangil</h4>
-                
-                    <h5 class="sidebar-profile-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
-</h5>
-                
-            </div>
-        
-        
-            <ul class="sidebar-buttons">
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="/ " title="Home">
-                    
-                        <i class="sidebar-button-icon fa fa-home" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Home</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="/all-categories" title="카테고리">
-                    
-                        <i class="sidebar-button-icon fa fa-bookmark" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">카테고리</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="/all-tags" title="태그">
-                    
-                        <i class="sidebar-button-icon fa fa-tags" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">태그</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="/all-archives" title="기록">
-                    
-                        <i class="sidebar-button-icon fa fa-archive" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">기록</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link open-algolia-search" href="#search" title="검색">
-                    
-                        <i class="sidebar-button-icon fa fa-search" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">검색</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="#about" title="About">
-                    
-                        <i class="sidebar-button-icon fa fa-question" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">About</span>
-                    </a>
-            </li>
-            
-        </ul>
-        
-            <ul class="sidebar-buttons">
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="https://github.com/kkangil" target="_blank" rel="noopener" title="GitHub">
-                    
-                        <i class="sidebar-button-icon fab fa-github" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">GitHub</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="http://stackoverflow.com/users/10870848/kkangil" target="_blank" rel="noopener" title="Stack Overflow">
-                    
-                        <i class="sidebar-button-icon fab fa-stack-overflow" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Stack Overflow</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="https://www.linkedin.com/in/kangil-kim-31093a169/" target="_blank" rel="noopener" title="LinkedIn">
-                    
-                        <i class="sidebar-button-icon fab fa-linkedin" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">LinkedIn</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="/fe.kkangil@gmail.com" title="Mail">
-                    
-                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Mail</span>
-                    </a>
-            </li>
-            
-        </ul>
-        
-            <ul class="sidebar-buttons">
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="/atom.xml" title="RSS">
-                    
-                        <i class="sidebar-button-icon fa fa-rss" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">RSS</span>
-                    </a>
-            </li>
-            
-        </ul>
-        
-    </div>
-</nav>
-
-            
-            <div id="main" data-behavior="4"
-                 class="
-                        hasCoverMetaIn
-                        ">
-                
-<article class="post">
-    
-    
-        <div class="post-header main-content-wrap text-left">
-    
-        <h1 class="post-title">
-            값에 대해
-        </h1>
-    
-    
-        <div class="post-meta">
-    <time datetime="2019-12-29T16:35:45+09:00">
-	
-		    12월 29, 2019
-    	
-    </time>
-    
-        <span>카테고리 </span>
-        
-    <a class="category-link" href="/categories/함수형-프로그래밍/">함수형 프로그래밍</a>
-
-
-    
-</div>
-
-    
-</div>
-
-    
-    <div class="post-content markdown">
-        <div class="main-content-wrap">
-            <p>함수로 협업하는 가장 좋은 방법은 인자와 리턴값으로만 소통하는 것이다. 순수하게 인자와 리턴값에만 의존하면 누가 만든 함수든 어떤 라이브러리로 만든 함수든 조립할 수 있게 된다. 이때 함수에서 다루는 값으로 자바스크립트의 기본 객체를 사용하거나 아주 보편적으로 약속된 객체만 사용하면 함수들 간의 조합성이 더욱 좋아진다.</p>
+        gtag('config', 'UA-165569140-1');</script><!--!--><script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script><script data-ad-client="ca-pub-5445993070474035" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js" async></script></head><body class="is-2-column"><nav class="navbar navbar-main"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/">kkangil&#039;s Blog</a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">Home</a><a class="navbar-item" href="/archives">Archives</a><a class="navbar-item" href="/categories">Categories</a><a class="navbar-item" href="/tags">Tags</a><a class="navbar-item" href="/about">About</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="GitHub Home" href="https://github.com/kkangil"><i class="fab fa-github"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="카탈로그" href="javascript:;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="검색" href="javascript:;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><span class="level-item">2019년 12월 29일 일요일 오후 4:35</span><span class="level-item"><a class="link-muted" href="/categories/%ED%95%A8%EC%88%98%ED%98%95-%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D/">함수형 프로그래밍</a></span><span class="level-item">24분 읽기 (대략 3583 단어)</span></div></div><h1 class="title is-3 is-size-4-mobile">값에 대해</h1><div class="content"><p>함수로 협업하는 가장 좋은 방법은 인자와 리턴값으로만 소통하는 것이다. 순수하게 인자와 리턴값에만 의존하면 누가 만든 함수든 어떤 라이브러리로 만든 함수든 조립할 수 있게 된다. 이때 함수에서 다루는 값으로 자바스크립트의 기본 객체를 사용하거나 아주 보편적으로 약속된 객체만 사용하면 함수들 간의 조합성이 더욱 좋아진다.</p>
 <a id="more"></a>
 <p>여기서 말하는 기본 객체란 Array, Object, String, Number, Boolean, Null, Undefined 등의 자바스크립트 기본 객체를 말하며, 브라우저의 DOM 같은 것들도 범주 안에 들어올 수 있다. 어떤 프로퍼티와 어떤 메서드를 가지고 있는지 충분히 약속되고 보장된 값들을 말한다. 약속된 스펙을 가진 값들만 사용하는 함수들은 언제나 어떤 환경에서나 사용하기 편하다.</p>
 <h2 id="순수-함수"><a href="#순수-함수" class="headerlink" title="순수 함수"></a>순수 함수</h2><h3 id="순수-함수와-부수-효과"><a href="#순수-함수와-부수-효과" class="headerlink" title="순수 함수와 부수 효과"></a>순수 함수와 부수 효과</h3><p>순수 함수는 동일한 인자가 들어오면 항상 동일한 값을 리턴하는 함수다. 메서드가 자신이 가진 내부의 상태에 따라 다른 결과를 만든다면, 순수 함수는 들어온 인자와 상수만 사용하여 항상 동일한 결과를 리턴한다.<br>또 하나 중요한 특징이 있는데, 바로 외부의 상태를 변경하지 않는다는 점이다. 함수에게 들어온 인자를 포함하여, 외부와 공유되고 있는 값 중 함수가 참조할 수 있는 어떤 값도 변경하지 않는 것을 말한다. 함수가 외부 상태를 변경하면, 외부 상태와 연관이 있는 다른 부분에도 영향이 있고 이것을 부수 효과(Side effect)라고 한다.</p>
 <p>부수 효과 문제는 특히 동시성이 생길 때 더욱 취약하다. 브라우저나 Node.js는 다양한 작업을 동시에 처리한다. 이렇게 동시성이 생기는 상황에서는 여러 곳에서 공유되도 있는 값이 변경되는 것은 위험하다. 부수 효과는 단지 동시성에서만의 이슈가 아니다. 예를 들면 사용자가 오랫동안 인터랙션을 해서 상태를 지속적으로 관리해야 하는 웹 페이지나 앱의 코드들에서 부수 효과 문제가 생기는 경우가 많다.</p>
 <p>순수 함수의 정의를 아는 것보다 중요한 점은 여기에 담긴 목적과 전략이다. 순수 함수에 담긴 전략은 그 이름처럼 간단 명료하다. 상태 변화를 최소화하고, 다음 단계로 넘어갈 때마다 새로운 값으로 출발하는 식으로 코딩하는 것이다. 이렇게 하면 문제가 쉬워진다. 문제가 단순해지면 해결책 역시 쉬워지고 오류를 만들 가능성도 줄어든다. 작은 순수 함수들을 모아 만든 소프트웨어는 유지 보수와 기획 변경에 유연하게 대응한다.</p>
-<h3 id="순수-함수와-순수-함수가-아닌-함수"><a href="#순수-함수와-순수-함수가-아닌-함수" class="headerlink" title="순수 함수와 순수 함수가 아닌 함수"></a>순수 함수와 순수 함수가 아닌 함수</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">// 순수 함수</span><br><span class="line">function add(a, b) &#123;</span><br><span class="line">  return a + b;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 순수 함수가 아닌 함수</span><br><span class="line">function add2(obj, value) &#123;</span><br><span class="line">  obj.value = obj.value + value;</span><br><span class="line">  return obj.value;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 작은 차이지만 순수 함수</span><br><span class="line">function add3(obj, value) &#123;</span><br><span class="line">  return obj.value + value;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">// 작은 차이지만 순수 함수 2</span><br><span class="line">function add4(obj, value) &#123;</span><br><span class="line">  return &#123; value: obj.value + value &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="순수-함수와-순수-함수가-아닌-함수"><a href="#순수-함수와-순수-함수가-아닌-함수" class="headerlink" title="순수 함수와 순수 함수가 아닌 함수"></a>순수 함수와 순수 함수가 아닌 함수</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 순수 함수</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">add</span>(<span class="params">a, b</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> a + b;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 순수 함수가 아닌 함수</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">add2</span>(<span class="params">obj, value</span>) </span>&#123;</span><br><span class="line">  obj.value = obj.value + value;</span><br><span class="line">  <span class="keyword">return</span> obj.value;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 작은 차이지만 순수 함수</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">add3</span>(<span class="params">obj, value</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> obj.value + value;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 작은 차이지만 순수 함수 2</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">add4</span>(<span class="params">obj, value</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> &#123; <span class="attr">value</span>: obj.value + value &#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>add는 인자를 받아 새로운 값을 리턴했고 add2는 obj의 상태를 변경한다. add는 인자가 같으면 항상 결과가 같고 부수 효과가 없다. add2는 obj.value의 상태에 따라 결과가 달라진다. 이런 점 자체가 문제를 만들지는 않지만 만일 obj.value를 사용하는 코드가 add2 외에 다른 곳에도 있다면 반드시 obj.value가 변경될 수 있다는 점과 변경될 시점 등을 정확히 인지하고 제어해야 할 것이다.</p>
 <p>add3과 add4는 작은 차이가 있지만 순수 함수다. obj.value를 참조만 하고 있기 때문이다. 순수 함수를 만들기 위해 항상 모든 값을 새로 만들어야 하는 것은 아니다. 조회 자체는 부수 효과를 일으키지 않는다.</p>
 <p>순수 함수로 프로그래밍을 한다면 add 같은 작은 기능의 함수만 만들어지는 게 아닌가 하는 생각이 들 수 있다. 클래스나 객체처럼 풍부한 기능을 가진 모듈을 만들 수 없을 것만 같을 수 있다. 하지만 인자로 함수를 사용하거나 고차 함수를 이용한 함수 조합을 통해 순수 함수의 조건을 따르면서 보다 풍부한 변화를 불러오는 함수들을 만들 수 있다.</p>
 <h2 id="변경-최소화와-불변-객체"><a href="#변경-최소화와-불변-객체" class="headerlink" title="변경 최소화와 불변 객체"></a>변경 최소화와 불변 객체</h2><h3 id="직접-변경하는-대신-변경된-새로운-값을-만드는-전략"><a href="#직접-변경하는-대신-변경된-새로운-값을-만드는-전략" class="headerlink" title="직접 변경하는 대신, 변경된 새로운 값을 만드는 전략"></a>직접 변경하는 대신, 변경된 새로운 값을 만드는 전략</h3><p>대부분 이미 확인한 함수들이지만 이번에는 값과 값을 변경해 나가는 것에 초점을 두고 설명하고자 한다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">var users1 = [</span><br><span class="line">  &#123; name: &quot;ID&quot;, age: 32 &#125;,</span><br><span class="line">  &#123; name: &quot;HA&quot;, age: 25 &#125;,</span><br><span class="line">  &#123; name: &quot;BJ&quot;, age: 32 &#125;,</span><br><span class="line">  &#123; name: &quot;PJ&quot;, age: 28 &#125;,</span><br><span class="line">  &#123; name: &quot;JE&quot;, age: 27 &#125;,</span><br><span class="line">];</span><br><span class="line"></span><br><span class="line">var comparator = function (a, b) &#123;</span><br><span class="line">  if (a.age &lt; b.age) return -1;</span><br><span class="line">  if (a.age &gt; b.age) return 1;</span><br><span class="line">  return 0;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">var sortedUsers1 = users1.sort(comparator) // 1</span><br><span class="line"></span><br><span class="line">console.log(users1 === sortedUsers1) // 2 true</span><br><span class="line"></span><br><span class="line">console.log(_.pluck(sortedUsers1, &apos;age&apos;)); // 3 [25, 27, 28, 32, 32]</span><br><span class="line"></span><br><span class="line">console.log(_.pluck(users1, &apos;age&apos;)); // 4 [25, 27, 28, 32, 32]</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> users1 = [</span><br><span class="line">  &#123; <span class="attr">name</span>: <span class="string">"ID"</span>, <span class="attr">age</span>: <span class="number">32</span> &#125;,</span><br><span class="line">  &#123; <span class="attr">name</span>: <span class="string">"HA"</span>, <span class="attr">age</span>: <span class="number">25</span> &#125;,</span><br><span class="line">  &#123; <span class="attr">name</span>: <span class="string">"BJ"</span>, <span class="attr">age</span>: <span class="number">32</span> &#125;,</span><br><span class="line">  &#123; <span class="attr">name</span>: <span class="string">"PJ"</span>, <span class="attr">age</span>: <span class="number">28</span> &#125;,</span><br><span class="line">  &#123; <span class="attr">name</span>: <span class="string">"JE"</span>, <span class="attr">age</span>: <span class="number">27</span> &#125;,</span><br><span class="line">];</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> comparator = <span class="function"><span class="keyword">function</span> (<span class="params">a, b</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (a.age &lt; b.age) <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">  <span class="keyword">if</span> (a.age &gt; b.age) <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> sortedUsers1 = users1.sort(comparator) <span class="comment">// 1</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(users1 === sortedUsers1) <span class="comment">// 2 true</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(_.pluck(sortedUsers1, <span class="string">'age'</span>)); <span class="comment">// 3 [25, 27, 28, 32, 32]</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(_.pluck(users1, <span class="string">'age'</span>)); <span class="comment">// 4 [25, 27, 28, 32, 32]</span></span><br></pre></td></tr></table></figure>
 <p>users1을 나이순으로 정렬하는 예제다. Array.prototype.sort는 자기 자신을 정렬하는 함수다. 2의 결과가 true라는 것은 둘이 완전히 같은 객체라는 뜻이다. 동일한 값을 가진 객체가 아닌 완전히 같은 객체라는 것이다. 1의 .sort() 메서드는 자기 자신을 바꾸고 자기 자신을 리턴한다. 3 _.pluck 를 통해 age 값만 꺼내보면 둘다 동일하게 정렬이 된 것을 확인할 수 있는데, users1과 sortedUsers1이 완전히 같은 값이어서 동일한 결과가 출력된 것이다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">var users2 = [</span><br><span class="line">  &#123; name: &quot;ID&quot;, age: 32 &#125;,</span><br><span class="line">  &#123; name: &quot;HA&quot;, age: 25 &#125;,</span><br><span class="line">  &#123; name: &quot;BJ&quot;, age: 32 &#125;,</span><br><span class="line">  &#123; name: &quot;PJ&quot;, age: 28 &#125;,</span><br><span class="line">  &#123; name: &quot;JE&quot;, age: 27 &#125;,</span><br><span class="line">];</span><br><span class="line"></span><br><span class="line">var sortedUsers2 = _.sortBy(users2, &apos;age&apos;) // 1</span><br><span class="line"></span><br><span class="line">console.log(users2 === sortedUsers2) // 2 false</span><br><span class="line"></span><br><span class="line">console.log(_.pluck(sortedUsers2, &apos;age&apos;)) // 3 [25, 27, 28, 32, 32]</span><br><span class="line"></span><br><span class="line">console.log(_.pluck(users2, &apos;age&apos;)) // 4 [32, 25, 32, 28, 27]</span><br><span class="line"></span><br><span class="line">console.log(users2[1] === sortedUsers2[0]); // 5 true</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> users2 = [</span><br><span class="line">  &#123; <span class="attr">name</span>: <span class="string">"ID"</span>, <span class="attr">age</span>: <span class="number">32</span> &#125;,</span><br><span class="line">  &#123; <span class="attr">name</span>: <span class="string">"HA"</span>, <span class="attr">age</span>: <span class="number">25</span> &#125;,</span><br><span class="line">  &#123; <span class="attr">name</span>: <span class="string">"BJ"</span>, <span class="attr">age</span>: <span class="number">32</span> &#125;,</span><br><span class="line">  &#123; <span class="attr">name</span>: <span class="string">"PJ"</span>, <span class="attr">age</span>: <span class="number">28</span> &#125;,</span><br><span class="line">  &#123; <span class="attr">name</span>: <span class="string">"JE"</span>, <span class="attr">age</span>: <span class="number">27</span> &#125;,</span><br><span class="line">];</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> sortedUsers2 = _.sortBy(users2, <span class="string">'age'</span>) <span class="comment">// 1</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(users2 === sortedUsers2) <span class="comment">// 2 false</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(_.pluck(sortedUsers2, <span class="string">'age'</span>)) <span class="comment">// 3 [25, 27, 28, 32, 32]</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(_.pluck(users2, <span class="string">'age'</span>)) <span class="comment">// 4 [32, 25, 32, 28, 27]</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(users2[<span class="number">1</span>] === sortedUsers2[<span class="number">0</span>]); <span class="comment">// 5 true</span></span><br></pre></td></tr></table></figure>
 <p>이번에는 _.sortBy 함수를 이용하여 정렬을 해 보았다. 2를 확인해 보면 false가 나온다. 1에서 리턴된 sortedUser2는 새로운 객체다. 3,4 를 확인해 보면 sortedUsers2는 나이순으로 정렬이 되었는데, users2 는 원본 그대로임을 알 수 있다. 다른 곳에 users2의 순서에 의존하여 동작하고 있는 코드가 있다면, sortedUsers2 처럼 새로운 객체를 만들어 정렬을 하는 방식이 부수 효과가 없고 유리하다.</p>
 <p>sortedUser2는 새로운 값이다. 그렇다면 배열 안의 값들도 새로운 값일까? 서로 다르게 정렬이 되어 있지만, 두 배열 안에 있는 모든 값은 새로운 값이 아닌 기존의 값이다. 항상 배열 내의 모든 값을 새롭게 만든다면 메모리 사용량이 매우 높아질 것이다. _.sortBy는 내부의 값은 기존의 값을 그대로 활용하면서 배열만 새로 만들어 정렬한다.</p>
 <p>Undescore.js의 콘셉트 중에는 이러한 중요한 전략이 있다. 이 전략을 잘 따르면 부수 효과를 줄이면서도 메모리 사용량 증가는 최소화하는 좋은 함수들을 만들 수 있다. 그것은 바로 그<code>함수가 변경할 영역에 대해서만 새 값을 만드는 전략</code>이다. 예를 들어 자신의 역할이 정렬이라면 정렬과 연관 있는 부분만 새 값으로 만들고 나머지 값들은 재활용하는 식이다. 이 전략을 대부분의 함수적 함수에 적용된다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">var rejectedUsers2 = _.reject(users2, function (user) &#123; return user.age &lt; 30; &#125;);</span><br><span class="line">console.log(rejectedUsers2);</span><br><span class="line">// [&#123;name: &quot;ID&quot;, age: 32&#125;, &#123;name: &quot;BJ&quot;, age: 32&#125;]</span><br><span class="line"></span><br><span class="line">console.log(rejectedUsers2 === users2) // false</span><br><span class="line">console.log(rejectedUsers2.length, users2.length); // 2 5 </span><br><span class="line">console.log(rejectedUsers2[0] === users2[0]) // true</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> rejectedUsers2 = _.reject(users2, <span class="function"><span class="keyword">function</span> (<span class="params">user</span>) </span>&#123; <span class="keyword">return</span> user.age &lt; <span class="number">30</span>; &#125;);</span><br><span class="line"><span class="built_in">console</span>.log(rejectedUsers2);</span><br><span class="line"><span class="comment">// [&#123;name: "ID", age: 32&#125;, &#123;name: "BJ", age: 32&#125;]</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(rejectedUsers2 === users2) <span class="comment">// false</span></span><br><span class="line"><span class="built_in">console</span>.log(rejectedUsers2.length, users2.length); <span class="comment">// 2 5 </span></span><br><span class="line"><span class="built_in">console</span>.log(rejectedUsers2[<span class="number">0</span>] === users2[<span class="number">0</span>]) <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
 <p>배열 내부의 값 중 특정 조건의 값들을 제외하는 _.reject 같은 함수도 배열 내부의 값들을 지우는 것이 아니라 값들이 지워진 새로운 배열을 만드는 것이다. _.reject도 결국 같은 전략을 따른 것이다. _.reject 함수의 역할은 값을 제외하는 것이고 달라지는 영역은 배열이기에 배열을 새로 만드는 것이다.</p>
 <p>users2에서 30세 미만인 사람들을 제외했다. 더 정확히 말하면 30세 미만인 사람들이 제외된 새로운 배열을 만들어 리턴했다. rejectedUsers2는 users2가 아니며, users2.length도 그대로이고, 배열 내부의 값들도 기존의 값 그대로다. users2를 다루면서 새로 정렬하고 배열 내부의 값도 지웠지만, users2는 원래 상태 그대로이다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">//  1</span><br><span class="line">console.log(</span><br><span class="line">  _.pluck(_.reject(users2, function (user) &#123; return user.age &gt;= 30; &#125;), &apos;name&apos;)</span><br><span class="line">)</span><br><span class="line">// [&quot;HA&quot;, &quot;PJ&quot;, &quot;JE&quot;]</span><br><span class="line"></span><br><span class="line">// 2</span><br><span class="line">console.log(</span><br><span class="line">  _.pluck(users2, &apos;name&apos;)</span><br><span class="line">)</span><br><span class="line">// [&quot;ID&quot;, &quot;HA&quot;, &quot;BJ&quot;, &quot;PJ&quot;, &quot;JE&quot;]</span><br><span class="line"></span><br><span class="line">// 3</span><br><span class="line">console.log(users2)</span><br><span class="line">// 원본 그대로</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//  1</span></span><br><span class="line"><span class="built_in">console</span>.log(</span><br><span class="line">  _.pluck(_.reject(users2, <span class="function"><span class="keyword">function</span> (<span class="params">user</span>) </span>&#123; <span class="keyword">return</span> user.age &gt;= <span class="number">30</span>; &#125;), <span class="string">'name'</span>)</span><br><span class="line">)</span><br><span class="line"><span class="comment">// ["HA", "PJ", "JE"]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 2</span></span><br><span class="line"><span class="built_in">console</span>.log(</span><br><span class="line">  _.pluck(users2, <span class="string">'name'</span>)</span><br><span class="line">)</span><br><span class="line"><span class="comment">// ["ID", "HA", "BJ", "PJ", "JE"]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 3</span></span><br><span class="line"><span class="built_in">console</span>.log(users2)</span><br><span class="line"><span class="comment">// 원본 그대로</span></span><br></pre></td></tr></table></figure>
 <p>1 users에서는 _.reject로 30세 이상의 user를 제외한 새 배열을 만든 후, _.pluck을 통해 이름만 추출한 새 배열을 만들어 로그를 남겼다. _.reject를 이용해 users2의 상태를 변경하지 않으면서 필터링을 했고, _.pluck 를 통해 역시 원본 소스들을 건들지 않고 name이 추출된 새로운 배열을 만들었다. 따라서 원본 데이터에는 아무런 영향을 끼치지 않았다. 그 덕분에 2에서는 어려움 없이 원본에 있는 모든 이름을 출력할 수 있다. 2가 실행된 후에도 3 users는 역시 변경되지 않는다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">var b1 = [1, 2, 3, 4, 5];</span><br><span class="line">var b2 = _.initial(b1, 2); // 뒤에서 2개 제거한 새로운 배열 리턴</span><br><span class="line">console.log(b1 === b2, b1, b2);</span><br><span class="line">// false (5) [1, 2, 3, 4, 5] (3) [1, 2, 3]</span><br><span class="line"></span><br><span class="line">var b3 = _.without(b1, 1, 5); // 1과 5를 제거한 새로운 배열 리턴</span><br><span class="line">var b4 = _.without(b3, 2); // 2를 제거한 새로운 배열 리턴</span><br><span class="line">console.log(b1 === b3, b3 === b4, b3, b4);</span><br><span class="line">// false false (3) [2, 3, 4] (2) [3, 4]</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> b1 = [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>];</span><br><span class="line"><span class="keyword">var</span> b2 = _.initial(b1, <span class="number">2</span>); <span class="comment">// 뒤에서 2개 제거한 새로운 배열 리턴</span></span><br><span class="line"><span class="built_in">console</span>.log(b1 === b2, b1, b2);</span><br><span class="line"><span class="comment">// false (5) [1, 2, 3, 4, 5] (3) [1, 2, 3]</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> b3 = _.without(b1, <span class="number">1</span>, <span class="number">5</span>); <span class="comment">// 1과 5를 제거한 새로운 배열 리턴</span></span><br><span class="line"><span class="keyword">var</span> b4 = _.without(b3, <span class="number">2</span>); <span class="comment">// 2를 제거한 새로운 배열 리턴</span></span><br><span class="line"><span class="built_in">console</span>.log(b1 === b3, b3 === b4, b3, b4);</span><br><span class="line"><span class="comment">// false false (3) [2, 3, 4] (2) [3, 4]</span></span><br></pre></td></tr></table></figure>
 <p>맨 마지막에 b4를 만들 때, b3 에서 2를 제거했지만 b3에는 여전히 2가 남아있다.</p>
 <h3 id="clone-으로-복사하기"><a href="#clone-으로-복사하기" class="headerlink" title="_.clone 으로 복사하기"></a>_.clone 으로 복사하기</h3><p>_.clone은 배열이나 객체를 받아 복사하는 함수다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">var product1 = &#123;</span><br><span class="line">  name: &quot;AB 반팔티&quot;,</span><br><span class="line">  price: 10000,</span><br><span class="line">  sizes: [&quot;M&quot;, &quot;L&quot;, &quot;XL&quot;],</span><br><span class="line">  colors: [&quot;Black&quot;, &quot;White&quot;, &quot;Blue&quot;]</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">var product2 = _.clone(product1);</span><br><span class="line">console.log(product2);</span><br><span class="line">// &#123;</span><br><span class="line">//   name: &quot;AB 반팔티&quot;,</span><br><span class="line">//   price: 10000,</span><br><span class="line">//   sizes: [&quot;M&quot;, &quot;L&quot;, &quot;XL&quot;],</span><br><span class="line">//   colors: [&quot;Black&quot;, &quot;White&quot;, &quot;Blue&quot;]</span><br><span class="line">// &#125;</span><br><span class="line"></span><br><span class="line">console.log(product1 === product2); // false</span><br><span class="line"></span><br><span class="line">product2.name = &quot;ABCD 반팔티&quot;;</span><br><span class="line">console.log(product1.name, product2.name);</span><br><span class="line">// AB 반팔티 ABCD 반팔티</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> product1 = &#123;</span><br><span class="line">  name: <span class="string">"AB 반팔티"</span>,</span><br><span class="line">  price: <span class="number">10000</span>,</span><br><span class="line">  sizes: [<span class="string">"M"</span>, <span class="string">"L"</span>, <span class="string">"XL"</span>],</span><br><span class="line">  colors: [<span class="string">"Black"</span>, <span class="string">"White"</span>, <span class="string">"Blue"</span>]</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> product2 = _.clone(product1);</span><br><span class="line"><span class="built_in">console</span>.log(product2);</span><br><span class="line"><span class="comment">// &#123;</span></span><br><span class="line"><span class="comment">//   name: "AB 반팔티",</span></span><br><span class="line"><span class="comment">//   price: 10000,</span></span><br><span class="line"><span class="comment">//   sizes: ["M", "L", "XL"],</span></span><br><span class="line"><span class="comment">//   colors: ["Black", "White", "Blue"]</span></span><br><span class="line"><span class="comment">// &#125;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(product1 === product2); <span class="comment">// false</span></span><br><span class="line"></span><br><span class="line">product2.name = <span class="string">"ABCD 반팔티"</span>;</span><br><span class="line"><span class="built_in">console</span>.log(product1.name, product2.name);</span><br><span class="line"><span class="comment">// AB 반팔티 ABCD 반팔티</span></span><br></pre></td></tr></table></figure>
 <p>product1을 _.clone 함수를 통해 복사했다. 동일한 내용이 들어 있는 새로운 객체가 리턴되어, 출력해 보면 내용은 같지만 비교하면 false가 나온다. product2.name 을 변경해도 product1에는 영향을 끼치지 않는다. product2를 마음 편히 다룰 수 있다.<br>그런데 _.clone을 정확히 다루려면 _.clone이 객체를 복하는 범위에 대해 제대로 알아야 한다. _.clone이 객체를 복사하는 것은 맞지만 객체 내부의 모든 값들까지 복사하는 것은 아니다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">product2.sizes.push(&quot;2XL&quot;);</span><br><span class="line">console.log(product2.sizes);</span><br><span class="line">// [&quot;M&quot;, &quot;L&quot;, &quot;XL&quot;, &quot;2XL&quot;]</span><br><span class="line">console.log(product1.sizes);</span><br><span class="line">// [&quot;M&quot;, &quot;L&quot;, &quot;XL&quot;, &quot;2XL&quot;]</span><br><span class="line">console.log(product1.sizes === product2.sizes); // true</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">product2.sizes.push(<span class="string">"2XL"</span>);</span><br><span class="line"><span class="built_in">console</span>.log(product2.sizes);</span><br><span class="line"><span class="comment">// ["M", "L", "XL", "2XL"]</span></span><br><span class="line"><span class="built_in">console</span>.log(product1.sizes);</span><br><span class="line"><span class="comment">// ["M", "L", "XL", "2XL"]</span></span><br><span class="line"><span class="built_in">console</span>.log(product1.sizes === product2.sizes); <span class="comment">// true</span></span><br></pre></td></tr></table></figure>
 <p>_.clone은 동일한 key들을 가진 새로운 객체를 만들면서 각 key에 기존의 key에 해당하는 value를 할당한다. 때문에 내부의 값이 객체라면 같은 객체를 바라보게 된다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">_.clone = function (obj) &#123;</span><br><span class="line">  var cloned = _.isArray(obj) ? [] : &#123;&#125;;</span><br><span class="line">  var keys = _.keys(obj);</span><br><span class="line">  _.each(keys, function (key) &#123;</span><br><span class="line">    cloned[key] = obj[key]; // Array일때는 key가 숫자</span><br><span class="line">  &#125;);</span><br><span class="line">  return cloned;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">var obj1 = &#123; a: 1, b: 2, c: &#123; d: 3 &#125; &#125;;</span><br><span class="line">var obj2 = _.clone(obj1);</span><br><span class="line">obj2.b = 22;</span><br><span class="line"></span><br><span class="line">console.log(obj2);</span><br><span class="line">// &#123; a: 1, b: 22, c: &#123; d: 3 &#125; &#125;;</span><br><span class="line">console.log(obj1);</span><br><span class="line">// &#123; a: 1, b: 2, c: &#123; d: 3 &#125; &#125;;</span><br><span class="line"></span><br><span class="line">console.log(obj1 === obj2); // false</span><br><span class="line">console.log(obj1.c === obj2.c); // true</span><br><span class="line"></span><br><span class="line">obj2.c.d = 33;</span><br><span class="line">console.log(obj1.c.d) // 33 obj1도 같이 변경</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">_.clone = <span class="function"><span class="keyword">function</span> (<span class="params">obj</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> cloned = _.isArray(obj) ? [] : &#123;&#125;;</span><br><span class="line">  <span class="keyword">var</span> keys = _.keys(obj);</span><br><span class="line">  _.each(keys, <span class="function"><span class="keyword">function</span> (<span class="params">key</span>) </span>&#123;</span><br><span class="line">    cloned[key] = obj[key]; <span class="comment">// Array일때는 key가 숫자</span></span><br><span class="line">  &#125;);</span><br><span class="line">  <span class="keyword">return</span> cloned;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> obj1 = &#123; <span class="attr">a</span>: <span class="number">1</span>, <span class="attr">b</span>: <span class="number">2</span>, <span class="attr">c</span>: &#123; <span class="attr">d</span>: <span class="number">3</span> &#125; &#125;;</span><br><span class="line"><span class="keyword">var</span> obj2 = _.clone(obj1);</span><br><span class="line">obj2.b = <span class="number">22</span>;</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(obj2);</span><br><span class="line"><span class="comment">// &#123; a: 1, b: 22, c: &#123; d: 3 &#125; &#125;;</span></span><br><span class="line"><span class="built_in">console</span>.log(obj1);</span><br><span class="line"><span class="comment">// &#123; a: 1, b: 2, c: &#123; d: 3 &#125; &#125;;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(obj1 === obj2); <span class="comment">// false</span></span><br><span class="line"><span class="built_in">console</span>.log(obj1.c === obj2.c); <span class="comment">// true</span></span><br><span class="line"></span><br><span class="line">obj2.c.d = <span class="number">33</span>;</span><br><span class="line"><span class="built_in">console</span>.log(obj1.c.d) <span class="comment">// 33 obj1도 같이 변경</span></span><br></pre></td></tr></table></figure>
 <p>그렇다면 객체 안의 객체를 변경하고 싶은 경우에는 어떻게 해야 원본에 영향을 주지 않으면서 값을 변경할 수 있을까?</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">var product1 = &#123;</span><br><span class="line">  name: &quot;AB 반팔티&quot;,</span><br><span class="line">  price: 10000,</span><br><span class="line">  sizes: [&quot;M&quot;, &quot;L&quot;, &quot;XL&quot;],</span><br><span class="line">  colors: [&quot;Black&quot;, &quot;White&quot;, &quot;Blue&quot;]</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">var product2 = _.clone(product1);</span><br><span class="line">product2.sizes = _.clone(product2.sizes); // 내부도 clone 후 push를 하거나</span><br><span class="line">product2.sizes.push(&quot;2XL&quot;)</span><br><span class="line">console.log(product2.sizes);</span><br><span class="line">// [&quot;M&quot;, &quot;L&quot;, &quot;XL&quot;, &quot;2XL&quot;]</span><br><span class="line">console.log(product1.sizes);</span><br><span class="line">// [&quot;M&quot;, &quot;L&quot;, &quot;XL&quot;]</span><br><span class="line">console.log(product1.sizes === product2.sizes); // false</span><br><span class="line"></span><br><span class="line">product2.colors = product2.colors.concat(&quot;Yellow&quot;) // 아니면 concat으로 한번에</span><br><span class="line">console.log(product2.colors);</span><br><span class="line">// [&quot;Black&quot;, &quot;White&quot;, &quot;Blue&quot;, &quot;Yellow&quot;]</span><br><span class="line">console.log(product1.colors);</span><br><span class="line">// [&quot;Black&quot;, &quot;White&quot;, &quot;Blue&quot;]</span><br><span class="line">console.log(product1.colors === product2.colors); // false</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> product1 = &#123;</span><br><span class="line">  name: <span class="string">"AB 반팔티"</span>,</span><br><span class="line">  price: <span class="number">10000</span>,</span><br><span class="line">  sizes: [<span class="string">"M"</span>, <span class="string">"L"</span>, <span class="string">"XL"</span>],</span><br><span class="line">  colors: [<span class="string">"Black"</span>, <span class="string">"White"</span>, <span class="string">"Blue"</span>]</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> product2 = _.clone(product1);</span><br><span class="line">product2.sizes = _.clone(product2.sizes); <span class="comment">// 내부도 clone 후 push를 하거나</span></span><br><span class="line">product2.sizes.push(<span class="string">"2XL"</span>)</span><br><span class="line"><span class="built_in">console</span>.log(product2.sizes);</span><br><span class="line"><span class="comment">// ["M", "L", "XL", "2XL"]</span></span><br><span class="line"><span class="built_in">console</span>.log(product1.sizes);</span><br><span class="line"><span class="comment">// ["M", "L", "XL"]</span></span><br><span class="line"><span class="built_in">console</span>.log(product1.sizes === product2.sizes); <span class="comment">// false</span></span><br><span class="line"></span><br><span class="line">product2.colors = product2.colors.concat(<span class="string">"Yellow"</span>) <span class="comment">// 아니면 concat으로 한번에</span></span><br><span class="line"><span class="built_in">console</span>.log(product2.colors);</span><br><span class="line"><span class="comment">// ["Black", "White", "Blue", "Yellow"]</span></span><br><span class="line"><span class="built_in">console</span>.log(product1.colors);</span><br><span class="line"><span class="comment">// ["Black", "White", "Blue"]</span></span><br><span class="line"><span class="built_in">console</span>.log(product1.colors === product2.colors); <span class="comment">// false</span></span><br></pre></td></tr></table></figure>
 <p>위와 같이 하면 된다. 어차피 내부의 값도 복사하는 식으로 값을 다뤄야 한다면 왜 굳이 객체의 첫 번째 깊이만 복사하느냐고 생각할 수 있다. 값 복사 후 항상 내부의 모든 값을 변경할 것이 아니기에, 객체 내부의 객체는 공유하는 것이 메모리 사용에 유리하고, 복사 수행 처리 시간이라는 측면에서도 이점이 많다.</p>
 <h3 id="extend-defaults로-복사하기"><a href="#extend-defaults로-복사하기" class="headerlink" title="_.extend, _.defaults로 복사하기"></a>_.extend, _.defaults로 복사하기</h3><p>_.extend나 _.defaults를 이용하면 값 복사와 변경을 좀 더 간결하게 할 수 있다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line">var product1 = &#123;</span><br><span class="line">  name: &quot;AB 반팔티&quot;,</span><br><span class="line">  price: 10000,</span><br><span class="line">  sizes: [&quot;M&quot;, &quot;L&quot;, &quot;XL&quot;],</span><br><span class="line">  colors: [&quot;Black&quot;, &quot;White&quot;, &quot;Blue&quot;]</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">// 1</span><br><span class="line">var product2 = _.extend(&#123;&#125;, product1, &#123;</span><br><span class="line">  name: &quot;AB 긴팔티&quot;,</span><br><span class="line">  price: 15000</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">// 2</span><br><span class="line">var product3 = _.defaults(&#123;</span><br><span class="line">  name: &quot;AB 후드티&quot;,</span><br><span class="line">  price: 15000</span><br><span class="line">&#125;, product1);</span><br><span class="line"></span><br><span class="line">console.log(product2);</span><br><span class="line">// &#123;</span><br><span class="line">//   name: &quot;AB 긴팔티&quot;,</span><br><span class="line">//   price: 15000,</span><br><span class="line">//   sizes: [&quot;M&quot;, &quot;L&quot;, &quot;XL&quot;],</span><br><span class="line">//   colors: [&quot;Black&quot;, &quot;White&quot;, &quot;Blue&quot;]</span><br><span class="line">// &#125;;</span><br><span class="line">console.log(product3);</span><br><span class="line">// &#123;</span><br><span class="line">//   name: &quot;AB 후드티&quot;,</span><br><span class="line">//   price: 15000,</span><br><span class="line">//   sizes: [&quot;M&quot;, &quot;L&quot;, &quot;XL&quot;],</span><br><span class="line">//   colors: [&quot;Black&quot;, &quot;White&quot;, &quot;Blue&quot;]</span><br><span class="line">// &#125;;</span><br><span class="line"></span><br><span class="line">// 3</span><br><span class="line">var product4 = _.extend(&#123;&#125;, product3, &#123;</span><br><span class="line">  colors: product3.colors.concat(&quot;Purple&quot;)</span><br><span class="line">&#125;);</span><br><span class="line">var product5 = _.defaults(&#123;</span><br><span class="line">  colors: product4.colors.concat(&quot;Red&quot;)</span><br><span class="line">&#125;, product4);</span><br><span class="line"></span><br><span class="line">console.log(product3.colors);</span><br><span class="line">// [&quot;Black&quot;, &quot;White&quot;, &quot;Blue&quot;]</span><br><span class="line">console.log(product4.colors);</span><br><span class="line">// [&quot;Black&quot;, &quot;White&quot;, &quot;Blue&quot;, &quot;Purple&quot;]</span><br><span class="line">console.log(product5.colors);</span><br><span class="line">// [&quot;Black&quot;, &quot;White&quot;, &quot;Blue&quot;, &quot;Purple&quot;, &quot;Red&quot;]</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> product1 = &#123;</span><br><span class="line">  name: <span class="string">"AB 반팔티"</span>,</span><br><span class="line">  price: <span class="number">10000</span>,</span><br><span class="line">  sizes: [<span class="string">"M"</span>, <span class="string">"L"</span>, <span class="string">"XL"</span>],</span><br><span class="line">  colors: [<span class="string">"Black"</span>, <span class="string">"White"</span>, <span class="string">"Blue"</span>]</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 1</span></span><br><span class="line"><span class="keyword">var</span> product2 = _.extend(&#123;&#125;, product1, &#123;</span><br><span class="line">  name: <span class="string">"AB 긴팔티"</span>,</span><br><span class="line">  price: <span class="number">15000</span></span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2</span></span><br><span class="line"><span class="keyword">var</span> product3 = _.defaults(&#123;</span><br><span class="line">  name: <span class="string">"AB 후드티"</span>,</span><br><span class="line">  price: <span class="number">15000</span></span><br><span class="line">&#125;, product1);</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(product2);</span><br><span class="line"><span class="comment">// &#123;</span></span><br><span class="line"><span class="comment">//   name: "AB 긴팔티",</span></span><br><span class="line"><span class="comment">//   price: 15000,</span></span><br><span class="line"><span class="comment">//   sizes: ["M", "L", "XL"],</span></span><br><span class="line"><span class="comment">//   colors: ["Black", "White", "Blue"]</span></span><br><span class="line"><span class="comment">// &#125;;</span></span><br><span class="line"><span class="built_in">console</span>.log(product3);</span><br><span class="line"><span class="comment">// &#123;</span></span><br><span class="line"><span class="comment">//   name: "AB 후드티",</span></span><br><span class="line"><span class="comment">//   price: 15000,</span></span><br><span class="line"><span class="comment">//   sizes: ["M", "L", "XL"],</span></span><br><span class="line"><span class="comment">//   colors: ["Black", "White", "Blue"]</span></span><br><span class="line"><span class="comment">// &#125;;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 3</span></span><br><span class="line"><span class="keyword">var</span> product4 = _.extend(&#123;&#125;, product3, &#123;</span><br><span class="line">  colors: product3.colors.concat(<span class="string">"Purple"</span>)</span><br><span class="line">&#125;);</span><br><span class="line"><span class="keyword">var</span> product5 = _.defaults(&#123;</span><br><span class="line">  colors: product4.colors.concat(<span class="string">"Red"</span>)</span><br><span class="line">&#125;, product4);</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(product3.colors);</span><br><span class="line"><span class="comment">// ["Black", "White", "Blue"]</span></span><br><span class="line"><span class="built_in">console</span>.log(product4.colors);</span><br><span class="line"><span class="comment">// ["Black", "White", "Blue", "Purple"]</span></span><br><span class="line"><span class="built_in">console</span>.log(product5.colors);</span><br><span class="line"><span class="comment">// ["Black", "White", "Blue", "Purple", "Red"]</span></span><br></pre></td></tr></table></figure>
 <ol>
 <li>product2는 값 복사를 위해 새로운 객체인 {} 를 _.extend의 첫 번째 인자로 넣었다.</li>
 <li>어차피 {name: “AB 후드티”, price: 12000}도 새 객체이므로 product3처럼 _.defaults를 이용하는 것이 객체를 적게 생성해서 더 효율적이다. _.extend의 경우, 왼쪽 객체에 없는 key/value는 확장하고, 왼쪽 객체에 있던 key/value는 덮어 쓴다. _.defaults는 왼쪽에 없는 key/value만 확장한다.</li>
 <li>1, 2를 보면 _.clone 없이 복사와 변경을 동시에 하여 간결해졌지만, colors 처럼 깊은 값을 변경해야 할 경우에는 직접 다뤄줘야 한다. _.extend와 _.defaults 역시 변경이 필요 없는 값은 이전의 값을 공유한다.</li>
 </ol>
-<p>참조: <a href="http://www.yes24.com/Product/Goods/56885507" target="_blank" rel="noopener">함수형 자바스크립트 프로그래밍</a></p>
-
-            
-
-        </div>
-    </div>
-    <div id="post-footer" class="post-footer main-content-wrap">
-        
-            <div class="post-footer-tags">
-                <span class="text-color-light text-small">태그</span><br>
-                
-    <a class="tag tag--primary tag--small t-link" href="/tags/javascript/">javascript</a> <a class="tag tag--primary tag--small t-link" href="/tags/변경-최소화/">변경 최소화</a> <a class="tag tag--primary tag--small t-link" href="/tags/부수-효과/">부수 효과</a> <a class="tag tag--primary tag--small t-link" href="/tags/순수-함수/">순수 함수</a> <a class="tag tag--primary tag--small t-link" href="/tags/함수형-프로그래밍/">함수형 프로그래밍</a>
-
-            </div>
-        
-        
-            <div class="post-actions-wrap">
-    <nav>
-        <ul class="post-actions post-action-nav">
-            <li class="post-action">
-                
-                    
-                    <a class="post-action-btn btn btn--default tooltip--top" href="/2020/01/12/메모이제이션/" data-tooltip="메모이제이션" aria-label="이전: 메모이제이션">
-                
-                    <i class="fa fa-angle-left" aria-hidden="true"></i>
-                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
-                </a>
-            </li>
-            <li class="post-action">
-                
-                    
-                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/12/01/Partial-js와-함수-조립/" data-tooltip="Partial.js와 함수 조립" aria-label="다음: Partial.js와 함수 조립">
-                
-                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
-                    <i class="fa fa-angle-right" aria-hidden="true"></i>
-                </a>
-            </li>
-        </ul>
-    </nav>
-    <ul class="post-actions post-action-share">
-        <li class="post-action hide-lg hide-md hide-sm">
-            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
-                <i class="fa fa-share-alt" aria-hidden="true"></i>
-            </a>
-        </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2019/12/29/값에-대해/" title="Facebook 공유">
-                    <i class="fab fa-facebook" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2019/12/29/값에-대해/" title="Twitter 공유">
-                    <i class="fab fa-twitter" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2019/12/29/값에-대해/" title="Google+ 공유">
-                    <i class="fab fa-google-plus" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-        
-            
-        
-        <li class="post-action">
-            
-                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
-            
-                <i class="fa fa-list" aria-hidden="true"></i>
-            </a>
-        </li>
-    </ul>
-</div>
-
-
-        
-        
-            
-        
-    </div>
-</article>
-
-
-
-                <footer id="footer" class="main-content-wrap">
-    <span class="copyrights">
-        Copyrights &copy; 2020 kkangil. All Rights Reserved.
-    </span>
-</footer>
-
-            </div>
-            
-                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
-                    <div class="post-actions-wrap">
-    <nav>
-        <ul class="post-actions post-action-nav">
-            <li class="post-action">
-                
-                    
-                    <a class="post-action-btn btn btn--default tooltip--top" href="/2020/01/12/메모이제이션/" data-tooltip="메모이제이션" aria-label="이전: 메모이제이션">
-                
-                    <i class="fa fa-angle-left" aria-hidden="true"></i>
-                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
-                </a>
-            </li>
-            <li class="post-action">
-                
-                    
-                    <a class="post-action-btn btn btn--default tooltip--top" href="/2019/12/01/Partial-js와-함수-조립/" data-tooltip="Partial.js와 함수 조립" aria-label="다음: Partial.js와 함수 조립">
-                
-                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
-                    <i class="fa fa-angle-right" aria-hidden="true"></i>
-                </a>
-            </li>
-        </ul>
-    </nav>
-    <ul class="post-actions post-action-share">
-        <li class="post-action hide-lg hide-md hide-sm">
-            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
-                <i class="fa fa-share-alt" aria-hidden="true"></i>
-            </a>
-        </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2019/12/29/값에-대해/" title="Facebook 공유">
-                    <i class="fab fa-facebook" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2019/12/29/값에-대해/" title="Twitter 공유">
-                    <i class="fab fa-twitter" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2019/12/29/값에-대해/" title="Google+ 공유">
-                    <i class="fab fa-google-plus" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-        
-            
-        
-        <li class="post-action">
-            
-                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
-            
-                <i class="fa fa-list" aria-hidden="true"></i>
-            </a>
-        </li>
-    </ul>
-</div>
-
-
-                </div>
-                
-    <div id="share-options-bar" class="share-options-bar" data-behavior="4">
-        <i id="btn-close-shareoptions" class="fa fa-times"></i>
-        <ul class="share-options">
-            
-                
-                
-                <li class="share-option">
-                    <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2019/12/29/값에-대해/">
-                        <i class="fab fa-facebook" aria-hidden="true"></i><span>Facebook 공유</span>
-                    </a>
-                </li>
-            
-                
-                
-                <li class="share-option">
-                    <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2019/12/29/값에-대해/">
-                        <i class="fab fa-twitter" aria-hidden="true"></i><span>Twitter 공유</span>
-                    </a>
-                </li>
-            
-                
-                
-                <li class="share-option">
-                    <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2019/12/29/값에-대해/">
-                        <i class="fab fa-google-plus" aria-hidden="true"></i><span>Google+ 공유</span>
-                    </a>
-                </li>
-            
-        </ul>
-    </div>
-
-
-            
-        </div>
-        
-
-
-    
-        
-    
-
-<div id="about">
-    <div id="about-card">
-        <div id="about-btn-close">
-            <i class="fa fa-times"></i>
-        </div>
-        
-            <img id="about-card-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
-        
-            <h4 id="about-card-name">kkangil</h4>
-        
-            <div id="about-card-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
-</div>
-        
-        
-            <div id="about-card-job">
-                <i class="fa fa-briefcase"></i>
-                <br>
-                <p>web developer</p>
-
-            </div>
-        
-        
-            <div id="about-card-location">
-                <i class="fa fa-map-marker-alt"></i>
-                <br>
-                Asia/Seoul
-            </div>
-        
-    </div>
-</div>
-
-        
-        
-<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
-        <!--SCRIPTS-->
-<script src="/assets/js/script-dbd16rvloemmuxdzniplmnxxvwoz24eya9wol0b7vvmlokgqsjivmb8dnscy.min.js"></script>
-<!--SCRIPTS END-->
-
-    
-
-
-
-    </body>
-</html>
+<p>참조: <a href="http://www.yes24.com/Product/Goods/56885507">함수형 자바스크립트 프로그래밍</a></p>
+</div><div class="article-tags size-small is-uppercase mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/javascript/">javascript</a><a class="link-muted mr-2" rel="tag" href="/tags/%ED%95%A8%EC%88%98%ED%98%95-%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D/">함수형 프로그래밍</a><a class="link-muted mr-2" rel="tag" href="/tags/%EC%88%9C%EC%88%98-%ED%95%A8%EC%88%98/">순수 함수</a><a class="link-muted mr-2" rel="tag" href="/tags/%EB%B6%80%EC%88%98-%ED%9A%A8%EA%B3%BC/">부수 효과</a><a class="link-muted mr-2" rel="tag" href="/tags/%EB%B3%80%EA%B2%BD-%EC%B5%9C%EC%86%8C%ED%99%94/">변경 최소화</a></div><!--!--></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2020/01/12/%EB%A9%94%EB%AA%A8%EC%9D%B4%EC%A0%9C%EC%9D%B4%EC%85%98/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">메모이제이션</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2019/12/01/Partial-js%EC%99%80-%ED%95%A8%EC%88%98-%EC%A1%B0%EB%A6%BD/"><span class="level-item">Partial.js와 함수 조립</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--></div><!--!--><div class="column column-right is-4-tablet is-4-desktop is-4-widescreen  order-3 is-sticky"><div class="card widget" id="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">카탈로그</h3><ul class="menu-list"><li><a class="is-flex" href="#순수-함수"><span class="mr-2">1</span><span>순수 함수</span></a><ul class="menu-list"><li><a class="is-flex" href="#순수-함수와-부수-효과"><span class="mr-2">1.1</span><span>순수 함수와 부수 효과</span></a></li><li><a class="is-flex" href="#순수-함수와-순수-함수가-아닌-함수"><span class="mr-2">1.2</span><span>순수 함수와 순수 함수가 아닌 함수</span></a></li></ul></li><li><a class="is-flex" href="#변경-최소화와-불변-객체"><span class="mr-2">2</span><span>변경 최소화와 불변 객체</span></a><ul class="menu-list"><li><a class="is-flex" href="#직접-변경하는-대신-변경된-새로운-값을-만드는-전략"><span class="mr-2">2.1</span><span>직접 변경하는 대신, 변경된 새로운 값을 만드는 전략</span></a></li><li><a class="is-flex" href="#clone-으로-복사하기"><span class="mr-2">2.2</span><span>_.clone 으로 복사하기</span></a></li><li><a class="is-flex" href="#extend-defaults로-복사하기"><span class="mr-2">2.3</span><span>_.extend, _.defaults로 복사하기</span></a></li></ul></li></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">카테고리</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/Deploy/"><span class="level-start"><span class="level-item">Deploy</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Javascript/"><span class="level-start"><span class="level-item">Javascript</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Jest/"><span class="level-start"><span class="level-item">Jest</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/React/"><span class="level-start"><span class="level-item">React</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Sequelize/"><span class="level-start"><span class="level-item">Sequelize</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/hexo/"><span class="level-start"><span class="level-item">hexo</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%EC%9B%B9-%EC%84%B1%EB%8A%A5-%EC%9D%B4%EC%95%BC%EA%B8%B0/"><span class="level-start"><span class="level-item">웹 성능 이야기</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%ED%85%8C%EC%8A%A4%ED%8A%B8-%EC%BD%94%EB%93%9C/"><span class="level-start"><span class="level-item">테스트 코드</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%ED%95%A8%EC%88%98%ED%98%95-%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D/"><span class="level-start"><span class="level-item">함수형 프로그래밍</span></span><span class="level-end"><span class="level-item tag">9</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">태그</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/BDD/"><span class="tag">BDD</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/HTTP-%EC%9A%94%EC%B2%AD-%EC%B5%9C%EC%86%8C%ED%99%94/"><span class="tag">HTTP 요청 최소화</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Hooks/"><span class="tag">Hooks</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Javascript/"><span class="tag">Javascript</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/MySQL/"><span class="tag">MySQL</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Next-js/"><span class="tag">Next.js</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/React/"><span class="tag">React</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/React-Hooks/"><span class="tag">React-Hooks</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Sequelize/"><span class="tag">Sequelize</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/TDD/"><span class="tag">TDD</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/indent/"><span class="tag">_.indent</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/call-apply-arguments-this/"><span class="tag">call, apply, arguments, this</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/compose/"><span class="tag">compose</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/deep-clone/"><span class="tag">deep-clone</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/deploy-Next-js/"><span class="tag">deploy Next.js</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/describe/"><span class="tag">describe</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/expect/"><span class="tag">expect</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/filter/"><span class="tag">filter</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/go/"><span class="tag">go</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/go-%ED%95%A8%EC%88%98/"><span class="tag">go 함수</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/hexo/"><span class="tag">hexo</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/hexo-%EC%8B%9C%EC%9E%91/"><span class="tag">hexo 시작</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/hooks-%EC%82%AC%EC%9A%A9%EB%B0%A9%EB%B2%95/"><span class="tag">hooks 사용방법</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/hooks-%EC%A0%95%EC%9D%98/"><span class="tag">hooks 정의</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/jasmine/"><span class="tag">jasmine</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/javascript/"><span class="tag">javascript</span><span class="tag is-grey-lightest">12</span></a></div><div class="control"><a class="tags has-addons" href="/tags/jest-globals-%EB%A9%94%EC%84%9C%EB%93%9C/"><span class="tag">jest globals 메서드</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/jest-%EB%A9%94%EC%84%9C%EB%93%9C/"><span class="tag">jest 메서드</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/lifecycle/"><span class="tag">lifecycle</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/map/"><span class="tag">map</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/memoization/"><span class="tag">memoization</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/model-%EC%A0%95%EC%9D%98/"><span class="tag">model 정의</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/named-function/"><span class="tag">named function</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/once/"><span class="tag">once</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/partial/"><span class="tag">partial</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/partial-function/"><span class="tag">partial function</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/pipe/"><span class="tag">pipe</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/pipeline/"><span class="tag">pipeline</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/pm2/"><span class="tag">pm2</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/pm2-ecosystem/"><span class="tag">pm2-ecosystem</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/skip/"><span class="tag">skip</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/spy/"><span class="tag">spy</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/syntax/"><span class="tag">syntax</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/test/"><span class="tag">test</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/toBe/"><span class="tag">toBe</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/toEqual/"><span class="tag">toEqual</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/toError/"><span class="tag">toError</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/toHaveBeenCalled/"><span class="tag">toHaveBeenCalled</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/toHaveReturned/"><span class="tag">toHaveReturned</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useCallback/"><span class="tag">useCallback</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useContext/"><span class="tag">useContext</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useEffect/"><span class="tag">useEffect</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useMemo/"><span class="tag">useMemo</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useReducer/"><span class="tag">useReducer</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useRef/"><span class="tag">useRef</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useState/"><span class="tag">useState</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EA%B0%9D%EC%B2%B4/"><span class="tag">객체</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EA%B3%A0%EC%B0%A8-%ED%95%A8%EC%88%98/"><span class="tag">고차 함수</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%84%A4%EB%B9%84%EA%B2%8C%EC%9D%B4%EC%85%98-%ED%83%80%EC%9D%B4%EB%B0%8D/"><span class="tag">네비게이션 타이밍</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%A0%8C%EB%8D%94%EB%A7%81/"><span class="tag">렌더링</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%A0%8C%EB%8D%94%EB%A7%81-%EC%84%B1%EB%8A%A5-%ED%96%A5%EC%83%81/"><span class="tag">렌더링 성능 향상</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%A6%AC%ED%8E%98%EC%9D%B8%ED%8A%B8/"><span class="tag">리페인트</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%A6%AC%ED%94%8C%EB%A1%9C%EC%9A%B0/"><span class="tag">리플로우</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%B3%80%EA%B2%BD-%EC%B5%9C%EC%86%8C%ED%99%94/"><span class="tag">변경 최소화</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%B6%80%EC%88%98-%ED%9A%A8%EA%B3%BC/"><span class="tag">부수 효과</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%B9%84%EB%8F%99%EA%B8%B0%EC%99%80-go/"><span class="tag">비동기와 _.go</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EC%84%B1%EB%8A%A5-%ED%85%8C%EC%8A%A4%ED%8A%B8/"><span class="tag">성능 테스트</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EC%88%9C%EC%88%98-%ED%95%A8%EC%88%98/"><span class="tag">순수 함수</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EC%9B%B9-%EC%82%AC%EC%9D%B4%ED%8A%B8-%EC%B5%9C%EC%A0%81%ED%99%94/"><span class="tag">웹 사이트 최적화</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EC%9D%98%EC%A1%B4%EC%84%B1-%EC%A3%BC%EC%9E%85/"><span class="tag">의존성 주입</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EC%9D%BC%EA%B8%89-%ED%95%A8%EC%88%98/"><span class="tag">일급 함수</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%81%B4%EB%A1%9C%EC%A0%80/"><span class="tag">클로저</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%85%8C%EC%8A%A4%ED%8A%B8-%EC%BD%94%EB%93%9C/"><span class="tag">테스트 코드</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%8C%8C%EC%9D%B4%ED%94%84%EB%9D%BC%EC%9D%B8/"><span class="tag">파이프라인</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%94%84%EB%A1%9C%EC%84%B8%EC%8B%B1-%EB%AA%A8%EB%8D%B8/"><span class="tag">프로세싱 모델</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%95%A8%EC%88%98-%EC%A1%B0%EB%A6%BD/"><span class="tag">함수 조립</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%95%A8%EC%88%98%EC%9D%98-%ED%98%B8%EC%9D%B4%EC%8A%A4%ED%8C%85/"><span class="tag">함수의 호이스팅</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%95%A8%EC%88%98%ED%98%95-%EC%9E%90%EB%B0%94%EC%8A%A4%ED%81%AC%EB%A6%BD%ED%8A%B8%EC%9D%98-%EC%8B%A4%EC%9A%A9%EC%84%B1-2/"><span class="tag">함수형 자바스크립트의 실용성 2</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%95%A8%EC%88%98%ED%98%95-%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D/"><span class="tag">함수형 프로그래밍</span><span class="tag is-grey-lightest">9</span></a></div></div></div></div></div><div class="card widget"><div class="card-content"><div class="notification is-danger">You need to set <code>client_id</code> and <code>slot_id</code> to show this AD unit. Please set it in <code>_config.yml</code>.</div></div></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/">kkangil&#039;s Blog</a><p class="size-small"><span>&copy; 2020 kkangil</span>  Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/ppoffice/hexo-theme-icarus"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script>moment.locale("ko");</script><script>var IcarusThemeSettings = {
+            site: {
+                url: 'https://kkangil.github.io',
+                external_link: {"enable":true,"exclude":[]}
+            },
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script src="/js/animation.js"></script><a id="back-to-top" title="맨 위로" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/js/lightgallery.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><!--!--><script src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="입력 하세요..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"입력 하세요...","untitled":"(Untitled)","posts":"포스트","pages":"Pages","categories":"카테고리","tags":"태그"});
+        });</script></body></html>

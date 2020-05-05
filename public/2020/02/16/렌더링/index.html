@@ -1,250 +1,9 @@
-
-<!DOCTYPE html>
-<html lang="ko">
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="generator" content="Hexo 4.2.0"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>렌더링 - kkangil&#039;s Blog</title><meta description="렌더링 과정렌더링이란 논리적인 문서(DOM)의 표현식을 그래픽 표현식으로 변형시키는 과정이다. 이 과정은 다음과 같이 크게 2단계를 거쳐 이뤄진다.  DOM 요소와 스타일에 기반을 둔 레이아웃 계산 계산된 요소의 화면 표현  일반적인 전체 흐름은 브라우저에 문서가 로딩됨에 따라 DOM 트리의 구성이 진행되면 레이아웃을 계산한 후 문서에 요소를 그린다."><meta property="og:type" content="blog"><meta property="og:title" content="렌더링"><meta property="og:url" content="https://kkangil.github.io/2020/02/16/%EB%A0%8C%EB%8D%94%EB%A7%81/"><meta property="og:site_name" content="kkangil&#039;s Blog"><meta property="og:description" content="렌더링 과정렌더링이란 논리적인 문서(DOM)의 표현식을 그래픽 표현식으로 변형시키는 과정이다. 이 과정은 다음과 같이 크게 2단계를 거쳐 이뤄진다.  DOM 요소와 스타일에 기반을 둔 레이아웃 계산 계산된 요소의 화면 표현  일반적인 전체 흐름은 브라우저에 문서가 로딩됨에 따라 DOM 트리의 구성이 진행되면 레이아웃을 계산한 후 문서에 요소를 그린다."><meta property="og:locale" content="ko_KR"><meta property="og:image" content="https://kkangil.github.io/img/og_image.png"><meta property="article:published_time" content="2020-02-16T08:07:24.000Z"><meta property="article:modified_time" content="2020-05-05T13:04:28.973Z"><meta property="article:author" content="kkangil"><meta property="article:tag" content="웹 사이트 최적화"><meta property="article:tag" content="렌더링"><meta property="article:tag" content="리플로우"><meta property="article:tag" content="리페인트"><meta property="twitter:card" content="summary"><meta property="twitter:image" content="/img/og_image.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://kkangil.github.io/2020/02/16/%EB%A0%8C%EB%8D%94%EB%A7%81/"},"headline":"kkangil's Blog","image":["https://kkangil.github.io/img/og_image.png"],"datePublished":"2020-02-16T08:07:24.000Z","dateModified":"2020-05-05T13:04:28.973Z","author":{"@type":"Person","name":"kkangil"},"description":"렌더링 과정렌더링이란 논리적인 문서(DOM)의 표현식을 그래픽 표현식으로 변형시키는 과정이다. 이 과정은 다음과 같이 크게 2단계를 거쳐 이뤄진다.  DOM 요소와 스타일에 기반을 둔 레이아웃 계산 계산된 요소의 화면 표현  일반적인 전체 흐름은 브라우저에 문서가 로딩됨에 따라 DOM 트리의 구성이 진행되면 레이아웃을 계산한 후 문서에 요소를 그린다."}</script><meta name="naver-site-verification" content="b0ce7bc14af00ce2aee96528313654d78c325351"><link rel="canonical" href="https://kkangil.github.io/2020/02/16/%EB%A0%8C%EB%8D%94%EB%A7%81/"><link rel="icon" href="/images/coffee-favicon.png"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/tomorrow-night-bright.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link rel="stylesheet" href="/css/default.css"><link href="https://fonts.googleapis.com/earlyaccess/jejugothic.css" rel="stylesheet"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/css/justifiedGallery.min.css"><script src="https://www.googletagmanager.com/gtag/js?id=UA-165569140-1" async></script><script>window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
     
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="generator" content="kkangil&#39;s Blog">
-    <title>렌더링 - kkangil&#39;s Blog</title>
-    <meta name="author" content="kkangil">
-    
-    
-    
-        <link rel="alternate" type="application/atom+xml" title="RSS" href="/atom.xml">
-    
-    <script type="application/ld+json">{"@context":"http://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg"},"articleBody":"렌더링 과정렌더링이란 논리적인 문서(DOM)의 표현식을 그래픽 표현식으로 변형시키는 과정이다. 이 과정은 다음과 같이 크게 2단계를 거쳐 이뤄진다.\n\nDOM 요소와 스타일에 기반을 둔 레이아웃 계산\n계산된 요소의 화면 표현\n\n일반적인 전체 흐름은 브라우저에 문서가 로딩됨에 따라 DOM 트리의 구성이 진행되면 레이아웃을 계산한 후 문서에 요소를 그린다.\n\n렌더링이 진행되는 과정DOM 트리 생성브라우저는 HTML 태그를 파싱해 DOM 트리를 구성한다. DOM은 데이터의 표현식으로 모든 HTML 태그에는 그에 상응하는 노드가 있으며, 태그 사이에는 텍스트 데이터가 포함될 수 있는데 이 또한 텍스트 노드의 표현식이다.\n각 태그는 태그 데이터의 표현식인 DOM 요소로 1:1로 대응해 표현되며, DOM 요소 노드는 트리 형태로 구성된다. 이를 DOM 트리라 한다.\n스타일 구조체 생성스타일 정보를 통해 스타일 구조체를 생성한다. 스타일 정보는 단계적으로 처리되며, 가장 마지막 단계의 스타일 정보가 이전 스타일보다 우선으로 적용된다. 스타일 정보는 다음과 같이 3단계로 나누어 처리된다.\n\n브라우저 자체에 포함된 기본 스타일 정보\n사용자 정의 스타일\nHTML 인라인 스타일\n\n렌더 트리 생성DOM 트리와 스타일 구조를 통해 렌더 트리를 생성한다.렌더 트리는 DOM 트리와는 다르게 각 노드에 스타일 정보가 설정되어 있고 화면에 표현되는 노드로 구성된다. 어떤 노드의 스타일이 ‘display: none’ 으로 설정되어 있으면 해당 노드는 렌더 트리에 포함되지 않는다. 그렇기 때문에 DOM 트리와 렌더 트리의 노드는 서로 1:1로 대응되지 않는다. head, title, script 등과 같이 화면에 표현되는 노드가 아니므로 DOM 트리에는 포함되어 있지만 렌더 트리에는 포함되어 있지 않다.\n레이아웃 처리렌더 트리의 각 노드의 크기가 계산되고 문서에서 정확한 위치에 배치되도록 위치를 계산한다. 루트에서 하위 노드로 반복되며 진행한다.\n페인트렌더 트리를 순회하면서 페인트 함수를 호출해 노드를 화면에 표현한다.\n\n\n리플로우(reflow) 와 리페인트(repaint)렌더링이 모두 완료된 상태에서 사용자의 인터랙션 또는 기능에 따라 화면의 일부 영역에 변경 요인이 발생한다. 이러한 작업이 발생하면 구성돼 있는 렌더 트리가 변경되어야 하며 리플로우 또는 리페인트가 발생한다.\n리플로우변경이 필요한 렌더 트리에 대한 유효성 확인 작업과 함께 노드의 크기와 위치를 다시 계산한다. 노드의 ‘크기’ 또는 ‘위치’가 바뀌어 현재 레이아웃에 영향을 미쳐 배치를 다시 해야 할 때 리플로우가 발생한다.\n특정 요소에 리플로우가 발생하면 요소의 DOM 구조에 따라 자식 요소와 부모 요소 역시 다시 계산될 수 있으며, 경우에 따라서는 문서 전체에 리플로우가 발생할 수도 있다.\n리페인트변경 영역의 결과를 표현하기 위해 화면이 업데이트 되는것을 의미한다. 리플로우각 발생하거나 배경색 변경 등의 단순한 스타일 변경과 같은 작업이 발생하는 경우다.\n리플로우와 리페인트 모두 처리 비용이 발생하지만 리페인트보다 리플로우의 비용이 훨씬 높다. 리플로우는 변경 범위에 따라 전체 페이지의 레이아웃을 변경해야 할 수도 있기 때문이다. 어느 경우든 리플로우와 리페인트는 코드를 작성할 때 최소화해야 한다.\n발생 요인\nDOM 노드의 변경\nDOM 노드의 노출 속성을 통한 변경: display: none 은 리플로우와 리페인트를 발생시키지만 비슷한 속성인 visibility: hidden 은 요소가 차지한 영역을 유지해 레이아웃에 영향을 주지 않으므로 리페인트만 발생한다.\n스크립트 애니메이션: 애니메이션은 DOM 노드의 이동과 스타일 변경이 짧은 시간 내에 수차례 반복해 발생되는 작업이다.\n스타일\n사용자의 액션\n\n\n\n리플로우 최소화 방법작업 그룹핑DOM 요소의 정보를 요청하고 변경하는 코드는 같은 형태의 작업끼리 그룹으로 묶어 실행시키는 것이 좋다.\n123456function change() &#123;  var width = document.getElementById(&quot;layer1&quot;).style.width;  document.getElementById(&quot;layer2&quot;).style.width = width;  var height = document.getElementById(&quot;layer3&quot;).style.height;  document.getElementById(&quot;layer4&quot;).style.height = height;&#125;\n위의 코드는 요소의 스타일 정보를 요청하고, 반환된 값을 다른 요소의 스타일 변경하는 데 사용한다. 그 후 다시 다른 요소에 동일한 형태의 작업이 반복된다. 이 코드를 실행하면 리플로우가 여러 번 발생할 수 있다.스타일 조회 -&gt; 변경 -&gt; 리플로우 -&gt; 스타일 조회 -&gt; 변경 -&gt; 리플로우\n123456function change() &#123;  var width = document.getElementById(&quot;layer1&quot;).style.width;  var height = document.getElementById(&quot;layer3&quot;).style.height;  document.getElementById(&quot;layer2&quot;).style.width = width;  document.getElementById(&quot;layer4&quot;).style.height = height;&#125;\n위와 같이 비슷한 형태의 작업 끼리 그룹으로 묶어 실행되도록 순서를 변경하면 렌더링 처리를 향상시킬 수 있다.\n스타일 조회 -&gt; 스타일 조회 -&gt; 변경 -&gt; 변경 -&gt; 리플로우\n실행 사이클브라우저에서 자바스크립트 실행은 이벤트 루프 모델을 따른다. 기본적으로 브라우저는 이벤트가 발생하면 바로 처리가 가능하도록 유휴(idle) 상태에 머무른다. 그러다 어떤 요청에 의해 유휴 상태가 해제되면 작업이 실행된다. 작업이 실행되면 브라우저는 작업의 실행 결과에 따른 리페인트가 완료될 때까지 기다린다. 이러한 실행 사이클로 인해 타이머를 사용하면 수차례의 리플로우와 리페인트가 발생될 수 있다.\n123456function reflow() &#123;  document.getElementById(&quot;box1&quot;).style.height = &quot;50px&quot;;  setTimeout(function() &#123;    document.getElementById(&quot;box2&quot;).style.height = &quot;70px&quot;;  &#125;, 0)&#125;\n타이머의 설정 시간을 0으로 설정해도 브라우저가 유휴 상태(stack 이 비워져 있는 상태)가 아니면 그 상태가 되기까지 실행되지 않는다. 첫 번째 요소에 대한 작업이 한 사이클 내에서 실행되고, 타이머의 실행은 먼저 실행된 사이클이 끝난 다음에 진행된다. 이로 인해 결과적으로는 리플로우와 리페인트가 두 번 발생하게 된다. 이와 같이 리플로우와 리페인트가 일어날 수 있는 작업은 가능하면 한 실행 사이클 안에서 실행하도록 처리하는 편이 효과적이다.\n노출 제어를 통한 리플로우 최소화 방법요소의 스타일을 변경하면 리페인트는 반드시 일어나며, 변경 형태에 따라 리플로우도 일어난다.\ndisplay기본적으로 리플로우와 리페인트는 모두 화면에 변경된 사항이 반영되는 시점에 발생한다. 여러 속성의 스타일을 변경하는 중간 단계에서는 화면에 표시하지 않고, 작업이 완료되고 최종 결과가 반영되는 마지막 시점에 요소를 다시 표시한다면 리플로우와 리페인트의 발생 횟수를 크게 줄일 수 있다.\n이 코드는 값을 여러번 변경하며 값이 변경될 때마다 리플로우와 리페인트가 발생한다.\n123456789var element = document.getElementById(&quot;box1&quot;);for (var i=50; i &lt; 100; i++) &#123;  element.style.width = i + &quot;px&quot;&#125;for (var i=1; i &lt; 50; i++) &#123;  element.style.borderWidth = i + &quot;px&quot;&#125;\n하지만 다음과 같이 요소를 보이지 않게 하고 모든 변경이 반영된 이후에 표시하면 처음과 마지막 시점 두 번으로 리플로우 발생 횟수가 줄어든다.\n12345678910111213var element = document.getElementById(&quot;box1&quot;);element.style.display = &quot;none&quot;;for (var i=50; i &lt; 100; i++) &#123;  element.style.width = i + &quot;px&quot;&#125;for (var i=1; i &lt; 50; i++) &#123;  element.style.borderWidth = i + &quot;px&quot;&#125;element.style.display = &quot;block&quot;;\ndisplay 의 none, block 을 이용한 최소화 방법이다.\n노드 복제변경하려는 요소의 노드를 복제한 후 복제된 노드에 필요한 작업을 실행하는 방법이다. 복제된 노드는 DOM 트리에 추가된 상태가 아니므로 렌더링 성능에 영향을 줄 수 있는 작업을 실행하더라도 리플로우나 리페인트가 발생하지 않는다.\n12345678var element = document.getElementById(&quot;box1&quot;);var clone = element.cloneNode(true);for (var i=0; i&lt; 100; i++) &#123;  clone.style.width = i + &quot;px&quot;;&#125;parentNode.replaceChild(clone, element);\n작업이 모두 완료된 이후 복제된 노드를 원래 노드와 치환해 DOM 트리에 변경된 사항이 적용되게 한다. 그러면 치환 시점에만 리플로우와 리페인트가 발생하는 것이므로 display 속성을 사용하는것 보다 적게 발생한다.\n캐싱여기서의 캐싱은 별도의 변수에 자주 사용하는 값을 저장하는 것이다. 특정 속성과 메서드를 사용하기만 해도 리플로우 발생하는 경우가 있다. 자주 사용하는 속성의 값이나 메서드의 반환값을 변수에 저장하면 직접 속성이나 메서드를 호출하는 횟수를 줄여 성능을 향상 시킬 수 있다.\n1234for (condition) &#123;  el.style.width = el.scrollWidth + &quot;px&quot;;  el.style.height = el.scrollHeight + &quot;px&quot;;&#125;\nscrollWidth 와 scrollHeight 메서드는 호출하기만 해도 리플로우가 발생한다. 이 경우 값을 최대한 별도의 변수에 캐싱해 자주 호출되지 않게 하면 리플로우의 발생 빈도를 낮출 수 있다.\n1234567var scrollWidth = el.scrollWidth;var scrollHeight = el.scrollHeight;for (condition) &#123;  el.style.width = scrollWidth + &quot;px&quot;;  el.style.height = scrollHeight + &quot;px&quot;;&#125;\n하드웨어 가속 렌더링브라우저는 웹 페이지 컨텐츠 렌더링 작업의 대부분을 CPU 에 의존해 왔다. 하지만 모바일 기기에도 GPU 가 기본으로 포함되고, 비디오, 3D 그래픽 등과 같이 화려하고 용량이 큰 컨텐트의 소비가 늘어 이를 활용하는 방법에 대한 고민도 커졌다.\nGPU를 렌더링에 활용하면 성능에 이점이 있다. 일반적인 렌더링은 CPU 에서 렌더링 요소에 대한 연산 작업을 처리하면 그 결과값을 사용해 GPU 가 출력하는 과정을 거친다. 그러나 CPU 에서 처리되던 작업이 GPU 에 위임되면 처리 결과값을 GPU 로 전달하는 과정이 생략될 수 있고 CPU 도 다른 작업에 더 집중할 수 있다.\nGPU 의 기본적인 하드웨어 디자인은 대용량의 픽셀 데이터를 조합하고 그리는 작업을 하게 되어 있으므로 CPU 보다 GPU 가 렌더링 작업을 최적으로 실행할 수 있다.\n참조: 자바스크립트 성능 이야기\n","dateCreated":"2020-02-16T17:07:24+09:00","dateModified":"2020-02-16T18:13:40+09:00","datePublished":"2020-02-16T17:07:24+09:00","description":"렌더링 과정렌더링이란 논리적인 문서(DOM)의 표현식을 그래픽 표현식으로 변형시키는 과정이다. 이 과정은 다음과 같이 크게 2단계를 거쳐 이뤄진다.\n\nDOM 요소와 스타일에 기반을 둔 레이아웃 계산\n계산된 요소의 화면 표현\n\n일반적인 전체 흐름은 브라우저에 문서가 로딩됨에 따라 DOM 트리의 구성이 진행되면 레이아웃을 계산한 후 문서에 요소를 그린다.","headline":"렌더링","image":[],"mainEntityOfPage":{"@type":"WebPage","@id":"https://kkangil.github.io/2020/02/16/렌더링/"},"publisher":{"@type":"Organization","name":"kkangil","sameAs":["https://github.com/kkangil","http://stackoverflow.com/users/10870848/kkangil","https://www.linkedin.com/in/kangil-kim-31093a169/","fe.kkangil@gmail.com"],"image":"profile.jpeg","logo":{"@type":"ImageObject","url":"profile.jpeg"}},"url":"https://kkangil.github.io/2020/02/16/렌더링/","keywords":"웹 사이트 최적화, 렌더링, 리플로우, 리페인트"}</script>
-    <meta name="description" content="렌더링 과정렌더링이란 논리적인 문서(DOM)의 표현식을 그래픽 표현식으로 변형시키는 과정이다. 이 과정은 다음과 같이 크게 2단계를 거쳐 이뤄진다.  DOM 요소와 스타일에 기반을 둔 레이아웃 계산 계산된 요소의 화면 표현  일반적인 전체 흐름은 브라우저에 문서가 로딩됨에 따라 DOM 트리의 구성이 진행되면 레이아웃을 계산한 후 문서에 요소를 그린다.">
-<meta name="keywords" content="웹 사이트 최적화,렌더링,리플로우,리페인트">
-<meta property="og:type" content="blog">
-<meta property="og:title" content="렌더링">
-<meta property="og:url" content="https://kkangil.github.io/2020/02/16/렌더링/index.html">
-<meta property="og:site_name" content="kkangil&#39;s Blog">
-<meta property="og:description" content="렌더링 과정렌더링이란 논리적인 문서(DOM)의 표현식을 그래픽 표현식으로 변형시키는 과정이다. 이 과정은 다음과 같이 크게 2단계를 거쳐 이뤄진다.  DOM 요소와 스타일에 기반을 둔 레이아웃 계산 계산된 요소의 화면 표현  일반적인 전체 흐름은 브라우저에 문서가 로딩됨에 따라 DOM 트리의 구성이 진행되면 레이아웃을 계산한 후 문서에 요소를 그린다.">
-<meta property="og:locale" content="ko">
-<meta property="og:updated_time" content="2020-02-16T09:13:40.042Z">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="렌더링">
-<meta name="twitter:description" content="렌더링 과정렌더링이란 논리적인 문서(DOM)의 표현식을 그래픽 표현식으로 변형시키는 과정이다. 이 과정은 다음과 같이 크게 2단계를 거쳐 이뤄진다.  DOM 요소와 스타일에 기반을 둔 레이아웃 계산 계산된 요소의 화면 표현  일반적인 전체 흐름은 브라우저에 문서가 로딩됨에 따라 DOM 트리의 구성이 진행되면 레이아웃을 계산한 후 문서에 요소를 그린다.">
-    
-    
-        
-    
-    
-        <meta property="og:image" content="https://kkangil.github.io/assets/images/profile.jpeg"/>
-    
-    
-    
-    
-    <!--STYLES-->
-    <link rel="stylesheet" href="/assets/css/style-c4ozcsklz4kht2pebhp44xorvyverh23toayhn7i6ubrpyedak24hv1v0hyd.min.css">
-    <!--STYLES END-->
-    
-
-    
-</head>
-
-    <body>
-        <div id="blog">
-            <!-- Define author's picture -->
-
-
-    
-        
-            
-        
-    
-
-<header id="header" data-behavior="4">
-    <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
-    <div class="header-title">
-        <a class="header-title-link" href="/ ">kkangil&#39;s Blog</a>
-    </div>
-    
-        
-            <a class="header-right-picture " href="#about">
-        
-        
-            <img class="header-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
-        
-        </a>
-    
-</header>
-
-            <!-- Define author's picture -->
-
-
-
-        
-    
-
-<nav id="sidebar" data-behavior="4">
-    <div class="sidebar-container">
-        
-            <div class="sidebar-profile">
-                <a href="/#about">
-                    <img class="sidebar-profile-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
-                </a>
-                <h4 class="sidebar-profile-name">kkangil</h4>
-                
-                    <h5 class="sidebar-profile-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
-</h5>
-                
-            </div>
-        
-        
-            <ul class="sidebar-buttons">
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="/ " title="Home">
-                    
-                        <i class="sidebar-button-icon fa fa-home" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Home</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="/all-categories" title="카테고리">
-                    
-                        <i class="sidebar-button-icon fa fa-bookmark" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">카테고리</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="/all-tags" title="태그">
-                    
-                        <i class="sidebar-button-icon fa fa-tags" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">태그</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="/all-archives" title="기록">
-                    
-                        <i class="sidebar-button-icon fa fa-archive" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">기록</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link open-algolia-search" href="#search" title="검색">
-                    
-                        <i class="sidebar-button-icon fa fa-search" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">검색</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="#about" title="About">
-                    
-                        <i class="sidebar-button-icon fa fa-question" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">About</span>
-                    </a>
-            </li>
-            
-        </ul>
-        
-            <ul class="sidebar-buttons">
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="https://github.com/kkangil" target="_blank" rel="noopener" title="GitHub">
-                    
-                        <i class="sidebar-button-icon fab fa-github" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">GitHub</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="http://stackoverflow.com/users/10870848/kkangil" target="_blank" rel="noopener" title="Stack Overflow">
-                    
-                        <i class="sidebar-button-icon fab fa-stack-overflow" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Stack Overflow</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="https://www.linkedin.com/in/kangil-kim-31093a169/" target="_blank" rel="noopener" title="LinkedIn">
-                    
-                        <i class="sidebar-button-icon fab fa-linkedin" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">LinkedIn</span>
-                    </a>
-            </li>
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="/fe.kkangil@gmail.com" title="Mail">
-                    
-                        <i class="sidebar-button-icon fa fa-envelope" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">Mail</span>
-                    </a>
-            </li>
-            
-        </ul>
-        
-            <ul class="sidebar-buttons">
-            
-                <li class="sidebar-button">
-                    
-                        <a class="sidebar-button-link " href="/atom.xml" title="RSS">
-                    
-                        <i class="sidebar-button-icon fa fa-rss" aria-hidden="true"></i>
-                        <span class="sidebar-button-desc">RSS</span>
-                    </a>
-            </li>
-            
-        </ul>
-        
-    </div>
-</nav>
-
-            
-            <div id="main" data-behavior="4"
-                 class="
-                        hasCoverMetaIn
-                        ">
-                
-<article class="post">
-    
-    
-        <div class="post-header main-content-wrap text-left">
-    
-        <h1 class="post-title">
-            렌더링
-        </h1>
-    
-    
-        <div class="post-meta">
-    <time datetime="2020-02-16T17:07:24+09:00">
-	
-		    2월 16, 2020
-    	
-    </time>
-    
-        <span>카테고리 </span>
-        
-    <a class="category-link" href="/categories/웹-성능-이야기/">웹 성능 이야기</a>
-
-
-    
-</div>
-
-    
-</div>
-
-    
-    <div class="post-content markdown">
-        <div class="main-content-wrap">
-            <h2 id="렌더링-과정"><a href="#렌더링-과정" class="headerlink" title="렌더링 과정"></a>렌더링 과정</h2><p>렌더링이란 논리적인 문서(DOM)의 표현식을 그래픽 표현식으로 변형시키는 과정이다. 이 과정은 다음과 같이 크게 2단계를 거쳐 이뤄진다.</p>
+        gtag('config', 'UA-165569140-1');</script><!--!--><script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script><script data-ad-client="ca-pub-5445993070474035" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js" async></script></head><body class="is-2-column"><nav class="navbar navbar-main"><div class="container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/">kkangil&#039;s Blog</a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">Home</a><a class="navbar-item" href="/archives">Archives</a><a class="navbar-item" href="/categories">Categories</a><a class="navbar-item" href="/tags">Tags</a><a class="navbar-item" href="/about">About</a></div><div class="navbar-end"><a class="navbar-item" target="_blank" rel="noopener" title="GitHub Home" href="https://github.com/kkangil"><i class="fab fa-github"></i></a><a class="navbar-item is-hidden-tablet catalogue" title="카탈로그" href="javascript:;"><i class="fas fa-list-ul"></i></a><a class="navbar-item search" title="검색" href="javascript:;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta size-small is-uppercase level is-mobile"><div class="level-left"><span class="level-item">2020년 2월 16일 일요일 오후 5:07</span><span class="level-item"><a class="link-muted" href="/categories/%EC%9B%B9-%EC%84%B1%EB%8A%A5-%EC%9D%B4%EC%95%BC%EA%B8%B0/">웹 성능 이야기</a></span><span class="level-item">20분 읽기 (대략 2979 단어)</span></div></div><h1 class="title is-3 is-size-4-mobile">렌더링</h1><div class="content"><h2 id="렌더링-과정"><a href="#렌더링-과정" class="headerlink" title="렌더링 과정"></a>렌더링 과정</h2><p>렌더링이란 논리적인 문서(DOM)의 표현식을 그래픽 표현식으로 변형시키는 과정이다. 이 과정은 다음과 같이 크게 2단계를 거쳐 이뤄진다.</p>
 <ol>
 <li>DOM 요소와 스타일에 기반을 둔 레이아웃 계산</li>
 <li>계산된 요소의 화면 표현</li>
@@ -262,7 +21,7 @@
 <h4 id="렌더-트리-생성"><a href="#렌더-트리-생성" class="headerlink" title="렌더 트리 생성"></a>렌더 트리 생성</h4><p>DOM 트리와 스타일 구조를 통해 렌더 트리를 생성한다.<br>렌더 트리는 DOM 트리와는 다르게 각 노드에 스타일 정보가 설정되어 있고 화면에 표현되는 노드로 구성된다. 어떤 노드의 스타일이 ‘display: none’ 으로 설정되어 있으면 해당 노드는 렌더 트리에 포함되지 않는다. 그렇기 때문에 DOM 트리와 렌더 트리의 노드는 서로 1:1로 대응되지 않는다. head, title, script 등과 같이 화면에 표현되는 노드가 아니므로 DOM 트리에는 포함되어 있지만 렌더 트리에는 포함되어 있지 않다.</p>
 <h4 id="레이아웃-처리"><a href="#레이아웃-처리" class="headerlink" title="레이아웃 처리"></a>레이아웃 처리</h4><p>렌더 트리의 각 노드의 크기가 계산되고 문서에서 정확한 위치에 배치되도록 위치를 계산한다. 루트에서 하위 노드로 반복되며 진행한다.</p>
 <h4 id="페인트"><a href="#페인트" class="headerlink" title="페인트"></a>페인트</h4><p>렌더 트리를 순회하면서 페인트 함수를 호출해 노드를 화면에 표현한다.</p>
-<hr>
+<hr/>
 
 <h3 id="리플로우-reflow-와-리페인트-repaint"><a href="#리플로우-reflow-와-리페인트-repaint" class="headerlink" title="리플로우(reflow) 와 리페인트(repaint)"></a>리플로우(reflow) 와 리페인트(repaint)</h3><p>렌더링이 모두 완료된 상태에서 사용자의 인터랙션 또는 기능에 따라 화면의 일부 영역에 변경 요인이 발생한다. 이러한 작업이 발생하면 구성돼 있는 렌더 트리가 변경되어야 하며 리플로우 또는 리페인트가 발생한다.</p>
 <h4 id="리플로우"><a href="#리플로우" class="headerlink" title="리플로우"></a>리플로우</h4><p>변경이 필요한 렌더 트리에 대한 유효성 확인 작업과 함께 노드의 크기와 위치를 다시 계산한다. 노드의 ‘크기’ 또는 ‘위치’가 바뀌어 현재 레이아웃에 영향을 미쳐 배치를 <code>다시</code> 해야 할 때 리플로우가 발생한다.</p>
@@ -276,288 +35,56 @@
 <li>스타일</li>
 <li>사용자의 액션</li>
 </ul>
-<hr>
+<hr/>
 
 <h2 id="리플로우-최소화-방법"><a href="#리플로우-최소화-방법" class="headerlink" title="리플로우 최소화 방법"></a>리플로우 최소화 방법</h2><h3 id="작업-그룹핑"><a href="#작업-그룹핑" class="headerlink" title="작업 그룹핑"></a>작업 그룹핑</h3><p>DOM 요소의 정보를 요청하고 변경하는 코드는 같은 형태의 작업끼리 그룹으로 묶어 실행시키는 것이 좋다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">function change() &#123;</span><br><span class="line">  var width = document.getElementById(&quot;layer1&quot;).style.width;</span><br><span class="line">  document.getElementById(&quot;layer2&quot;).style.width = width;</span><br><span class="line">  var height = document.getElementById(&quot;layer3&quot;).style.height;</span><br><span class="line">  document.getElementById(&quot;layer4&quot;).style.height = height;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">change</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> width = <span class="built_in">document</span>.getElementById(<span class="string">"layer1"</span>).style.width;</span><br><span class="line">  <span class="built_in">document</span>.getElementById(<span class="string">"layer2"</span>).style.width = width;</span><br><span class="line">  <span class="keyword">var</span> height = <span class="built_in">document</span>.getElementById(<span class="string">"layer3"</span>).style.height;</span><br><span class="line">  <span class="built_in">document</span>.getElementById(<span class="string">"layer4"</span>).style.height = height;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>위의 코드는 요소의 스타일 정보를 요청하고, 반환된 값을 다른 요소의 스타일 변경하는 데 사용한다. 그 후 다시 다른 요소에 동일한 형태의 작업이 반복된다. 이 코드를 실행하면 리플로우가 여러 번 발생할 수 있다.<br>스타일 조회 -&gt; 변경 -&gt; 리플로우 -&gt; 스타일 조회 -&gt; 변경 -&gt; 리플로우</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">function change() &#123;</span><br><span class="line">  var width = document.getElementById(&quot;layer1&quot;).style.width;</span><br><span class="line">  var height = document.getElementById(&quot;layer3&quot;).style.height;</span><br><span class="line">  document.getElementById(&quot;layer2&quot;).style.width = width;</span><br><span class="line">  document.getElementById(&quot;layer4&quot;).style.height = height;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">change</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">var</span> width = <span class="built_in">document</span>.getElementById(<span class="string">"layer1"</span>).style.width;</span><br><span class="line">  <span class="keyword">var</span> height = <span class="built_in">document</span>.getElementById(<span class="string">"layer3"</span>).style.height;</span><br><span class="line">  <span class="built_in">document</span>.getElementById(<span class="string">"layer2"</span>).style.width = width;</span><br><span class="line">  <span class="built_in">document</span>.getElementById(<span class="string">"layer4"</span>).style.height = height;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>위와 같이 비슷한 형태의 작업 끼리 그룹으로 묶어 실행되도록 순서를 변경하면 렌더링 처리를 향상시킬 수 있다.</p>
 <p>스타일 조회 -&gt; 스타일 조회 -&gt; 변경 -&gt; 변경 -&gt; 리플로우</p>
 <h3 id="실행-사이클"><a href="#실행-사이클" class="headerlink" title="실행 사이클"></a>실행 사이클</h3><p>브라우저에서 자바스크립트 실행은 <code>이벤트 루프</code> 모델을 따른다. 기본적으로 브라우저는 이벤트가 발생하면 바로 처리가 가능하도록 유휴(idle) 상태에 머무른다. 그러다 어떤 요청에 의해 유휴 상태가 해제되면 작업이 실행된다. 작업이 실행되면 브라우저는 작업의 실행 결과에 따른 리페인트가 완료될 때까지 기다린다. 이러한 실행 사이클로 인해 타이머를 사용하면 수차례의 리플로우와 리페인트가 발생될 수 있다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">function reflow() &#123;</span><br><span class="line">  document.getElementById(&quot;box1&quot;).style.height = &quot;50px&quot;;</span><br><span class="line">  setTimeout(function() &#123;</span><br><span class="line">    document.getElementById(&quot;box2&quot;).style.height = &quot;70px&quot;;</span><br><span class="line">  &#125;, 0)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">reflow</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="built_in">document</span>.getElementById(<span class="string">"box1"</span>).style.height = <span class="string">"50px"</span>;</span><br><span class="line">  setTimeout(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">document</span>.getElementById(<span class="string">"box2"</span>).style.height = <span class="string">"70px"</span>;</span><br><span class="line">  &#125;, <span class="number">0</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>타이머의 설정 시간을 0으로 설정해도 브라우저가 유휴 상태(stack 이 비워져 있는 상태)가 아니면 그 상태가 되기까지 실행되지 않는다. 첫 번째 요소에 대한 작업이 한 사이클 내에서 실행되고, 타이머의 실행은 먼저 실행된 사이클이 끝난 다음에 진행된다. 이로 인해 결과적으로는 리플로우와 리페인트가 두 번 발생하게 된다. 이와 같이 리플로우와 리페인트가 일어날 수 있는 작업은 가능하면 한 실행 사이클 안에서 실행하도록 처리하는 편이 효과적이다.</p>
 <h3 id="노출-제어를-통한-리플로우-최소화-방법"><a href="#노출-제어를-통한-리플로우-최소화-방법" class="headerlink" title="노출 제어를 통한 리플로우 최소화 방법"></a>노출 제어를 통한 리플로우 최소화 방법</h3><p>요소의 스타일을 변경하면 리페인트는 반드시 일어나며, 변경 형태에 따라 리플로우도 일어난다.</p>
 <h4 id="display"><a href="#display" class="headerlink" title="display"></a>display</h4><p>기본적으로 리플로우와 리페인트는 모두 화면에 변경된 사항이 반영되는 시점에 발생한다. 여러 속성의 스타일을 변경하는 중간 단계에서는 화면에 표시하지 않고, 작업이 완료되고 최종 결과가 반영되는 마지막 시점에 요소를 다시 표시한다면 리플로우와 리페인트의 발생 횟수를 크게 줄일 수 있다.</p>
 <p>이 코드는 값을 여러번 변경하며 값이 변경될 때마다 리플로우와 리페인트가 발생한다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">var element = document.getElementById(&quot;box1&quot;);</span><br><span class="line"></span><br><span class="line">for (var i=50; i &lt; 100; i++) &#123;</span><br><span class="line">  element.style.width = i + &quot;px&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">for (var i=1; i &lt; 50; i++) &#123;</span><br><span class="line">  element.style.borderWidth = i + &quot;px&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> element = <span class="built_in">document</span>.getElementById(<span class="string">"box1"</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">var</span> i=<span class="number">50</span>; i &lt; <span class="number">100</span>; i++) &#123;</span><br><span class="line">  element.style.width = i + <span class="string">"px"</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">var</span> i=<span class="number">1</span>; i &lt; <span class="number">50</span>; i++) &#123;</span><br><span class="line">  element.style.borderWidth = i + <span class="string">"px"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>하지만 다음과 같이 요소를 보이지 않게 하고 모든 변경이 반영된 이후에 표시하면 처음과 마지막 시점 두 번으로 리플로우 발생 횟수가 줄어든다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">var element = document.getElementById(&quot;box1&quot;);</span><br><span class="line"></span><br><span class="line">element.style.display = &quot;none&quot;;</span><br><span class="line"></span><br><span class="line">for (var i=50; i &lt; 100; i++) &#123;</span><br><span class="line">  element.style.width = i + &quot;px&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">for (var i=1; i &lt; 50; i++) &#123;</span><br><span class="line">  element.style.borderWidth = i + &quot;px&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">element.style.display = &quot;block&quot;;</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> element = <span class="built_in">document</span>.getElementById(<span class="string">"box1"</span>);</span><br><span class="line"></span><br><span class="line">element.style.display = <span class="string">"none"</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">var</span> i=<span class="number">50</span>; i &lt; <span class="number">100</span>; i++) &#123;</span><br><span class="line">  element.style.width = i + <span class="string">"px"</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">var</span> i=<span class="number">1</span>; i &lt; <span class="number">50</span>; i++) &#123;</span><br><span class="line">  element.style.borderWidth = i + <span class="string">"px"</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">element.style.display = <span class="string">"block"</span>;</span><br></pre></td></tr></table></figure>
 <p>display 의 none, block 을 이용한 최소화 방법이다.</p>
 <h4 id="노드-복제"><a href="#노드-복제" class="headerlink" title="노드 복제"></a>노드 복제</h4><p>변경하려는 요소의 노드를 복제한 후 복제된 노드에 필요한 작업을 실행하는 방법이다. 복제된 노드는 DOM 트리에 추가된 상태가 아니므로 렌더링 성능에 영향을 줄 수 있는 작업을 실행하더라도 리플로우나 리페인트가 발생하지 않는다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">var element = document.getElementById(&quot;box1&quot;);</span><br><span class="line">var clone = element.cloneNode(true);</span><br><span class="line"></span><br><span class="line">for (var i=0; i&lt; 100; i++) &#123;</span><br><span class="line">  clone.style.width = i + &quot;px&quot;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">parentNode.replaceChild(clone, element);</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> element = <span class="built_in">document</span>.getElementById(<span class="string">"box1"</span>);</span><br><span class="line"><span class="keyword">var</span> clone = element.cloneNode(<span class="literal">true</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">var</span> i=<span class="number">0</span>; i&lt; <span class="number">100</span>; i++) &#123;</span><br><span class="line">  clone.style.width = i + <span class="string">"px"</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">parentNode.replaceChild(clone, element);</span><br></pre></td></tr></table></figure>
 <p>작업이 모두 완료된 이후 복제된 노드를 원래 노드와 치환해 DOM 트리에 변경된 사항이 적용되게 한다. 그러면 치환 시점에만 리플로우와 리페인트가 발생하는 것이므로 display 속성을 사용하는것 보다 적게 발생한다.</p>
 <h4 id="캐싱"><a href="#캐싱" class="headerlink" title="캐싱"></a>캐싱</h4><p>여기서의 캐싱은 별도의 변수에 자주 사용하는 값을 저장하는 것이다. 특정 속성과 메서드를 사용하기만 해도 리플로우 발생하는 경우가 있다. 자주 사용하는 속성의 값이나 메서드의 반환값을 변수에 저장하면 직접 속성이나 메서드를 호출하는 횟수를 줄여 성능을 향상 시킬 수 있다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">for (condition) &#123;</span><br><span class="line">  el.style.width = el.scrollWidth + &quot;px&quot;;</span><br><span class="line">  el.style.height = el.scrollHeight + &quot;px&quot;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (condition) &#123;</span><br><span class="line">  el.style.width = el.scrollWidth + <span class="string">"px"</span>;</span><br><span class="line">  el.style.height = el.scrollHeight + <span class="string">"px"</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>scrollWidth 와 scrollHeight 메서드는 호출하기만 해도 리플로우가 발생한다. 이 경우 값을 최대한 별도의 변수에 캐싱해 자주 호출되지 않게 하면 리플로우의 발생 빈도를 낮출 수 있다.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">var scrollWidth = el.scrollWidth;</span><br><span class="line">var scrollHeight = el.scrollHeight;</span><br><span class="line"></span><br><span class="line">for (condition) &#123;</span><br><span class="line">  el.style.width = scrollWidth + &quot;px&quot;;</span><br><span class="line">  el.style.height = scrollHeight + &quot;px&quot;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> scrollWidth = el.scrollWidth;</span><br><span class="line"><span class="keyword">var</span> scrollHeight = el.scrollHeight;</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (condition) &#123;</span><br><span class="line">  el.style.width = scrollWidth + <span class="string">"px"</span>;</span><br><span class="line">  el.style.height = scrollHeight + <span class="string">"px"</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h2 id="하드웨어-가속-렌더링"><a href="#하드웨어-가속-렌더링" class="headerlink" title="하드웨어 가속 렌더링"></a>하드웨어 가속 렌더링</h2><p>브라우저는 웹 페이지 컨텐츠 렌더링 작업의 대부분을 CPU 에 의존해 왔다. 하지만 모바일 기기에도 GPU 가 기본으로 포함되고, 비디오, 3D 그래픽 등과 같이 화려하고 용량이 큰 컨텐트의 소비가 늘어 이를 활용하는 방법에 대한 고민도 커졌다.</p>
 <p>GPU를 렌더링에 활용하면 성능에 이점이 있다. 일반적인 렌더링은 CPU 에서 렌더링 요소에 대한 연산 작업을 처리하면 그 결과값을 사용해 GPU 가 출력하는 과정을 거친다. 그러나 CPU 에서 처리되던 작업이 GPU 에 위임되면 처리 결과값을 GPU 로 전달하는 과정이 생략될 수 있고 CPU 도 다른 작업에 더 집중할 수 있다.</p>
 <p>GPU 의 기본적인 하드웨어 디자인은 대용량의 픽셀 데이터를 조합하고 그리는 작업을 하게 되어 있으므로 CPU 보다 GPU 가 렌더링 작업을 최적으로 실행할 수 있다.</p>
-<p>참조: <a href="http://www.yes24.com/Product/Goods/7516929?scode=032&amp;OzSrank=2" target="_blank" rel="noopener">자바스크립트 성능 이야기</a></p>
-
-            
-
-        </div>
-    </div>
-    <div id="post-footer" class="post-footer main-content-wrap">
-        
-            <div class="post-footer-tags">
-                <span class="text-color-light text-small">태그</span><br>
-                
-    <a class="tag tag--primary tag--small t-link" href="/tags/렌더링/">렌더링</a> <a class="tag tag--primary tag--small t-link" href="/tags/리페인트/">리페인트</a> <a class="tag tag--primary tag--small t-link" href="/tags/리플로우/">리플로우</a> <a class="tag tag--primary tag--small t-link" href="/tags/웹-사이트-최적화/">웹 사이트 최적화</a>
-
-            </div>
-        
-        
-            <div class="post-actions-wrap">
-    <nav>
-        <ul class="post-actions post-action-nav">
-            <li class="post-action">
-                
-                    
-                    <a class="post-action-btn btn btn--default tooltip--top" href="/2020/02/23/jest-메서드-toBe/" data-tooltip="jest 메서드-toBe" aria-label="이전: jest 메서드-toBe">
-                
-                    <i class="fa fa-angle-left" aria-hidden="true"></i>
-                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
-                </a>
-            </li>
-            <li class="post-action">
-                
-                    
-                    <a class="post-action-btn btn btn--default tooltip--top" href="/2020/02/16/jest-메서드-expect/" data-tooltip="jest 메서드 - expect" aria-label="다음: jest 메서드 - expect">
-                
-                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
-                    <i class="fa fa-angle-right" aria-hidden="true"></i>
-                </a>
-            </li>
-        </ul>
-    </nav>
-    <ul class="post-actions post-action-share">
-        <li class="post-action hide-lg hide-md hide-sm">
-            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
-                <i class="fa fa-share-alt" aria-hidden="true"></i>
-            </a>
-        </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2020/02/16/렌더링/" title="Facebook 공유">
-                    <i class="fab fa-facebook" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2020/02/16/렌더링/" title="Twitter 공유">
-                    <i class="fab fa-twitter" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2020/02/16/렌더링/" title="Google+ 공유">
-                    <i class="fab fa-google-plus" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-        
-            
-        
-        <li class="post-action">
-            
-                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
-            
-                <i class="fa fa-list" aria-hidden="true"></i>
-            </a>
-        </li>
-    </ul>
-</div>
-
-
-        
-        
-            
-        
-    </div>
-</article>
-
-
-
-                <footer id="footer" class="main-content-wrap">
-    <span class="copyrights">
-        Copyrights &copy; 2020 kkangil. All Rights Reserved.
-    </span>
-</footer>
-
-            </div>
-            
-                <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
-                    <div class="post-actions-wrap">
-    <nav>
-        <ul class="post-actions post-action-nav">
-            <li class="post-action">
-                
-                    
-                    <a class="post-action-btn btn btn--default tooltip--top" href="/2020/02/23/jest-메서드-toBe/" data-tooltip="jest 메서드-toBe" aria-label="이전: jest 메서드-toBe">
-                
-                    <i class="fa fa-angle-left" aria-hidden="true"></i>
-                    <span class="hide-xs hide-sm text-small icon-ml">이전</span>
-                </a>
-            </li>
-            <li class="post-action">
-                
-                    
-                    <a class="post-action-btn btn btn--default tooltip--top" href="/2020/02/16/jest-메서드-expect/" data-tooltip="jest 메서드 - expect" aria-label="다음: jest 메서드 - expect">
-                
-                    <span class="hide-xs hide-sm text-small icon-mr">다음</span>
-                    <i class="fa fa-angle-right" aria-hidden="true"></i>
-                </a>
-            </li>
-        </ul>
-    </nav>
-    <ul class="post-actions post-action-share">
-        <li class="post-action hide-lg hide-md hide-sm">
-            <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions" aria-label="글 공유">
-                <i class="fa fa-share-alt" aria-hidden="true"></i>
-            </a>
-        </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a class="post-action-btn btn btn--default" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2020/02/16/렌더링/" title="Facebook 공유">
-                    <i class="fab fa-facebook" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a class="post-action-btn btn btn--default" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2020/02/16/렌더링/" title="Twitter 공유">
-                    <i class="fab fa-twitter" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-            
-            
-            <li class="post-action hide-xs">
-                <a class="post-action-btn btn btn--default" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2020/02/16/렌더링/" title="Google+ 공유">
-                    <i class="fab fa-google-plus" aria-hidden="true"></i>
-                </a>
-            </li>
-        
-        
-            
-        
-        <li class="post-action">
-            
-                <a class="post-action-btn btn btn--default" href="#" aria-label="상단 이동">
-            
-                <i class="fa fa-list" aria-hidden="true"></i>
-            </a>
-        </li>
-    </ul>
-</div>
-
-
-                </div>
-                
-    <div id="share-options-bar" class="share-options-bar" data-behavior="4">
-        <i id="btn-close-shareoptions" class="fa fa-times"></i>
-        <ul class="share-options">
-            
-                
-                
-                <li class="share-option">
-                    <a class="share-option-btn" target="new" href="https://www.facebook.com/sharer/sharer.php?u=https://kkangil.github.io/2020/02/16/렌더링/">
-                        <i class="fab fa-facebook" aria-hidden="true"></i><span>Facebook 공유</span>
-                    </a>
-                </li>
-            
-                
-                
-                <li class="share-option">
-                    <a class="share-option-btn" target="new" href="https://twitter.com/intent/tweet?text=https://kkangil.github.io/2020/02/16/렌더링/">
-                        <i class="fab fa-twitter" aria-hidden="true"></i><span>Twitter 공유</span>
-                    </a>
-                </li>
-            
-                
-                
-                <li class="share-option">
-                    <a class="share-option-btn" target="new" href="https://plus.google.com/share?url=https://kkangil.github.io/2020/02/16/렌더링/">
-                        <i class="fab fa-google-plus" aria-hidden="true"></i><span>Google+ 공유</span>
-                    </a>
-                </li>
-            
-        </ul>
-    </div>
-
-
-            
-        </div>
-        
-
-
-    
-        
-    
-
-<div id="about">
-    <div id="about-card">
-        <div id="about-btn-close">
-            <i class="fa fa-times"></i>
-        </div>
-        
-            <img id="about-card-picture" src="/assets/images/profile.jpeg" alt="Author&#39;s picture">
-        
-            <h4 id="about-card-name">kkangil</h4>
-        
-            <div id="about-card-bio"><p>React와 Node를 사용하는 풀스택 개발자가 되는것이 목표입니다.</p>
-</div>
-        
-        
-            <div id="about-card-job">
-                <i class="fa fa-briefcase"></i>
-                <br>
-                <p>web developer</p>
-
-            </div>
-        
-        
-            <div id="about-card-location">
-                <i class="fa fa-map-marker-alt"></i>
-                <br>
-                Asia/Seoul
-            </div>
-        
-    </div>
-</div>
-
-        
-        
-<div id="cover" style="background-image:url('/assets/images/cover.jpg');"></div>
-        <!--SCRIPTS-->
-<script src="/assets/js/script-dbd16rvloemmuxdzniplmnxxvwoz24eya9wol0b7vvmlokgqsjivmb8dnscy.min.js"></script>
-<!--SCRIPTS END-->
-
-    
-
-
-
-    </body>
-</html>
+<p>참조: <a href="http://www.yes24.com/Product/Goods/7516929?scode=032&amp;OzSrank=2">자바스크립트 성능 이야기</a></p>
+</div><div class="article-tags size-small is-uppercase mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/%EC%9B%B9-%EC%82%AC%EC%9D%B4%ED%8A%B8-%EC%B5%9C%EC%A0%81%ED%99%94/">웹 사이트 최적화</a><a class="link-muted mr-2" rel="tag" href="/tags/%EB%A0%8C%EB%8D%94%EB%A7%81/">렌더링</a><a class="link-muted mr-2" rel="tag" href="/tags/%EB%A6%AC%ED%94%8C%EB%A1%9C%EC%9A%B0/">리플로우</a><a class="link-muted mr-2" rel="tag" href="/tags/%EB%A6%AC%ED%8E%98%EC%9D%B8%ED%8A%B8/">리페인트</a></div><!--!--></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-start"><a class="article-nav-prev level level-item link-muted" href="/2020/02/23/jest-%EB%A9%94%EC%84%9C%EB%93%9C-toBe/"><i class="level-item fas fa-chevron-left"></i><span class="level-item">jest 메서드-toBe</span></a></div><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2020/02/16/jest-%EB%A9%94%EC%84%9C%EB%93%9C-expect/"><span class="level-item">jest 메서드 - expect</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--></div><!--!--><div class="column column-right is-4-tablet is-4-desktop is-4-widescreen  order-3 is-sticky"><div class="card widget" id="toc"><div class="card-content"><div class="menu"><h3 class="menu-label">카탈로그</h3><ul class="menu-list"><li><a class="is-flex" href="#렌더링-과정"><span class="mr-2">1</span><span>렌더링 과정</span></a><ul class="menu-list"><li><a class="is-flex" href="#렌더링이-진행되는-과정"><span class="mr-2">1.1</span><span>렌더링이 진행되는 과정</span></a><ul class="menu-list"><li><a class="is-flex" href="#DOM-트리-생성"><span class="mr-2">1.1.1</span><span>DOM 트리 생성</span></a></li><li><a class="is-flex" href="#스타일-구조체-생성"><span class="mr-2">1.1.2</span><span>스타일 구조체 생성</span></a></li><li><a class="is-flex" href="#렌더-트리-생성"><span class="mr-2">1.1.3</span><span>렌더 트리 생성</span></a></li><li><a class="is-flex" href="#레이아웃-처리"><span class="mr-2">1.1.4</span><span>레이아웃 처리</span></a></li><li><a class="is-flex" href="#페인트"><span class="mr-2">1.1.5</span><span>페인트</span></a></li></ul></li><li><a class="is-flex" href="#리플로우-reflow-와-리페인트-repaint"><span class="mr-2">1.2</span><span>리플로우(reflow) 와 리페인트(repaint)</span></a><ul class="menu-list"><li><a class="is-flex" href="#리플로우"><span class="mr-2">1.2.1</span><span>리플로우</span></a></li><li><a class="is-flex" href="#리페인트"><span class="mr-2">1.2.2</span><span>리페인트</span></a></li><li><a class="is-flex" href="#발생-요인"><span class="mr-2">1.2.3</span><span>발생 요인</span></a></li></ul></li></ul></li><li><a class="is-flex" href="#리플로우-최소화-방법"><span class="mr-2">2</span><span>리플로우 최소화 방법</span></a><ul class="menu-list"><li><a class="is-flex" href="#작업-그룹핑"><span class="mr-2">2.1</span><span>작업 그룹핑</span></a></li><li><a class="is-flex" href="#실행-사이클"><span class="mr-2">2.2</span><span>실행 사이클</span></a></li><li><a class="is-flex" href="#노출-제어를-통한-리플로우-최소화-방법"><span class="mr-2">2.3</span><span>노출 제어를 통한 리플로우 최소화 방법</span></a><ul class="menu-list"><li><a class="is-flex" href="#display"><span class="mr-2">2.3.1</span><span>display</span></a></li><li><a class="is-flex" href="#노드-복제"><span class="mr-2">2.3.2</span><span>노드 복제</span></a></li><li><a class="is-flex" href="#캐싱"><span class="mr-2">2.3.3</span><span>캐싱</span></a></li></ul></li></ul></li><li><a class="is-flex" href="#하드웨어-가속-렌더링"><span class="mr-2">3</span><span>하드웨어 가속 렌더링</span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">카테고리</h3><ul class="menu-list"><li><a class="level is-mobile is-marginless" href="/categories/Deploy/"><span class="level-start"><span class="level-item">Deploy</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Javascript/"><span class="level-start"><span class="level-item">Javascript</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Jest/"><span class="level-start"><span class="level-item">Jest</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/React/"><span class="level-start"><span class="level-item">React</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/Sequelize/"><span class="level-start"><span class="level-item">Sequelize</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/hexo/"><span class="level-start"><span class="level-item">hexo</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%EC%9B%B9-%EC%84%B1%EB%8A%A5-%EC%9D%B4%EC%95%BC%EA%B8%B0/"><span class="level-start"><span class="level-item">웹 성능 이야기</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%ED%85%8C%EC%8A%A4%ED%8A%B8-%EC%BD%94%EB%93%9C/"><span class="level-start"><span class="level-item">테스트 코드</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile is-marginless" href="/categories/%ED%95%A8%EC%88%98%ED%98%95-%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D/"><span class="level-start"><span class="level-item">함수형 프로그래밍</span></span><span class="level-end"><span class="level-item tag">9</span></span></a></li></ul></div></div></div><div class="card widget"><div class="card-content"><div class="menu"><h3 class="menu-label">태그</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/BDD/"><span class="tag">BDD</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/HTTP-%EC%9A%94%EC%B2%AD-%EC%B5%9C%EC%86%8C%ED%99%94/"><span class="tag">HTTP 요청 최소화</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Hooks/"><span class="tag">Hooks</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Javascript/"><span class="tag">Javascript</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/MySQL/"><span class="tag">MySQL</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Next-js/"><span class="tag">Next.js</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/React/"><span class="tag">React</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/React-Hooks/"><span class="tag">React-Hooks</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Sequelize/"><span class="tag">Sequelize</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/TDD/"><span class="tag">TDD</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/indent/"><span class="tag">_.indent</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/call-apply-arguments-this/"><span class="tag">call, apply, arguments, this</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/compose/"><span class="tag">compose</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/deep-clone/"><span class="tag">deep-clone</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/deploy-Next-js/"><span class="tag">deploy Next.js</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/describe/"><span class="tag">describe</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/expect/"><span class="tag">expect</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/filter/"><span class="tag">filter</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/go/"><span class="tag">go</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/go-%ED%95%A8%EC%88%98/"><span class="tag">go 함수</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/hexo/"><span class="tag">hexo</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/hexo-%EC%8B%9C%EC%9E%91/"><span class="tag">hexo 시작</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/hooks-%EC%82%AC%EC%9A%A9%EB%B0%A9%EB%B2%95/"><span class="tag">hooks 사용방법</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/hooks-%EC%A0%95%EC%9D%98/"><span class="tag">hooks 정의</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/jasmine/"><span class="tag">jasmine</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/javascript/"><span class="tag">javascript</span><span class="tag is-grey-lightest">12</span></a></div><div class="control"><a class="tags has-addons" href="/tags/jest-globals-%EB%A9%94%EC%84%9C%EB%93%9C/"><span class="tag">jest globals 메서드</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/jest-%EB%A9%94%EC%84%9C%EB%93%9C/"><span class="tag">jest 메서드</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/lifecycle/"><span class="tag">lifecycle</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/map/"><span class="tag">map</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/memoization/"><span class="tag">memoization</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/model-%EC%A0%95%EC%9D%98/"><span class="tag">model 정의</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/named-function/"><span class="tag">named function</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/once/"><span class="tag">once</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/partial/"><span class="tag">partial</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/partial-function/"><span class="tag">partial function</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/pipe/"><span class="tag">pipe</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/pipeline/"><span class="tag">pipeline</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/pm2/"><span class="tag">pm2</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/pm2-ecosystem/"><span class="tag">pm2-ecosystem</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/skip/"><span class="tag">skip</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/spy/"><span class="tag">spy</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/syntax/"><span class="tag">syntax</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/test/"><span class="tag">test</span><span class="tag is-grey-lightest">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/toBe/"><span class="tag">toBe</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/toEqual/"><span class="tag">toEqual</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/toError/"><span class="tag">toError</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/toHaveBeenCalled/"><span class="tag">toHaveBeenCalled</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/toHaveReturned/"><span class="tag">toHaveReturned</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useCallback/"><span class="tag">useCallback</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useContext/"><span class="tag">useContext</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useEffect/"><span class="tag">useEffect</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useMemo/"><span class="tag">useMemo</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useReducer/"><span class="tag">useReducer</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useRef/"><span class="tag">useRef</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/useState/"><span class="tag">useState</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EA%B0%9D%EC%B2%B4/"><span class="tag">객체</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EA%B3%A0%EC%B0%A8-%ED%95%A8%EC%88%98/"><span class="tag">고차 함수</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%84%A4%EB%B9%84%EA%B2%8C%EC%9D%B4%EC%85%98-%ED%83%80%EC%9D%B4%EB%B0%8D/"><span class="tag">네비게이션 타이밍</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%A0%8C%EB%8D%94%EB%A7%81/"><span class="tag">렌더링</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%A0%8C%EB%8D%94%EB%A7%81-%EC%84%B1%EB%8A%A5-%ED%96%A5%EC%83%81/"><span class="tag">렌더링 성능 향상</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%A6%AC%ED%8E%98%EC%9D%B8%ED%8A%B8/"><span class="tag">리페인트</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%A6%AC%ED%94%8C%EB%A1%9C%EC%9A%B0/"><span class="tag">리플로우</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%B3%80%EA%B2%BD-%EC%B5%9C%EC%86%8C%ED%99%94/"><span class="tag">변경 최소화</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%B6%80%EC%88%98-%ED%9A%A8%EA%B3%BC/"><span class="tag">부수 효과</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EB%B9%84%EB%8F%99%EA%B8%B0%EC%99%80-go/"><span class="tag">비동기와 _.go</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EC%84%B1%EB%8A%A5-%ED%85%8C%EC%8A%A4%ED%8A%B8/"><span class="tag">성능 테스트</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EC%88%9C%EC%88%98-%ED%95%A8%EC%88%98/"><span class="tag">순수 함수</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EC%9B%B9-%EC%82%AC%EC%9D%B4%ED%8A%B8-%EC%B5%9C%EC%A0%81%ED%99%94/"><span class="tag">웹 사이트 최적화</span><span class="tag is-grey-lightest">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EC%9D%98%EC%A1%B4%EC%84%B1-%EC%A3%BC%EC%9E%85/"><span class="tag">의존성 주입</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%EC%9D%BC%EA%B8%89-%ED%95%A8%EC%88%98/"><span class="tag">일급 함수</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%81%B4%EB%A1%9C%EC%A0%80/"><span class="tag">클로저</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%85%8C%EC%8A%A4%ED%8A%B8-%EC%BD%94%EB%93%9C/"><span class="tag">테스트 코드</span><span class="tag is-grey-lightest">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%8C%8C%EC%9D%B4%ED%94%84%EB%9D%BC%EC%9D%B8/"><span class="tag">파이프라인</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%94%84%EB%A1%9C%EC%84%B8%EC%8B%B1-%EB%AA%A8%EB%8D%B8/"><span class="tag">프로세싱 모델</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%95%A8%EC%88%98-%EC%A1%B0%EB%A6%BD/"><span class="tag">함수 조립</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%95%A8%EC%88%98%EC%9D%98-%ED%98%B8%EC%9D%B4%EC%8A%A4%ED%8C%85/"><span class="tag">함수의 호이스팅</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%95%A8%EC%88%98%ED%98%95-%EC%9E%90%EB%B0%94%EC%8A%A4%ED%81%AC%EB%A6%BD%ED%8A%B8%EC%9D%98-%EC%8B%A4%EC%9A%A9%EC%84%B1-2/"><span class="tag">함수형 자바스크립트의 실용성 2</span><span class="tag is-grey-lightest">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/%ED%95%A8%EC%88%98%ED%98%95-%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D/"><span class="tag">함수형 프로그래밍</span><span class="tag is-grey-lightest">9</span></a></div></div></div></div></div><div class="card widget"><div class="card-content"><div class="notification is-danger">You need to set <code>client_id</code> and <code>slot_id</code> to show this AD unit. Please set it in <code>_config.yml</code>.</div></div></div></div></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/">kkangil&#039;s Blog</a><p class="size-small"><span>&copy; 2020 kkangil</span>  Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a></p></div><div class="level-end"><div class="field has-addons"><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Creative Commons" href="https://creativecommons.org/"><i class="fab fa-creative-commons"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/"><i class="fab fa-creative-commons-by"></i></a></p><p class="control"><a class="button is-transparent is-large" target="_blank" rel="noopener" title="Download on GitHub" href="https://github.com/ppoffice/hexo-theme-icarus"><i class="fab fa-github"></i></a></p></div></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script>moment.locale("ko");</script><script>var IcarusThemeSettings = {
+            site: {
+                url: 'https://kkangil.github.io',
+                external_link: {"enable":true,"exclude":[]}
+            },
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script src="/js/animation.js"></script><a id="back-to-top" title="맨 위로" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script src="/js/back_to_top.js" defer></script><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/js/lightgallery.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><!--!--><script src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="입력 하세요..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script src="/js/insight.js" defer></script><script>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"입력 하세요...","untitled":"(Untitled)","posts":"포스트","pages":"Pages","categories":"카테고리","tags":"태그"});
+        });</script></body></html>

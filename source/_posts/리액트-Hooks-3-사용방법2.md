@@ -11,12 +11,25 @@ tags:
   - useMemo
   - useCallback
   - useRef
+  
+toc: true
+widgets:
+  - type: toc
+    position: right
+  - type: categories
+    position: right
+  - type: tags
+    position: right
+  - type: adsense
+    position: right
+    client_id: ca-pub-5445993070474035
+    slot_id: ''
 ---
 
 ## useReducer
 redux와 같이 action을 사용하여 useState보다 다양하게 state 를 조작할수 있게 해준다.
 
-```
+```jsx harmony
 import React, { useReducer } from "react";
 
 const reducer = (state, action) => {
@@ -69,7 +82,7 @@ export default CountReducer;
 ## useMemo
 두번째 파라미터 배열 값을 전달받아 해당 값이 변경 될때만 첫번째 파라미터 함수를 실행한다. 해당 기능을 사용하면 불필요한 함수 호출을 줄일 수 있다.
 
-```
+```jsx harmony
 import React, { useState, useMemo } from "react";
 
 const Sum = () => {
@@ -113,7 +126,7 @@ export default Sum;
 ## useCallback
 useMemo와 거의 비슷한 기능으로 렌더링 성능을 최적화 하기위해 주로 사용된다. 쓰지 않아도 문제되지는 않지만 렌더링 해야할 컴포넌트 개수나 로직이 많아진다면 고려해 봐야한다. 해당 기능은 이벤트 함수를 필요할때만 생성해 주는 기능이다.
 
-```
+```jsx harmony
 const handleChange = useCallback(e => {
     setNum(e.target.value);
   }, []);
@@ -135,7 +148,7 @@ const handleChange = useCallback(e => {
 ## useRef
 useRef는 함수형 컴포넌트에서도 ref 기능을 사용할 수 있게 해준다.
 
-```
+```jsx harmony
 const inputElement = useRef(null);
 const handleClickAdd = useCallback(() => {
     if (+num) {

@@ -7,6 +7,19 @@ tags:
   - jest globals 메서드
   - describe
   - test
+  
+toc: true
+widgets:
+  - type: toc
+    position: right
+  - type: categories
+    position: right
+  - type: tags
+    position: right
+  - type: adsense
+    position: right
+    client_id: ca-pub-5445993070474035
+    slot_id: ''
 ---
 
 Jest 제공 메서드들 중 Globals 메서드에 대해서 정리해보려 한다. Jest 공식 문서에 나와 있는 Globals 메서드 정의는 다음과 같다.
@@ -21,7 +34,7 @@ Jest 제공 메서드들 중 Globals 메서드에 대해서 정리해보려 한�
 
 다른 테스트와 공유되는 전역 환경 상태를 초기화 할때 주로 사용한다.
 
-```
+```javascript
 const globalDatabase = makeGlobalDatabase();
 
 function cleanUpDatabase(db) {
@@ -39,7 +52,7 @@ descirbe 함수 내부에서 사용될 경우 describe 내부의 테스트가 �
 
 afterAll 메서드와 달리 afterEach는 하나의 테스트가 완료될 때마다 실행된다. 각 테스트에 의해 생성된 임시 상태 또는 변수를 초기화 하는 경우 주로 사용한다.
 
-```
+```javascript
 const globalDatabase = makeGlobalDatabase();
 
 function cleanUpDatabase(db) {
@@ -57,7 +70,7 @@ descirbe 함수 내부에서 사용될 경우 describe 내부의 각각 테스�
 
 afterAll과 정반대라고 생각하면 된다. 이 메서드는 테스트가 실행되기전 최초에 한번 실행된다. 각 테스트를 진행하기 위해 데이터를 설정해 줄때 주로 사용된다.
 
-```
+```javascript
 const globalDatabase = makeGlobalDatabase();
 
 beforeAll(() => {
@@ -75,7 +88,7 @@ descirbe 함수 내부에서 사용될 경우 describe 내부의 테스트를 �
 
 하나의 테스트가 시작되기 전에 실행된다. descirbe 함수 내부에서 사용될 경우 describe 내부의 각각 테스트가 시작되기 전 실행된다.
 
-```
+```javascript
 const globalDatabase = makeGlobalDatabase();
 
 beforeEach(() => {
@@ -93,7 +106,7 @@ beforeEach(() => {
 
 describe 메서드는 몇몇의 관계가 있는 테스트들을 그룹으로 묶어 생성할 때 사용한다. test 메서드를 최상위에서 바로 실행시킬 수 있지만, describe 메서드로 관련있는 테스트 끼리 묶어서 작성하게 되면 가독성이 높아진다.
 
-```
+```javascript
 const myBeverage = {
   delicious: true,
   sour: false,
@@ -119,7 +132,7 @@ describe 메서드 함수 내부에서 다시 describe로 그룹화를 할 수 �
 - table: 인자로 배열을 넘기면 fn 함수의 인자로 사용 가능하다.
 - name: 테스트의 이름 printf formatting 기법을 사용할 수 있다.
 
-```
+```javascript
 describe.each([
   [1, 1, 2],
   [1, 2, 3],
@@ -141,7 +154,7 @@ describe.each([
 
 describe.each`table` 형식으로도 사용 가능하다.
 
-```
+```javascript
 describe.each`
   a    | b    | expected
   ${1} | ${1} | ${2}
@@ -155,7 +168,7 @@ describe.each`
 오직 하나의 describe 그룹의 테스트만 수행하고 싶을 때 사용한다. 다른 describe 테스트들은 skip 된다.
 `describe.only.each` 메서드도 사용할 수 있다.
 
-```
+```javascript
 describe.only('my beverage', () => {
   test('is delicious', () => {
     expect(myBeverage.delicious).toBeTruthy();
@@ -174,7 +187,7 @@ describe('my other beverage', () => {
 ### describe.skip(name, fn)
 
 특정한 describe 그룹을 테스트 하고 싶지 않을때 사용한다.
-```
+```javascript
 describe('my beverage', () => {
   test('is delicious', () => {
     expect(myBeverage.delicious).toBeTruthy();
@@ -196,7 +209,7 @@ describe.skip('my other beverage', () => {
 
 test 메서드를 사용하여 테스트를 수행할 수 있다. Promise나 비동기 방법을 지원한다.
 
-```
+```javascript
 test('did not rain', () => {
   expect(inchesOfRain()).toBe(0);
 });
@@ -215,7 +228,7 @@ describe.each(table)(name, fn, timeout)와 개념은 동일하다. 하지만 des
 ### test.only(name, fn, timeout)
 
 describe.only 와 개념은 동일하다.
-```
+```javascript
 test.only('it is raining', () => {
   expect(inchesOfRain()).toBeGreaterThan(0);
 });
@@ -233,7 +246,7 @@ test('it is not snowing', () => {
 
 수행하고 싶지 않은 테스트를 건너뛰게 할 수 있다.
 
-```
+```javascript
 test('it is raining', () => {
   expect(inchesOfRain()).toBeGreaterThan(0);
 });
@@ -249,7 +262,7 @@ test.skip('it is not snowing', () => {
 
 추가되어야할 테스트 TODO를 남겨놓을 수 있다. 해당 메서드를 사용하면 다른 테스트들과 달리 강조되어 표시된다. 인자로 callback을 넘기면 에러가 발생한다.
 
-```
+```javascript
 const add = (a, b) => a + b;
 
 test.todo('add should be associative');

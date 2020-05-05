@@ -8,6 +8,19 @@ tags:
   - deploy Next.js
   - pm2
   - pm2-ecosystem
+  
+toc: true
+widgets:
+  - type: toc
+    position: right
+  - type: categories
+    position: right
+  - type: tags
+    position: right
+  - type: adsense
+    position: right
+    client_id: ca-pub-5445993070474035
+    slot_id: ''
 ---
 
 `Next.js`는 Client-Side-Rendering 을 사용하는 react가 아닌 `SSR(Server-Side-Rendering)` 방식을 사용하는 react framework 이다.
@@ -21,7 +34,7 @@ pm2 ecosystem이란, 실행할 인스턴스의 설정을 JSON 형식으로 관�
 1. ecosystem.config.js 를 최상위 폴더에 생성한다.
 2. 작성방법
 
-```
+```javascript
 module.exports = {
   apps: [
     {
@@ -58,7 +71,7 @@ module.exports = {
 
 3. pm2 구동방법
 package.json script에 명령어를 추가해준다.
-```
+```javascript
 "scripts": {
     "precommit": "lint-staged",
     "build": "next build",
@@ -73,7 +86,7 @@ package.json script에 명령어를 추가해준다.
 ## Next.js 에서 process.env 변수 사용 주의사항
 `Next.config.js` 에서 `sass`, `webpack` 등의 처리 후 export 하는 과정에서, process.env 객체가 비어있는 문제를 발견했다. 하지만, api.js config.js 등 환경 변수에 따라 값을 변경해줘야 하기 때문에 process.env 객체가 비어있으면 안된다. 해당 문제를 처리하기 위해 Next.js 에서 `publicRuntimeConfig` 라는 옵션을 제공해준다.
 
-```
+```javascript
 const withSass = require('@zeit/next-sass')
 const withCSS = require('@zeit/next-css')
 
@@ -98,7 +111,7 @@ module.exports = withCSS(withSass({
 
 - 필요한 process.env 의 값을 `publicRuntimeConfig` 객체에 담아주고 Next.js 의 옵션 값에 할당해준다.할당해 주게되면, Next.js 의 config 값으로 저장되게 된다.이후 Next.js의 config 값을 불러오는 함수를 추가해준다.
 
-```
+```javascript
 import getConfig from 'next/config';
 
 export const getNodeEnv = () => {
@@ -112,7 +125,7 @@ export const getNodeEnv = () => {
 ```
 - 해당 함수는 Next.js의 config에서 publicRuntimeConfig 를 가져와 return 해준다.이제 process.env 환경변수를 사용하고 싶다면, process.env.API_END_POINT 와 같이 직접적으로 사용하는것이 아닌, 해당 함수를 사용해준다.
 
-```
+```javascript
 import config from './config'
 import { getNodeEnv } from '@/utils/env'
 

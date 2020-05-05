@@ -10,6 +10,19 @@ tags:
   - useState
   - useEffect
   - useContext
+  
+toc: true
+widgets:
+  - type: toc
+    position: right
+  - type: categories
+    position: right
+  - type: tags
+    position: right
+  - type: adsense
+    position: right
+    client_id: ca-pub-5445993070474035
+    slot_id: ''
 ---
 
 ## useState
@@ -21,7 +34,7 @@ useState 는 이름에서 유추하는것과 같이 함수형 컴포넌트에서
 
 <!-- more -->
 
-```
+```jsx harmony
 import React, { useState } from "react";
 
 const Counter = props => {
@@ -44,7 +57,7 @@ export default Counter;
 ### 여러개의 state 사용
 여러개의 state를 사용해야 한다면, 기존 class 방식에서는 state 객체 안에 키와 값을 설정해 주면 됐지만, 함수형 컴포넌트에서는 useState를 여러번 써줘야 한다.
 
-```
+```jsx harmony
 const Counter = props => {
   const [count, setCount] = useState(0);
   const [name, setName] = useState("");
@@ -64,7 +77,7 @@ const Counter = props => {
 ### 재사용 가능한 useState 함수 컴포넌트
 동일한 stateful 로직을 사용한다면 컴포넌트를 분리해서 사용하는것이 좋다.
 
-```
+```jsx harmony
 const useInputOption = props => {
   const [value, setValue] = useState(props || "");
   const onChange = e => {
@@ -105,7 +118,7 @@ useEffect는 함수형 컴포넌트에서도 라이프사이클과 같은 기능
 useEffect 함수는 state 변수를 하나만 관리하는것이 좋다. 즉 여러개의 useEffect 함수를 사용하는것을 추천해주고 있다.
 
 ### 사용방법
-```
+```jsx harmony
 import React, { useState, useEffect } from "react";
 
 const User = () => {
@@ -124,7 +137,7 @@ export default User;
 
 
 ### componentDidMount
-```
+```jsx harmony
 useEffect(() => {
     console.log("completed render", name);
   }, []);
@@ -133,7 +146,7 @@ useEffect(() => {
 
 
 ### componentDidUpdate
-```
+```jsx harmony
 useEffect(() => {
     console.log("completed render", name);
   }, [name]);
@@ -142,7 +155,7 @@ useEffect(() => {
 - 배열에 원하는 값을 넣어주면 해당 값이 변할때만 실행된다.
 
 ### componentWillUnmount
-```
+```jsx harmony
 useEffect(() => {
     console.log("completed render", name);
     return () => {
@@ -155,7 +168,7 @@ useEffect(() => {
 
 ## Promise 처리
 useEffect와 useState를 사용하여 promise 컴포넌트 또한 재사용이 가능하도록 할 수 있다.
-```
+```jsx harmony
 import { useState, useEffect } from "react";
 
 const usePromise = ({ promise, initialData, arr }) => {
@@ -214,7 +227,7 @@ const Names = () => {
 
 ## useContext
 useContext는 함수형 컴포넌트에서 Context를 쉽게 사용할 수 있게 해준다.
-```
+```jsx harmony
 import React, { createContext, useContext } from "react";
 
 const backgroundColorContext = createContext("black");

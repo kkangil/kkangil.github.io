@@ -116,6 +116,9 @@
     <meta name="generator" content="<%= config.title %>">
     <title><%= title %></title>
     <meta name="author" content="<%= config.author %>">
+    <%- autoCanonical(config, page) %>
+    <meta name="google-site-verification" content="6_Smv-rWZw7urNifInu4CE1hyB_GcTbeoXpaJkoFWIo" />
+    <meta name="naver-site-verification" content="b0ce7bc14af00ce2aee96528313654d78c325351" />
     <% if (keywords) { %>
         <meta name="keywords" content="<%= keywords %>">
     <% } %>
@@ -163,4 +166,5 @@
     <!--STYLES END-->
     <%- partial('google-analytics') %>
     <%- partial('baidu-analytics') %>
+    <script data-ad-client="ca-pub-5445993070474035" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 </head>
