@@ -8,8 +8,8 @@
     </url>
 
     <url>
-        <loc>https://kkangil.github.io/2020/02/23/jest-%EB%A9%94%EC%84%9C%EB%93%9C-toBe/</loc>
-        <lastmod>2020-05-05T12:45:03.710Z</lastmod>
+        <loc>https://kkangil.github.io/2019/12/01/Partial-js%EC%99%80-%ED%95%A8%EC%88%98-%EC%A1%B0%EB%A6%BD/</loc>
+        <lastmod>2020-05-05T13:07:46.868Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.6</priority>
 
@@ -17,119 +17,7 @@
 
     <url>
         <loc>https://kkangil.github.io/2020/02/09/%EC%84%B1%EB%8A%A5%EC%9D%84-%EB%86%92%EC%9D%B4%EB%8A%94-%EC%BD%94%EB%93%9C-%EC%8A%A4%ED%83%80%EC%9D%BC/</loc>
-        <lastmod>2020-05-05T12:29:57.673Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.6</priority>
-
-    </url>
-
-    <url>
-        <loc>https://kkangil.github.io/2019/04/19/%EB%A6%AC%EC%95%A1%ED%8A%B8-Hooks-3-%EC%82%AC%EC%9A%A9%EB%B0%A9%EB%B2%952/</loc>
-        <lastmod>2020-05-05T12:29:57.660Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.6</priority>
-
-    </url>
-
-    <url>
-        <loc>https://kkangil.github.io/2019/09/29/%ED%95%A8%EC%88%98%ED%98%95-%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D-%EC%8B%9C%EC%9E%912/</loc>
-        <lastmod>2020-05-05T12:29:57.653Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.6</priority>
-
-    </url>
-
-    <url>
-        <loc>https://kkangil.github.io/2019/10/27/%ED%95%A8%EC%88%98%ED%98%95-%EC%9E%90%EB%B0%94%EC%8A%A4%ED%81%AC%EB%A6%BD%ED%8A%B8%EB%A5%BC-%EC%9C%84%ED%95%9C-%EB%AC%B8%EB%B2%95-%EB%8B%A4%EC%8B%9C-%EB%B3%B4%EA%B8%B0-2/</loc>
-        <lastmod>2020-05-05T12:29:57.646Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.6</priority>
-
-    </url>
-
-    <url>
-        <loc>https://kkangil.github.io/2020/01/27/%EB%8F%84%EA%B5%AC-%EB%8B%A4%EB%A3%A8%EA%B8%B0-2/</loc>
-        <lastmod>2020-05-05T12:29:57.640Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.6</priority>
-
-    </url>
-
-    <url>
-        <loc>https://kkangil.github.io/2019/10/20/%ED%95%A8%EC%88%98%ED%98%95-%EC%9E%90%EB%B0%94%EC%8A%A4%ED%81%AC%EB%A6%BD%ED%8A%B8%EB%A5%BC-%EC%9C%84%ED%95%9C-%EB%AC%B8%EB%B2%95-%EB%8B%A4%EC%8B%9C-%EB%B3%B4%EA%B8%B0/</loc>
-        <lastmod>2020-05-05T12:29:57.635Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.6</priority>
-
-    </url>
-
-    <url>
-        <loc>https://kkangil.github.io/2019/11/17/%ED%95%A8%EC%88%98-%EC%A1%B0%EB%A6%BD%ED%95%98%EA%B8%B0/</loc>
-        <lastmod>2020-05-05T12:29:57.626Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.6</priority>
-
-    </url>
-
-    <url>
-        <loc>https://kkangil.github.io/2020/02/16/%EB%A0%8C%EB%8D%94%EB%A7%81/</loc>
-        <lastmod>2020-05-05T12:29:57.618Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.6</priority>
-
-    </url>
-
-    <url>
-        <loc>https://kkangil.github.io/2020/02/02/%EB%8F%84%EA%B5%AC-%EB%8B%A4%EB%A3%A8%EA%B8%B0-3/</loc>
-        <lastmod>2020-05-05T12:29:57.611Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.6</priority>
-
-    </url>
-
-    <url>
-        <loc>https://kkangil.github.io/2019/09/28/%ED%95%A8%EC%88%98%ED%98%95-%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D-%EC%8B%9C%EC%9E%91/</loc>
-        <lastmod>2020-05-05T12:29:57.605Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.6</priority>
-
-    </url>
-
-    <url>
-        <loc>https://kkangil.github.io/2019/04/19/%EB%A6%AC%EC%95%A1%ED%8A%B8-Hooks-2-%EC%82%AC%EC%9A%A9%EB%B0%A9%EB%B2%951/</loc>
-        <lastmod>2020-05-05T12:29:57.598Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.6</priority>
-
-    </url>
-
-    <url>
-        <loc>https://kkangil.github.io/2020/01/12/%EB%A9%94%EB%AA%A8%EC%9D%B4%EC%A0%9C%EC%9D%B4%EC%85%98/</loc>
-        <lastmod>2020-05-05T12:29:57.592Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.6</priority>
-
-    </url>
-
-    <url>
-        <loc>https://kkangil.github.io/2019/10/13/%ED%95%A8%EC%88%98%ED%98%95-%EC%9E%90%EB%B0%94%EC%8A%A4%ED%81%AC%EB%A6%BD%ED%8A%B8%EB%A5%BC-%EC%9C%84%ED%95%9C-%EA%B8%B0%EC%B4%88/</loc>
-        <lastmod>2020-05-05T12:29:57.585Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.6</priority>
-
-    </url>
-
-    <url>
-        <loc>https://kkangil.github.io/2019/04/28/Sequelize-model-%EC%A0%95%EC%9D%98/</loc>
-        <lastmod>2020-05-05T12:23:03.206Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.6</priority>
-
-    </url>
-
-    <url>
-        <loc>https://kkangil.github.io/2019/12/01/Partial-js%EC%99%80-%ED%95%A8%EC%88%98-%EC%A1%B0%EB%A6%BD/</loc>
-        <lastmod>2020-05-05T12:23:03.197Z</lastmod>
+        <lastmod>2020-05-05T13:07:46.860Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.6</priority>
 
@@ -137,63 +25,47 @@
 
     <url>
         <loc>https://kkangil.github.io/2020/01/19/%EB%8F%84%EA%B5%AC-%EB%8B%A4%EB%A3%A8%EA%B8%B0/</loc>
-        <lastmod>2020-05-05T12:23:03.173Z</lastmod>
+        <lastmod>2020-05-05T13:07:46.856Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.6</priority>
 
     </url>
 
     <url>
-        <loc>https://kkangil.github.io/2020/02/02/%EA%B8%B0%EB%B3%B8%EC%A0%81%EC%9D%B8-%EC%9B%B9-%EC%82%AC%EC%9D%B4%ED%8A%B8-%EC%B5%9C%EC%A0%81%ED%99%94-%EB%B0%A9%EB%B2%95/</loc>
-        <lastmod>2020-05-05T12:23:03.161Z</lastmod>
+        <loc>https://kkangil.github.io/2019/10/27/%ED%95%A8%EC%88%98%ED%98%95-%EC%9E%90%EB%B0%94%EC%8A%A4%ED%81%AC%EB%A6%BD%ED%8A%B8%EB%A5%BC-%EC%9C%84%ED%95%9C-%EB%AC%B8%EB%B2%95-%EB%8B%A4%EC%8B%9C-%EB%B3%B4%EA%B8%B0-2/</loc>
+        <lastmod>2020-05-05T13:07:46.849Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.6</priority>
 
     </url>
 
     <url>
-        <loc>https://kkangil.github.io/2019/12/29/%EA%B0%92%EC%97%90-%EB%8C%80%ED%95%B4/</loc>
-        <lastmod>2020-05-05T12:23:03.150Z</lastmod>
+        <loc>https://kkangil.github.io/2019/10/20/%ED%95%A8%EC%88%98%ED%98%95-%EC%9E%90%EB%B0%94%EC%8A%A4%ED%81%AC%EB%A6%BD%ED%8A%B8%EB%A5%BC-%EC%9C%84%ED%95%9C-%EB%AC%B8%EB%B2%95-%EB%8B%A4%EC%8B%9C-%EB%B3%B4%EA%B8%B0/</loc>
+        <lastmod>2020-05-05T13:07:46.845Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.6</priority>
 
     </url>
 
     <url>
-        <loc>https://kkangil.github.io/2020/02/09/jest-%EB%A9%94%EC%84%9C%EB%93%9C-globals/</loc>
-        <lastmod>2020-05-05T12:21:13.648Z</lastmod>
+        <loc>https://kkangil.github.io/2019/11/17/%ED%95%A8%EC%88%98-%EC%A1%B0%EB%A6%BD%ED%95%98%EA%B8%B0/</loc>
+        <lastmod>2020-05-05T13:07:46.840Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.6</priority>
 
     </url>
 
     <url>
-        <loc>https://kkangil.github.io/2020/02/16/jest-%EB%A9%94%EC%84%9C%EB%93%9C-expect/</loc>
-        <lastmod>2020-05-05T12:21:13.638Z</lastmod>
+        <loc>https://kkangil.github.io/2020/02/02/%EB%8F%84%EA%B5%AC-%EB%8B%A4%EB%A3%A8%EA%B8%B0-3/</loc>
+        <lastmod>2020-05-05T13:07:46.833Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.6</priority>
 
     </url>
 
     <url>
-        <loc>https://kkangil.github.io/2019/04/18/Deep-clone/</loc>
-        <lastmod>2020-05-05T12:21:13.625Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.6</priority>
-
-    </url>
-
-    <url>
-        <loc>https://kkangil.github.io/2019/04/18/Next-js-with-pm2-ecosystem/</loc>
-        <lastmod>2020-05-05T12:21:13.617Z</lastmod>
-        <changefreq>weekly</changefreq>
-        <priority>0.6</priority>
-
-    </url>
-
-    <url>
-        <loc>https://kkangil.github.io/2020/01/27/%EC%9B%B9-%EC%82%AC%EC%9D%B4%ED%8A%B8-%EC%B5%9C%EC%A0%81%ED%99%94/</loc>
-        <lastmod>2020-02-02T05:27:27.894Z</lastmod>
+        <loc>https://kkangil.github.io/2020/02/23/jest-%EB%A9%94%EC%84%9C%EB%93%9C-toBe/</loc>
+        <lastmod>2020-05-05T13:07:46.830Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.6</priority>
 
@@ -201,15 +73,79 @@
 
     <url>
         <loc>https://kkangil.github.io/2019/04/19/%EB%A6%AC%EC%95%A1%ED%8A%B8-Hooks-1-hooks-%EB%9E%80/</loc>
-        <lastmod>2019-04-19T03:52:29.003Z</lastmod>
+        <lastmod>2020-05-05T13:07:46.821Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.6</priority>
 
     </url>
 
     <url>
-        <loc>https://kkangil.github.io/2019/04/17/hello-world/</loc>
-        <lastmod>2019-04-17T15:35:24.643Z</lastmod>
+        <loc>https://kkangil.github.io/2020/02/02/%EA%B8%B0%EB%B3%B8%EC%A0%81%EC%9D%B8-%EC%9B%B9-%EC%82%AC%EC%9D%B4%ED%8A%B8-%EC%B5%9C%EC%A0%81%ED%99%94-%EB%B0%A9%EB%B2%95/</loc>
+        <lastmod>2020-05-05T13:07:46.818Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://kkangil.github.io/2019/04/18/Next-js-with-pm2-ecosystem/</loc>
+        <lastmod>2020-05-05T13:07:46.814Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://kkangil.github.io/2019/04/28/Sequelize-model-%EC%A0%95%EC%9D%98/</loc>
+        <lastmod>2020-05-05T13:07:46.812Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://kkangil.github.io/2020/02/09/jest-%EB%A9%94%EC%84%9C%EB%93%9C-globals/</loc>
+        <lastmod>2020-05-05T13:07:46.808Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://kkangil.github.io/2019/04/19/%EB%A6%AC%EC%95%A1%ED%8A%B8-Hooks-3-%EC%82%AC%EC%9A%A9%EB%B0%A9%EB%B2%952/</loc>
+        <lastmod>2020-05-05T13:07:46.804Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://kkangil.github.io/2019/09/29/%ED%95%A8%EC%88%98%ED%98%95-%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D-%EC%8B%9C%EC%9E%912/</loc>
+        <lastmod>2020-05-05T13:07:46.801Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://kkangil.github.io/2020/01/27/%EB%8F%84%EA%B5%AC-%EB%8B%A4%EB%A3%A8%EA%B8%B0-2/</loc>
+        <lastmod>2020-05-05T13:07:46.797Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://kkangil.github.io/2020/01/27/%EC%9B%B9-%EC%82%AC%EC%9D%B4%ED%8A%B8-%EC%B5%9C%EC%A0%81%ED%99%94/</loc>
+        <lastmod>2020-05-05T13:07:46.792Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://kkangil.github.io/2019/09/28/%ED%95%A8%EC%88%98%ED%98%95-%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%98%EB%B0%8D-%EC%8B%9C%EC%9E%91/</loc>
+        <lastmod>2020-05-05T13:07:46.787Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.6</priority>
 
@@ -217,7 +153,71 @@
 
     <url>
         <loc>https://kkangil.github.io/2019/04/17/%EB%A6%AC%EC%95%A1%ED%8A%B8-%EB%9D%BC%EC%9D%B4%ED%94%84%EC%82%AC%EC%9D%B4%ED%81%B4/</loc>
-        <lastmod>2019-04-17T15:34:52.842Z</lastmod>
+        <lastmod>2020-05-05T13:07:46.782Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://kkangil.github.io/2019/04/19/%EB%A6%AC%EC%95%A1%ED%8A%B8-Hooks-2-%EC%82%AC%EC%9A%A9%EB%B0%A9%EB%B2%951/</loc>
+        <lastmod>2020-05-05T13:07:46.775Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://kkangil.github.io/2020/01/12/%EB%A9%94%EB%AA%A8%EC%9D%B4%EC%A0%9C%EC%9D%B4%EC%85%98/</loc>
+        <lastmod>2020-05-05T13:07:46.770Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://kkangil.github.io/2019/12/29/%EA%B0%92%EC%97%90-%EB%8C%80%ED%95%B4/</loc>
+        <lastmod>2020-05-05T13:07:46.764Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://kkangil.github.io/2019/10/13/%ED%95%A8%EC%88%98%ED%98%95-%EC%9E%90%EB%B0%94%EC%8A%A4%ED%81%AC%EB%A6%BD%ED%8A%B8%EB%A5%BC-%EC%9C%84%ED%95%9C-%EA%B8%B0%EC%B4%88/</loc>
+        <lastmod>2020-05-05T13:07:46.758Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://kkangil.github.io/2020/02/16/jest-%EB%A9%94%EC%84%9C%EB%93%9C-expect/</loc>
+        <lastmod>2020-05-05T13:05:41.595Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://kkangil.github.io/2019/04/18/Deep-clone/</loc>
+        <lastmod>2020-05-05T13:05:41.586Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://kkangil.github.io/2019/04/17/hello-world/</loc>
+        <lastmod>2020-05-05T13:05:41.581Z</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.6</priority>
+
+    </url>
+
+    <url>
+        <loc>https://kkangil.github.io/2020/02/16/%EB%A0%8C%EB%8D%94%EB%A7%81/</loc>
+        <lastmod>2020-05-05T13:04:28.973Z</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.6</priority>
 
