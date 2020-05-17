@@ -141,7 +141,6 @@ $(document).ready(() => {
     update();
     $(window).resize(update);
     $(window).scroll(update);
-
     $('#back-to-top').on('click', () => {
         $('body, html').animate({ scrollTop: 0 }, 400);
     });
