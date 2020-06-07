@@ -49,8 +49,9 @@ module.exports = class extends Component {
             <script dangerouslySetInnerHTML={{ __html: embeddedConfig }}></script>
             {clipboard ? <script src={cdn('clipboard', '2.0.4', 'dist/clipboard.min.js')} defer={true}></script> : null}
             <Plugins site={site} config={config} page={page} helper={helper} head={false} />
+            <script async="async" src="https://sda.dveamer.com/js/csda.js"></script>
             <script src={url_for('/js/main.js')} defer={true}></script>
-            
+            <script id="dsq-count-scr" src="//https-kkangil-github-io.disqus.com/count.js" async></script>
         </Fragment>;
     }
 };

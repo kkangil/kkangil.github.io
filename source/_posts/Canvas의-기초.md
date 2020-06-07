@@ -94,7 +94,7 @@ ctx.lineTo(100, 50);
 ctx.stroke();
 ```
 
-![사각형그리기](/images/canvas-사각형그리기.png)
+![사각형그리기](/images/canvas-사각형그리기.png)
 
 ### 내부에 색 채우기
 
@@ -151,7 +151,7 @@ ctx.lineCap = "square";
 ctx.stroke();
 ```
 
-![선의 끝부분 처리](/images/canvas-선의끝부분처리.png)
+![선의 끝부분 처리](/images/canvas-선의끝부분처리.png)
 
 `lineCap` 을 사용하면 선의 끝 부분을 처리할 수 있다.
 
@@ -189,7 +189,7 @@ ctx.lineJoin = "bevel";
 ctx.stroke();
 ```
 
-![선의 꺾인 부분 처리하기](/images/canvas-선의꺾인부분처리.png)
+![선의 꺾인 부분 처리하기](/images/canvas-선의꺾인부분처리.png)
 
 `lineJoin` 를 사용하면 꺾인 부분을 처리할 수 있다.
 
@@ -227,7 +227,7 @@ ctx.setLineDash([20, 10, 50, 10]);
 ctx.stroke();
 ```
 
-![점선 만들기](/images/canvas-점선처리.png)
+![점선 만들기](/images/canvas-점선처리.png)
 
 `setLineDash` 를 사용하여 점선을 만든다.
 
@@ -248,7 +248,7 @@ ctx.strokeRect(20, 20, 100, 100);
 ctx.strokeRect(150, 150, 50, 50);
 ```
 
-![사각형](/images/canvas-사각형.png)
+![사각형](/images/canvas-사각형.png)
 
 `strokeRect` 함수를 사용하면 사각형을 쉽게 그릴 수 있다.
 
@@ -268,7 +268,7 @@ ctx.fillRect(150, 150, 50, 50);
 ctx.strokeRect(150, 150, 50, 50);
 ```
 
-![사각형 색 채우기](/images/canvas-사각형색채우기.png)
+![사각형 색 채우기](/images/canvas-사각형색채우기.png)
 
 ### 내부를 사각형으로 지우기
 

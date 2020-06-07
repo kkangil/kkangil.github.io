@@ -17,6 +17,11 @@ class Footer extends Component {
 
         return <footer class="footer">
             <div class="container">
+                <div className="coupangadsbydveamer"
+                    style="display:block;"
+                    data-csda-ltag="AF5591865"
+                    data-csda-categories="178255,194276,000000"
+                    data-csda-size="auto"/>
                 <div class="level">
                     <div class="level-start">
                         <a class="footer-logo is-block mb-2" href={siteUrl}>

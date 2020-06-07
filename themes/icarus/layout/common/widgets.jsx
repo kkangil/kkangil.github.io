@@ -94,6 +94,11 @@ class Widgets extends Component {
                 'is-hidden-widescreen': true,
                 'is-sticky': isColumnSticky(config, 'right')
             })}></div> : null}
+            <div className="coupangadsbydveamer"
+                 style="display:block;"
+                 data-csda-ltag="AF5591865"
+                 data-csda-categories="178255,194276,000000"
+                 data-csda-size="auto"/>
         </div>;
     }
 }
